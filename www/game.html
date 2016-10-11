@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Donation Box Defense by:RSGmaker</title>
+	<script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+	<script src="../external/DataChannel.js"></script>
+	
+	<script src="../output/archive-min.js"></script>
+    <script src="../output/bridge.min.js"></script>
+	<script src="../output/require.js"></script>
+	<!--<script type="text/javascript" src="../output/glMatrix-0.9.5.min.js"></script>-->
+	<script src="../output/sylvester.js" type="text/javascript"></script>
+    <script src="../output/glUtils.js" type="text/javascript"></script>
+	<script src="../output/gl-matrix.js" type="text/javascript"></script>
+
+    <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec2 vTextureCoord;
+        varying vec3 vLightWeighting;
+
+        uniform sampler2D uSampler;
+
+        uniform float uAlpha;
+
+        void main(void) {
+            vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+            gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a * uAlpha);
+        }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec3 aVertexNormal;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+        uniform mat3 uNMatrix;
+
+        uniform vec3 uAmbientColor;
+
+        uniform vec3 uLightingDirection;
+        uniform vec3 uDirectionalColor;
+
+        uniform bool uUseLighting;
+
+        varying vec2 vTextureCoord;
+        varying vec3 vLightWeighting;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+
+            if (!uUseLighting) {
+                vLightWeighting = vec3(1.0, 1.0, 1.0);
+            } else {
+                vec3 transformedNormal = uNMatrix * aVertexNormal;
+                float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+                vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+            }
+        }
+    </script>
+	<script id="Bshader-fs" type="x-shader/x-fragment">
+	  precision mediump float;
+      varying lowp vec4 vColor;
+	  uniform vec4 uPColor;
+	  
+	  varying vec2 vTextureCoord;
+	  uniform sampler2D uSampler;
+	  uniform float uFogDensity;
+	  uniform bool uUseFog;
+	  
+	  uniform float uAlpha;
+	  
+      void main(void) {
+	    vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+		//vec4 Ocolor = (textureColor+uPColor) * vColor;
+		vec4 Ocolor = (textureColor+uPColor);
+		float ox = min(Ocolor.x,vColor.x);
+		float oy = min(Ocolor.y,vColor.y);
+		float oz = min(Ocolor.z,vColor.z);
+		float oa = min(Ocolor.a,vColor.a) * uAlpha;
+		Ocolor = vec4(ox,oy,oz,oa);
+		
+		//Start of fog code
+		float density = uFogDensity;
+		if (uUseFog) {
+		//const float LOG2 = 1.442695;
+		//float z = gl_FragCoord.z / gl_FragCoord.w;
+		//float fogFactor = exp2(-density * density * z * z * LOG2);
+		float z = gl_FragCoord.z / gl_FragCoord.w;
+		float fogFactor = exp2(-density * z * z);
+		fogFactor = clamp(fogFactor,0.0,1.0);
+		
+		//vec4 fog_color = vec4(1,1,1,0);
+		
+		//black only method.
+		Ocolor.x *= fogFactor;
+		Ocolor.y *= fogFactor;
+		Ocolor.z *= fogFactor;
+		//Ocolor = mix(fog_color,Ocolor,fogFactor);
+		}
+		//end of fog code
+		
+		gl_FragColor = Ocolor;
+		//gl_FragColor = textureColor;
+      }
+    </script>
+
+
+    <script id="Bshader-vs" type="x-shader/x-vertex">
+      attribute vec3 aVertexPosition;
+      attribute vec4 aVertexColor;
+      uniform mat4 uMVMatrix;
+      uniform mat4 uPMatrix;
+	  
+	  
+      varying lowp vec4 vColor;
+	  
+	  attribute vec2 aTextureCoord;
+	  varying vec2 vTextureCoord;
+      void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+		vTextureCoord = aTextureCoord;
+      }
+    </script>
+    <script src="../output/BNTest.min.js"></script>
+</head>
+<body>
+    <!-- 
+        Right-Click on this file and select "View in Browser"
+    --> 
+</body>
+</html>
