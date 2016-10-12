@@ -520,7 +520,7 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Donation Box Defense",
-            gameVersion: "0.0.1",
+            gameVersion: "0.0.2",
             IC: null,
             DEBUG: false,
             update: function () {
@@ -2229,6 +2229,7 @@
             lastTime: 0,
             updated: true,
             doDrawScene: function (elapsedTime) {
+                requestAnimationFrame(BNTest.GLDemo.doDrawScene);
                 if (BNTest.GLDemo.lastTime === 0) {
                     BNTest.GLDemo.lastTime = elapsedTime;
                 }
@@ -2251,7 +2252,7 @@
                     BNTest.GLDemo.updated = true;
                 }
                 BNTest.GLDemo.lastTime = elapsedTime;
-                requestAnimationFrame(BNTest.GLDemo.doDrawScene);
+
 
                 //Helper.Log("time:" + elapsedTime + " missing:" + missingTime);
             },
@@ -8334,12 +8335,21 @@
                 var c = BNTest.WGMatrix.tmatrix;
                 //var l = 4;
                 var l = 3;
+                var cij = 0;
+                var ci;
+                var ai;
                 for (var i = 0; i < l; i = (i + 1) | 0) {
+                    ci = c[i];
                     for (var j = 0; j < 4; j = (j + 1) | 0) {
-                        c[i][j] = 0;
+                        cij = 0;
+                        /* c[i][j] = 0;
+                        for (int k = 0; k < 4; k++) // OR k<b.GetLength(0)
+                            c[i][j] += a[i][k] * b[k][j];*/
+                        ai = a[i];
                         for (var k = 0; k < 4; k = (k + 1) | 0) {
-                            c[i][j] += a[i][k] * b[k][j];
+                            cij += ai[k] * b[k][j];
                         }
+                        ci[j] = cij;
                     }
                 }
                 matrix1.elements = c;
