@@ -201,6 +201,9 @@
         queueEmpty: function () {
             return this._loading.getCount() === 0;
         },
+        queueSize: function () {
+            return this._loading.getCount();
+        },
         onReady: function () {
             this.ready = true;
             BNTest.HelperExtensions.forEach(String, this.queued.toArray(), Bridge.fn.bind(this, $_.BNTest.AnimationLoader.f2));
@@ -520,7 +523,7 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Donation Box Defense",
-            gameVersion: "0.0.2",
+            gameVersion: "0.0.3",
             IC: null,
             DEBUG: false,
             update: function () {
@@ -662,7 +665,7 @@
             BNTest.App.guiCanvas.style.left = "0px";
             BNTest.App.guiCanvas.style.top = "0px";
 
-            BNTest.App.guiCanvas.style.opacity = "0.85";
+            //guiCanvas.Style.Opacity = "0.85";
             BNTest.App.gui = BNTest.Helper.getContext(BNTest.App.guiCanvas);
             BNTest.App.div.appendChild(BNTest.App.guiCanvas);
 
@@ -1054,6 +1057,13 @@
         getHandledLocally: function () {
             return this.game.hoster;
         },
+        getHitbox: function () {
+            if (this.lastBB == null) {
+                return this.getHitbox();
+            } else {
+                return this.lastBB;
+            }
+        },
         getBoundingBox: function () {
             if (this.customBoundingBox != null) {
                 return BNTest.BoundingBox.op_Addition(this.customBoundingBox, this.getPosition());
@@ -1355,6 +1365,18 @@
             var hsize = size / 2;
             this.min = new BNTest.GLVec3(-hsize, -hsize, -hsize);
             this.max = new BNTest.GLVec3(hsize, hsize, hsize);
+        },
+        getPosition: function () {
+            return this.min;
+        },
+        setPosition: function (value) {
+            var X = this.max.x - this.min.x;
+            var Y = this.max.y - this.min.y;
+            var Z = this.max.z - this.min.z;
+            this.min = value;
+            this.max.x = this.min.x + X;
+            this.max.y = this.min.y + Y;
+            this.max.z = this.min.z + Z;
         },
         getEmpty: function () {
             return this.min.equals(this.max);
@@ -2322,7 +2344,7 @@
         foliage: null,
         hoster: true,
         fogActive: false,
-        cameraDist: 280,
+        cameraDist: 300,
         lastCameraDist: 0,
         lastZnear: 0,
         bGMVolume: 0.4,
@@ -2340,6 +2362,9 @@
         yIncValue: 0.0,
         zIncValue: 0.0,
         mouseAngle: 0,
+        loadProgress: 0,
+        maxLoadProgress: 0,
+        maxLoadQueue: 0,
         model: null,
         perspectiveMatrix: null,
         mvMatrix: null,
@@ -2361,14 +2386,16 @@
         lastsong: "",
         titleRunning: false,
         titlescreen: true,
+        defaultBulletSpeedRate: 0.65,
+        bulletSpeedRate: 1,
         wavetime: 3,
         wave: 0,
         enemyList: null,
         smooth: true,
         lastModelName: "rahmoo",
         lastModel: null,
-        nPCSpawntime: 8000,
-        dNPCSpawntime: 8000,
+        nPCSpawntime: 0,
+        dNPCSpawntime: 7500.0,
         nextSpawn: 0,
         nPCs: 0,
         maxWaveDelay: 150,
@@ -2577,8 +2604,10 @@
                 //PC.Position.Y = -15;
                 PC.getPosition().y = -15000;
                 PC.setCoins(1000);
-                PC.defense = 4;
+                //PC.defense = 4;
+                PC.defense = 5;
                 PC.visible = false;
+                PC.setHitboxSize(PC.getHitboxSize()*0.35);
 
                 this.world.add(PC);
 
@@ -2964,10 +2993,14 @@
         },
         nextWave: function (skip) {
             if (skip === void 0) { skip = 10; }
+
             this.boss = null;
             this.localplayer.character.setHP(100);
             this.wave = (this.wave + 1) | 0;
             this.clearEntities();
+            //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.02);
+            this.bulletSpeedRate = this.defaultBulletSpeedRate + (this.wave * 0.022);
+            this.bulletSpeedRate = Math.min(this.bulletSpeedRate, 2.5);
             this.waveDelay = this.maxWaveDelay;
             this.totaltime = 0;
             this.nPCs = 0;
@@ -3418,6 +3451,7 @@
 
                         this.wave = 0;
                     }
+                    BNTest.App.guiCanvas.style.opacity = "0.85";
                     this.titleRunning = false;
                     this.titlescreen = false;
                     this.world.add(this.localplayer.character);
@@ -3851,6 +3885,7 @@
                 this.clearEntities(true);
                 this.totaltime = 0;
                 this.titlescreen = true;
+                BNTest.App.guiCanvas.style.opacity = "1";
                 //PlayMusic("titlescreen");
                 if (this.localplayer.character.respawnTime > 0) {
                     this.localplayer.character.respawnTime = 0;
@@ -3897,6 +3932,18 @@
                 gui.globalAlpha = 0.5;
                 gui.fillRect(0, 0, 1024, 1024);
                 gui.globalAlpha = 1.0;
+
+                var QS = BNTest.AnimationLoader.get_this().queueSize();
+                this.maxLoadQueue = Math.max(this.maxLoadQueue, QS);
+                if (QS > 0) {
+                    var loaded = (this.maxLoadQueue - QS) | 0;
+                    this.maxLoadProgress = loaded / this.maxLoadQueue;
+                    //loadProgress += ((maxLoadProgress - loadProgress) * 0.005) + 0.01;
+                    //loadProgress = MathHelper.Lerp(loadProgress,maxLoadProgress,0.1);
+                    this.loadProgress = BNTest.MathHelper.lerp(this.loadProgress, this.maxLoadProgress, 0.07);
+                    this.loadProgress = Math.min(this.loadProgress, this.maxLoadQueue, 1);
+                    this.drawGauge(gui, new BNTest.Vector2(350, 42), new BNTest.Vector2(320, 24), 2, this.loadProgress, "#00DD00");
+                }
             }
 
             gui.lineWidth = 3.0;
@@ -7609,13 +7656,17 @@
             this.map = N;
         },
         flatten: function () {
-            var N = System.Array.create(null, null, System.Array.getLength(this.map, 0), 1, System.Array.getLength(this.map, 2));
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
+            var N = System.Array.create(null, null, MX, 1, MZ);
             var X = 0;
             var Y = 0;
             var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
+
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
                         N.set([X, 0, Z], this.map.get([X, Y, Z]));
                         Z = (Z + 1) | 0;
                     }
@@ -7635,10 +7686,13 @@
             var X = 0;
             var Y = 0;
             var Z = 0;
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
             var m2 = strength + strength;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
                         var C = this.map.get([X, Y, Z]);
                         if (this.valid(C) && ((X & 1) > 0 || (Z & 1) > 0 || (verticalStride > 0 && ((((((Y + X) | 0) + Z) | 0)) % verticalStride === 0))) && (coverage >= 1 || Math.random() > coverage)) {
                             C = BNTest.GLColor.op_Multiply(C, (1 - strength));
@@ -7664,9 +7718,12 @@
             var Y = 0;
             var Z = 0;
             var m2 = strength + strength;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
                         var C = this.map.get([X, Y, Z]);
                         if (this.valid(C) && (coverage >= 1 || Math.random() > coverage)) {
                             C = BNTest.GLColor.op_Addition(C, new BNTest.GLColor(-strength + (m2 * Math.random()), -strength + (m2 * Math.random()), -strength + (m2 * Math.random())));
@@ -8025,43 +8082,50 @@
             if (Keys.getCount() <= 0) {
                 return;
             }
+
             var X = 0;
             var Y = 0;
             var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                (function () {
-                    while (Y < System.Array.getLength(this.map, 1)) {
-                        (function () {
-                            while (Z < System.Array.getLength(this.map, 2)) {
-                                (function () {
-                                    var C = this.map.get([X, Y, Z]);
-                                    if (C != null && C.a > 0) {
-                                        var key = null;
-                                        //var ind = Keys.IndexOf(C);
-                                        BNTest.HelperExtensions.forEach(BNTest.GLColor, Keys, function (K) {
-                                            if (K.similar(C)) {
-                                                key = K;
-                                            }
-                                        });
-                                        //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
-                                        if (key != null) {
-                                            var ind = Keys.indexOf(key);
-                                            if (ind >= 0) {
-                                                this.map.set([X, Y, Z], Vals.getItem(ind));
-                                            }
-                                        }
-                                    }
-                                    Z = (Z + 1) | 0;
-                                }).call(this);
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
+            var key = null;
+            var i = 0;
+            var ln = Keys.getCount();
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
+                        var C = this.map.get([X, Y, Z]);
+                        if (C != null && C.a > 0) {
+
+                            //var ind = Keys.IndexOf(C);
+                            key = null;
+                            i = 0;
+                            while (i < ln) {
+                                var t = Keys.getItem(i);
+                                if (t.similar(C)) {
+                                    key = t;
+                                    i = ln;
+                                }
+                                i = (i + 1) | 0;
                             }
-                            Z = 0;
-                            Y = (Y + 1) | 0;
-                        }).call(this);
+                            //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
+
+                            if (key != null) {
+                                var ind = Keys.indexOf(key);
+                                if (ind >= 0) {
+                                    this.map.set([X, Y, Z], Vals.getItem(ind));
+                                }
+                            }
+                        }
+                        Z = (Z + 1) | 0;
                     }
-                    Y = 0;
                     Z = 0;
-                    X = (X + 1) | 0;
-                }).call(this);
+                    Y = (Y + 1) | 0;
+                }
+                Y = 0;
+                Z = 0;
+                X = (X + 1) | 0;
             }
         },
         swapYZ: function () {
@@ -8109,19 +8173,22 @@
             return ret.toArray();
         },
         resize: function (NewDimensions) {
-            if (System.Array.getLength(this.map, 0) < NewDimensions[0] || System.Array.getLength(this.map, 1) < NewDimensions[1] || System.Array.getLength(this.map, 2) < NewDimensions[2]) {
+            var NX = NewDimensions[0];
+            var NY = NewDimensions[1];
+            var NZ = NewDimensions[2];
+            if (System.Array.getLength(this.map, 0) < NX || System.Array.getLength(this.map, 1) < NY || System.Array.getLength(this.map, 2) < NZ) {
                 //TO DO:Resize logic.
-                var NM = System.Array.create(null, null, NewDimensions[0], NewDimensions[1], NewDimensions[2]);
-                var XOffset = (((NewDimensions[0] - System.Array.getLength(this.map, 0)) | 0)) >> 1;
-                var YOffset = (((NewDimensions[1] - System.Array.getLength(this.map, 1)) | 0)) >> 1;
-                var ZOffset = (((NewDimensions[2] - System.Array.getLength(this.map, 2)) | 0)) >> 1;
+                var NM = System.Array.create(null, null, NX, NY, NZ);
+                var XOffset = (((NX - System.Array.getLength(this.map, 0)) | 0)) >> 1;
+                var YOffset = (((NY - System.Array.getLength(this.map, 1)) | 0)) >> 1;
+                var ZOffset = (((NZ - System.Array.getLength(this.map, 2)) | 0)) >> 1;
                 var X = 0;
                 var Y = 0;
                 var Z = 0;
 
-                while (X < NewDimensions[0]) {
-                    while (Y < NewDimensions[1]) {
-                        while (Z < NewDimensions[2]) {
+                while (X < NX) {
+                    while (Y < NY) {
+                        while (Z < NZ) {
                             var OV = this.getVoxel(((X - XOffset) | 0), ((Y - XOffset) | 0), ((Z - ZOffset) | 0));
                             NM.set([X, Y, Z], OV);
                             Z = (Z + 1) | 0;
@@ -8147,9 +8214,12 @@
             var SX = X;
             var SY = Y;
             var SZ = Z;
-            while (X < ((SX + Width) | 0)) {
-                while (Y < ((SY + Height) | 0)) {
-                    while (Z < ((SZ + Depth) | 0)) {
+            var X2 = (SX + Width) | 0;
+            var Y2 = (SY + Height) | 0;
+            var Z2 = (SZ + Depth) | 0;
+            while (X < X2) {
+                while (Y < Y2) {
+                    while (Z < Z2) {
                         this.setVoxel$1(X, Y, Z, C);
                         Z = (Z + 1) | 0;
                     }
@@ -8276,6 +8346,7 @@
     Bridge.define("BNTest.WGMatrix", {
         statics: {
             tmatrix: null,
+            tbmatrix: null,
             t2matrix: null,
             tmatobj: null,
             init: function () {
@@ -8286,6 +8357,12 @@
                     c[2] = System.Array.init(4, 0);
                     c[3] = System.Array.init(4, 0);
                     BNTest.WGMatrix.tmatrix = c;
+                    c = System.Array.init(4, null);
+                    c[0] = System.Array.init(4, 0);
+                    c[1] = System.Array.init(4, 0);
+                    c[2] = System.Array.init(4, 0);
+                    c[3] = System.Array.init(4, 0);
+                    BNTest.WGMatrix.tbmatrix = c;
 
                     c = System.Array.init(4, null);
                     c[0] = System.Array.init(4, 0);
@@ -8309,47 +8386,115 @@
             copyFrom: function (source, destination) {
                 var a = source.elements;
                 var b = destination.elements;
-                b[0][0] = a[0][0];
-                b[0][1] = a[0][1];
-                b[0][2] = a[0][2];
-                b[0][3] = a[0][3];
+                var t = b[0];
+                var t2 = a[0];
+                t[0] = t2[0];
+                t[1] = t2[1];
+                t[2] = t2[2];
+                t[3] = t2[3];
 
-                b[1][0] = a[1][0];
-                b[1][1] = a[1][1];
-                b[1][2] = a[1][2];
-                b[1][3] = a[1][3];
+                t = b[1];
+                t2 = a[1];
+                t[0] = t2[0];
+                t[1] = t2[1];
+                t[2] = t2[2];
+                t[3] = t2[3];
 
-                b[2][0] = a[2][0];
-                b[2][1] = a[2][1];
-                b[2][2] = a[2][2];
-                b[2][3] = a[2][3];
+                t = b[2];
+                t2 = a[2];
+                t[0] = t2[0];
+                t[1] = t2[1];
+                t[2] = t2[2];
+                t[3] = t2[3];
 
-                b[3][0] = a[3][0];
-                b[3][1] = a[3][1];
-                b[3][2] = a[3][2];
-                b[3][3] = a[3][3];
+                t = b[3];
+                t2 = a[3];
+                t[0] = t2[0];
+                t[1] = t2[1];
+                t[2] = t2[2];
+                t[3] = t2[3];
+            },
+            copyFromInverted: function (source, destination) {
+                var a = source;
+                var b = destination;
+                var t = b[0];
+                t[0] = a[0][0];
+                t[1] = a[1][0];
+                t[2] = a[2][0];
+                t[3] = a[3][0];
+
+                t = b[1];
+                t[0] = a[0][1];
+                t[1] = a[1][1];
+                t[2] = a[2][1];
+                t[3] = a[3][1];
+
+                t = b[2];
+                t[0] = a[0][2];
+                t[1] = a[1][2];
+                t[2] = a[2][2];
+                t[3] = a[3][2];
+
+                t = b[3];
+                t[0] = a[0][3];
+                t[1] = a[1][3];
+                t[2] = a[2][3];
+                t[3] = a[3][3];
             },
             multMatrix: function (matrix1, matrix2) {
+                var a = matrix1.elements;
+                BNTest.WGMatrix.copyFromInverted(matrix2.elements, BNTest.WGMatrix.tbmatrix);
+                var b = BNTest.WGMatrix.tbmatrix;
+                var c = BNTest.WGMatrix.tmatrix;
+                //var l = 4;
+                var l = 3;
+                //double cij = 0;
+                var ci;
+                var ai;
+                var bj;
+                for (var i = 0; i < l; i = (i + 1) | 0) {
+                    ci = c[i];
+                    ai = a[i];
+                    //bi = b[i];
+                    var ai0 = ai[0];
+                    var ai1 = ai[1];
+                    var ai2 = ai[2];
+                    var ai3 = ai[3];
+                    for (var j = 0; j < 4; j = (j + 1) | 0) {
+                        bj = b[j];
+                        //ci[j] = ai0 * b[0][j] + ai1 * b[1][j] + ai2 * b[2][j] + ai3 * b[3][j];
+                        ci[j] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
+                    }
+                }
+                matrix1.elements = c;
+                BNTest.WGMatrix.tmatrix = a;
+            },
+            oldMultMatrix: function (matrix1, matrix2) {
                 var a = matrix1.elements;
                 var b = matrix2.elements;
                 var c = BNTest.WGMatrix.tmatrix;
                 //var l = 4;
                 var l = 3;
-                var cij = 0;
+                //double cij = 0;
                 var ci;
                 var ai;
                 for (var i = 0; i < l; i = (i + 1) | 0) {
                     ci = c[i];
+                    ai = a[i];
+                    var ai0 = ai[0];
+                    var ai1 = ai[1];
+                    var ai2 = ai[2];
+                    var ai3 = ai[3];
                     for (var j = 0; j < 4; j = (j + 1) | 0) {
-                        cij = 0;
                         /* c[i][j] = 0;
                         for (int k = 0; k < 4; k++) // OR k<b.GetLength(0)
                             c[i][j] += a[i][k] * b[k][j];*/
-                        ai = a[i];
-                        for (var k = 0; k < 4; k = (k + 1) | 0) {
+                        /* cij = 0;
+                        for (int k = 0; k < 4; k++)
                             cij += ai[k] * b[k][j];
-                        }
-                        ci[j] = cij;
+                        ci[j] = cij;*/
+                        ci[j] = ai0 * b[0][j] + ai1 * b[1][j] + ai2 * b[2][j] + ai3 * b[3][j];
+
                     }
                 }
                 matrix1.elements = c;
@@ -8845,23 +8990,40 @@
         },
         updateAttackCollisions: function () {
             //List<Entity> LC = entities.(E => E is IHarmfulEntity);
-            var LHE = System.Linq.Enumerable.from(this.entities).ofType(BNTest.IHarmfulEntity).toList(BNTest.IHarmfulEntity);
-            var LC = System.Linq.Enumerable.from(this.entities).ofType(BNTest.ICombatant).toList(BNTest.ICombatant);
-
+            /* List<IHarmfulEntity> LHE = Entities.OfType<IHarmfulEntity>().ToList();
+                List<ICombatant> LC = Entities.OfType<ICombatant>().ToList();*/
             var i = 0;
-            var li = LHE.getCount();
-            var jli = LC.getCount();
+            var LHE = System.Array.init(0, null);
+            var LC = System.Array.init(0, null);
+            var ln = this.entities.getCount();
+            while (i < ln) {
+                var E = this.entities.getItem(i);
+                //if (E.As<ICombatant>().TargetPriority.As<bool>())
+                if (E.getTargetPriority) {
+                    LC.push(E);
+                }
+                //if (E.As<IHarmfulEntity>().touchDamage.As<bool>())
+                if (E.gettouchDamage) {
+                    LHE.push(E);
+                }
+                i = (i + 1) | 0;
+            }
+
+            i = 0;
+            var li = LHE.length;
+            var jli = LC.length;
             while (i < li) {
                 var ji = 0;
-                var HE = LHE.getItem(i);
+                var HE = LHE[i];
                 var THE = HE;
                 var B = THE.lastBB;
                 while (ji < jli) {
-                    var C = LC.getItem(ji);
+                    var C = LC[ji];
                     {
                         if (!HE.BNTest$IHarmfulEntity$getAttacker().sameTeam(C)) {
                             var CE = C;
                             var CB = CE.lastBB;
+                            //var CB = CE.GetHitbox();
                             if (B.intersection$2(CB)) {
                                 this.game.attack(C, HE);
                             }
@@ -9145,7 +9307,7 @@
 
     Bridge.define("BNTest.DonationBox", {
         inherits: [BNTest.Entity],
-        defaultMaxHP: 25,
+        defaultMaxHP: 40,
         maxHP: 0,
         HP: 0,
         coinsToRelease: 0,
@@ -10676,6 +10838,7 @@
         bulletSpeed: 2.0,
         bulletLifeSpan: 130,
         bulletGraphic: null,
+        minCoolDown: 100,
         config: {
             alias: [
             "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
@@ -10693,7 +10856,7 @@
             return 3.5;
         },
         getMaxCooldown: function () {
-            return (((((this._maxAmmo * this._maxShotDelay) | 0)) + 100) | 0);
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
         },
         setFiringAngle: function (value) {
             this._angle = value;
@@ -11299,6 +11462,7 @@
         bulletSpeed: 12,
         bulletLifeSpan: 35,
         bulletGraphic: null,
+        minCoolDown: 50,
         config: {
             alias: [
             "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
@@ -11316,7 +11480,7 @@
             return 3.5;
         },
         getMaxCooldown: function () {
-            return (((((this._maxAmmo * this._maxShotDelay) | 0)) + 50) | 0);
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
         },
         setFiringAngle: function (value) {
             this._angle = value;
@@ -11678,11 +11842,12 @@
         _PointsForKilling: 10,
         pmesh: null,
         invincibilityFrames: 0,
-        maxInvincibilityFrames: 120,
+        maxInvincibilityFrames: 150,
         defense: 1,
         maxRespawnTime: 0,
         respawnTime: 0,
         respawnPosition: null,
+        HB: null,
         ammo: 0.0,
         maxAmmo: 90.0,
         ammoRechargeRate: 0.7,
@@ -11721,6 +11886,7 @@
             var csz = 8.0;
             var hsz = csz / 2;
             this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3(-hsz, -csz, -hsz), new BNTest.GLVec3(hsz, csz, hsz));
+            this.setHitboxSize(hsz);
             this.char = character;
             //Char = "reimu";
             var weaponGraphic = "object/amulet";
@@ -12036,12 +12202,13 @@
             } else {
                 this.addBehavior(new BNTest.RapidFireGun(this));
             }
-
+            var speedrate = this.game.bulletSpeedRate;
             var minion = me.minion;
             if (me.CPU && minion) {
                 //GetBehavior<PlatformerControls>().maxSpeed *= 0.67f;
                 //GetBehavior<PlatformerControls>().maxSpeed *= 0.5f;
                 var spd = 0.4;
+                var T2 = this.getBehavior(BNTest.IWeaponBehavior);
 
                 if (Bridge.referenceEquals(this.char, "aya")) {
                     this.canShoot = true;
@@ -12052,7 +12219,7 @@
                     T.predict = false;
                     this.addBehavior(T);
                     //default stuff is sanae
-                    var T2 = this.getBehavior(BNTest.IWeaponBehavior);
+
                     T2._maxAmmo = 1;
                     T2.bulletSpeed = 2.5;
                     T2.bulletLifeSpan = 450;
@@ -12072,10 +12239,10 @@
                     //T.attackrange = 100;
                     T1.attackrange = 150;
                     //default stuff is sanae
-                    var T21 = this.getBehavior(BNTest.IWeaponBehavior);
+                    //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
                     //T2.MinCoolDown = 300;
                     //T2.MinCoolDown = 180;
-                    T21.minCoolDown = 120;
+                    T2.minCoolDown = 120;
                     /* T2._maxAmmo = 1;
                         T2.bulletSpeed = 2.5f;
                         T2.bulletLifeSpan = 450;
@@ -12089,64 +12256,86 @@
                 if (Bridge.referenceEquals(this.char, "sanae") || Bridge.referenceEquals(this.char, "sakuya") || Bridge.referenceEquals(this.char, "cirno") || Bridge.referenceEquals(this.char, "marisa")) {
                     this.canShoot = true;
 
-                    var T2 = new BNTest.EnemyEngager(this);
-                    T2.framesPerTick = 40;
-                    T2.predict = false;
-                    this.addBehavior(T2);
+                    var T3 = new BNTest.EnemyEngager(this);
+                    T3.framesPerTick = 40;
+                    T3.predict = false;
+                    this.addBehavior(T3);
                     //default stuff is sanae
-                    var T22 = this.getBehavior(BNTest.IWeaponBehavior);
-                    T22._maxAmmo = 1;
-                    T22.bulletSpeed = 3.0;
-                    T22.bulletLifeSpan = 450;
-                    T22._maxShotDelay = 20;
+                    //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
+                    T2._maxAmmo = 1;
+                    T2.bulletSpeed = 3.0;
+                    T2.bulletLifeSpan = 450;
+                    //T2._maxShotDelay = 20;
+                    T2._maxShotDelay = 30;
+                    if (Bridge.referenceEquals(this.char, "sanae")) {
+                        //T2.MinCoolDown *= 1.5f;
+                    }
                     var TimeToRespawn2 = 6;
 
 
                     if (Bridge.referenceEquals(this.char, "sakuya")) {
-                        T22.bulletSpeed = 2.5;
-                        T22.bulletLifeSpan = 600;
-                        T22._maxShotDelay = 100;
+                        T2.bulletSpeed = 2.5;
+                        T2.bulletLifeSpan = 600;
+                        T2._maxShotDelay = 100;
 
-                        T2.predict = true;
-                        T2.framesPerTick = 20;
+                        T3.predict = true;
+                        T3.framesPerTick = 20;
 
                         TimeToRespawn2 = 13;
                         this.defense = 1.4;
                     }
                     if (Bridge.referenceEquals(this.char, "cirno")) {
-                        T22.bulletLifeSpan = 30;
-                        T22._maxShotDelay = 12;
+                        T2.bulletLifeSpan = 30;
+                        T2._maxShotDelay = 12;
                         spd *= 1.5;
-                        T2.framesPerTick = 15;
+                        T3.framesPerTick = 15;
                         this.defense = 2;
 
-                        T2.passive = true;
+                        T3.passive = true;
 
                         TimeToRespawn2 = 3;
                     }
                     this.maxRespawnTime = (60 * TimeToRespawn2) | 0;
 
                 }
-                this.getBehavior(BNTest.PlatformerControls).maxSpeed *= spd;
+
+                if (T2 != null) {
+                    T2._maxShotDelay = Bridge.Int.clip32(Bridge.Math.round(T2._maxShotDelay / speedrate, 0, 6));
+
+                    T2.bulletSpeed *= speedrate;
+                    T2.bulletLifeSpan = Bridge.Int.clip32(T2.bulletLifeSpan / speedrate);
+
+                    //float sr2 = (speedrate + (speedrate * speedrate)) * 0.5f;
+                    var sr2 = Math.pow(speedrate, 1.5);
+                    this.maxAmmo *= sr2;
+                    this.ammoRechargeRate *= sr2;
+                }
+                this.getBehavior(BNTest.PlatformerControls).maxSpeed *= spd * speedrate;
             }
             if (me.CPU && !minion) {
-                var T3 = new BNTest.ProximityAttacker(this);
-                T3.framesPerTick = 20;
-                T3.predict = true;
+                var T21 = this.getBehavior(BNTest.IWeaponBehavior);
+                var T4 = new BNTest.ProximityAttacker(this);
+                T4.framesPerTick = 20;
+                T4.predict = true;
                 //T.passive = true;
                 if (Bridge.referenceEquals(this.char, "koishi")) {
-                    T3.aggroRange = 100;
+                    T4.aggroRange = 100;
                 } else {
                     this.maxAmmo = 1;
                     //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
                     this.ammoRechargeRate = 0.00333333341;
                 }
-                this.addBehavior(T3);
+                this.addBehavior(T4);
 
                 this.canShoot = true;
                 this.maxRespawnTime = 999999999;
 
+                if (T21 != null) {
+                    T21._maxShotDelay = Bridge.Int.clip32(Bridge.Math.round(T21._maxShotDelay / speedrate, 0, 6));
 
+                    T21.bulletSpeed *= this.game.bulletSpeedRate;
+                    T21.bulletLifeSpan = Bridge.Int.clip32(T21.bulletLifeSpan / this.game.bulletSpeedRate);
+                }
             }
             if (this.pmesh == null) {
                 BNTest.AnimationLoader.get_this().asyncGet$1([weaponGraphic], Bridge.fn.bind(this, function () {
@@ -12179,8 +12368,23 @@
         getTargetPriority: function () {
             return 10;
         },
+        getHitboxSize: function () {
+            //return Hitbox.Size.X;
+            return this.HB.getSize().x;
+        },
+        setHitboxSize: function (value) {
+            //Hitbox = new BoundingBox(value);
+            this.HB = new BNTest.BoundingBox.$ctor2(value);
+            this.getHitbox();
+        },
+        getHitbox: function () {
+            this.HB.setPosition(this.model.offset);
+            return this.HB;
+            //return Hitbox + Position;
+        },
         initModel: function () {
-            var mult = 3;
+            //double mult = 3;
+            var mult = 3.5;
 
             var i = 0;
 
@@ -12567,6 +12771,7 @@
                         var csz = 10.0 * this.model.scale.x;
                         var hsz = csz / 2;
                         this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3(-hsz, -csz, -hsz), new BNTest.GLVec3(hsz, csz, hsz));
+                        this.setHitboxSize(hsz);
                         this.stepheight = 5 * this.model.scale.x;
                         this.defense = 6;
                         this.knockbackResistLevel = 3.0;
@@ -12575,6 +12780,7 @@
                         var csz1 = 8.0;
                         var hsz1 = csz1 / 2;
                         this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3(-hsz1, -csz1, -hsz1), new BNTest.GLVec3(hsz1, csz1, hsz1));
+                        this.setHitboxSize(hsz1);
                         this.stepheight = 5;
                         this.defense = 1;
                         this.knockbackResistLevel = 1;
