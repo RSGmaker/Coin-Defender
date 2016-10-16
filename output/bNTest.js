@@ -4522,28 +4522,32 @@
         flatten$1: function (matrix, OUT) {
             var M = matrix.elements;
             var O = OUT;
+            var A = M[0];
+            var B = M[1];
+            var C = M[2];
+            var D = M[3];
             /* var i = 0;
                 var x = 0;
                 var y = 0;*/
-            O[0] = M[0][0];
-            O[1] = M[1][0];
-            O[2] = M[2][0];
-            O[3] = M[3][0];
+            O[0] = A[0];
+            O[1] = B[0];
+            O[2] = C[0];
+            O[3] = D[0];
 
-            O[4] = M[0][1];
-            O[5] = M[1][1];
-            O[6] = M[2][1];
-            O[7] = M[3][1];
+            O[4] = A[1];
+            O[5] = B[1];
+            O[6] = C[1];
+            O[7] = D[1];
 
-            O[8] = M[0][2];
-            O[9] = M[1][2];
-            O[10] = M[2][2];
-            O[11] = M[3][2];
+            O[8] = A[2];
+            O[9] = B[2];
+            O[10] = C[2];
+            O[11] = D[2];
 
-            O[12] = M[0][3];
-            O[13] = M[1][3];
-            O[14] = M[2][3];
-            O[15] = M[3][3];
+            O[12] = A[3];
+            O[13] = B[3];
+            O[14] = C[3];
+            O[15] = D[3];
             /* return new double[] { M[0][0], M[1][0], M[2][0], M[3][0],
                     M[0][1], M[1][1], M[2][1], M[3][1],
                     M[0][2], M[1][2], M[2][2], M[3][2],
@@ -8662,11 +8666,19 @@
             },
             flatten: function (matrix) {
                 var M = matrix.elements;
-                return [M[0][0], M[1][0], M[2][0], M[3][0], M[0][1], M[1][1], M[2][1], M[3][1], M[0][2], M[1][2], M[2][2], M[3][2], M[0][3], M[1][3], M[2][3], M[3][3]];
+                var A = M[0];
+                var B = M[1];
+                var C = M[2];
+                var D = M[3];
+                return [A[0], B[0], C[0], D[0], A[1], B[1], C[1], D[1], A[2], B[2], C[2], D[2], A[3], B[3], C[3], D[3]];
             },
             flattenB: function (matrix) {
                 var M = matrix.elements;
-                return [M[0][0], M[0][1], M[0][2], M[0][3], M[1][0], M[1][1], M[1][2], M[1][3], M[2][0], M[2][1], M[2][2], M[2][3], M[3][0], M[3][1], M[3][2], M[3][3]];
+                var A = M[0];
+                var B = M[1];
+                var C = M[2];
+                var D = M[3];
+                return [A[0], A[1], A[2], A[3], B[0], B[1], B[2], B[3], C[0], C[1], C[2], C[3], D[0], D[1], D[2], D[3]];
             },
             copyFrom: function (source, destination) {
                 var a = source.elements;
@@ -8700,31 +8712,35 @@
                 t[3] = t2[3];
             },
             copyFromInverted: function (source, destination) {
-                var a = source;
+                var M = source;
                 var b = destination;
+                var A = M[0];
+                var B = M[1];
+                var C = M[2];
+                var D = M[3];
                 var t = b[0];
-                t[0] = a[0][0];
-                t[1] = a[1][0];
-                t[2] = a[2][0];
-                t[3] = a[3][0];
+                t[0] = A[0];
+                t[1] = B[0];
+                t[2] = C[0];
+                t[3] = D[0];
 
                 t = b[1];
-                t[0] = a[0][1];
-                t[1] = a[1][1];
-                t[2] = a[2][1];
-                t[3] = a[3][1];
+                t[0] = A[1];
+                t[1] = B[1];
+                t[2] = C[1];
+                t[3] = D[1];
 
                 t = b[2];
-                t[0] = a[0][2];
-                t[1] = a[1][2];
-                t[2] = a[2][2];
-                t[3] = a[3][2];
+                t[0] = A[2];
+                t[1] = B[2];
+                t[2] = C[2];
+                t[3] = D[2];
 
                 t = b[3];
-                t[0] = a[0][3];
-                t[1] = a[1][3];
-                t[2] = a[2][3];
-                t[3] = a[3][3];
+                t[0] = A[3];
+                t[1] = B[3];
+                t[2] = C[3];
+                t[3] = D[3];
             },
             multMatrix: function (matrix1, matrix2) {
                 var a = matrix1.elements;
@@ -8820,7 +8836,16 @@
         },
         isIdentity: function () {
             var M = this.mvMatrix.elements;
-            return M[0][0] === 1 && M[1][1] === 1 && M[2][2] === 1 && M[0][1] === 0 && M[0][2] === 0 && M[0][3] === 0 && M[1][0] === 0 && M[1][2] === 0 && M[1][3] === 0 && M[2][0] === 0 && M[2][1] === 0 && M[2][3] === 0 && M[3][0] === 0 && M[3][1] === 0 && M[3][2] === 0;
+            var A = M[0];
+            var B = M[1];
+            var C = M[2];
+            var D = M[3];
+            return A[0] === 1 && B[1] === 1 && C[2] === 1 && A[1] === 0 && A[2] === 0 && A[3] === 0 && B[0] === 0 && B[2] === 0 && B[3] === 0 && C[0] === 0 && C[1] === 0 && C[3] === 0 && D[0] === 0 && D[1] === 0 && D[2] === 0;
+            /* return M[0][0] == 1 && M[1][1] == 1 && M[2][2] == 1 &&
+                    M[0][1] == 0 && M[0][2] == 0 && M[0][3] == 0 &&
+                    M[1][0] == 0 && M[1][2] == 0 && M[1][3] == 0 &&
+                    M[2][0] == 0 && M[2][1] == 0 && M[2][3] == 0 &&
+                    M[3][0] == 0 && M[3][1] == 0 && M[3][2] == 0;*/
         },
         getMatrix: function () {
             //double[][] a = mvMatrix["elements"].As<double[][]>();
@@ -8867,7 +8892,9 @@
             //MultiplyMatrix(matrix.mvMatrix);
             BNTest.WGMatrix.multMatrix(this.mvMatrix, matrix.mvMatrix);
 
-            this.identity = this.isIdentity();
+            if (this.identity) {
+                this.identity = this.isIdentity();
+            }
         },
         multiplyMatrix$1: function (matrix) {
             if (this.identity) {
@@ -8875,8 +8902,9 @@
             } else {
                 BNTest.WGMatrix.multMatrix(this.mvMatrix, matrix);
             }
-
-            this.identity = this.isIdentity();
+            if (this.identity) {
+                this.identity = this.isIdentity();
+            }
         },
         copyFrom: function (source) {
             BNTest.WGMatrix.copyFrom(source.mvMatrix, this.mvMatrix);
@@ -8904,7 +8932,6 @@
 
             this.multiplyMatrix$1(BNTest.WGMatrix.tmatobj);
 
-            this.identity = this.isIdentity();
             //Script.Write("this.multMatrix(Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());");
         },
         mvPushMatrix: function () {
@@ -8944,6 +8971,7 @@
             //mvMatrix["elements"]
             var D = this.mvMatrixStack.pop();
             this.mvMatrix.elements = D;
+            this.identity = this.isIdentity();
             return this.mvMatrix;
         },
         equals: function (o) {
@@ -8994,13 +9022,16 @@
         },
         setPositionThenScale: function (Position, Scale) {
             var D = this.mvMatrix.elements;
-            D[0][0] = Scale.x;
-            D[1][1] = Scale.y;
-            D[2][2] = Scale.z;
+            var A = D[0];
+            var B = D[1];
+            var C = D[2];
+            A[0] = Scale.x;
+            B[1] = Scale.y;
+            C[2] = Scale.z;
 
-            D[0][3] = Position.x;
-            D[1][3] = Position.y;
-            D[2][3] = Position.z;
+            A[3] = Position.x;
+            B[3] = Position.y;
+            C[3] = Position.z;
 
             this.identity = this.isIdentity();
         },
