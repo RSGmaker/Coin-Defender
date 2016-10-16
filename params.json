@@ -1,0 +1,6 @@
+{
+  "name": "Coin-defender",
+  "tagline": "A Touhou Project fangame built in webgl",
+  "body": "# Coin-Defender\r\nA Touhou Project fangame built using bridge.net & webgl.\r\n\r\nYou can play the game on github [here.](https://rsgmaker.github.io/Coin-Defender/www/game.html)\r\n\r\n**Description:**\r\n\r\nThis is a small top down shooter game, using voxel graphics.\r\nYou play as Reimu and you need to survive as many waves as you can without running out of lives or coins. Your coins are dropped when you take damage, lose a life, or allow enemies to swarm your donation box, so be careful.\r\n\r\n**Controls:**\r\n* WASD = Move\r\n* Spacebar = Jump\r\n* Left Click = Primary Attack\r\n* Right Click = Other Attack\r\n* M = Toggle Music\r\n* Enter = Start/Pause Game\r\n* Escape = End Game(Back to the title screen)\r\n* [] = Resize radar\r\n* 0 = Toggle radar\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
