@@ -84,20 +84,22 @@
         entity: null,
         config: {
             properties: {
-                BehaviorName: null
+                BehaviorName: null,
+                FullName: null
             }
         },
         ctor: function (entity) {
             this.$initialize();
             this.entity = entity;
+            this.setFullName(Bridge.Reflection.getTypeFullName(Bridge.getType(this)));
             if (Bridge.referenceEquals(this.getBehaviorName(), "") || this.getBehaviorName() == null) {
-                var test = Bridge.getType(this);
-                var s = Bridge.Reflection.getTypeFullName(Bridge.getType(this)).split(".");
+                //dynamic test = GetType();
+                var s = this.getFullName().split(".");
                 this.setBehaviorName(s[((s.length - 1) | 0)]);
                 //BehaviorName = GetType().FullName;
                 //GetType().GetClassName
-
             }
+
         },
         update: function () {
 
@@ -169,6 +171,7 @@
         zip: null,
         zipPath: "",
         baseZipPath: "",
+        jzip: null,
         _data: null,
         _callbacks: null,
         _loading: null,
@@ -443,7 +446,86 @@
                 this.queued.remove(path);
             }
         },
+        loadAnimationFromJZip: function (path) {
+            var ret = new (System.Collections.Generic.List$1(HTMLImageElement))();
+            var Z = this.jzip;
+            try {
+                var self = this;
+                var P = path;
+                if (System.String.indexOf(P, this.baseZipPath) === 0) {
+                    P = P.substr(((this.baseZipPath.length + 1) | 0));
+                }
+                //var f = zipPath + "://" + P;
+                var i = 0;
+                var s = "";
+                var SA = null;
+                var A = function (img) {
+                    if (img == null) {
+                        self._Finish(path);
+                        console.log(System.String.concat(System.String.concat("finished ", path), " out of zip!"));
+                    } else {
+                        ret.add(img);
+                        s = System.String.concat(System.String.concat(System.String.concat(P, "_"), ret.getCount()), ".png");
+                        console.log(System.String.concat(System.String.concat("loading \"", s), "\" from zip"));
+                        JSZipHelper.loadImage(Z, s, SA);
+                    }
+                };
+                SA = A;
+                s = System.String.concat(System.String.concat(System.String.concat(P, "_"), ret.getCount()), ".png");
+                console.log(System.String.concat(System.String.concat("loading \"", s), "\" from zip"));
+                JSZipHelper.loadImage(Z, s, SA);
+            }
+            catch ($e1) {
+                $e1 = System.Exception.create($e1);
+
+            }
+            /* if (ret.Count > 0)
+                {
+                    Helper.Log("Loaded animation \"" + path + "\" from zip file.");
+                    return ret;
+                }*/
+            console.log(System.String.concat(System.String.concat("attempting to load \"", path), "\" from zip file."));
+            return ret;
+            //return null;
+
+            /* List<HTMLImageElement> ret = new List<HTMLImageElement>();
+                try
+                {
+                    var P = path;
+                    if (P.IndexOf(baseZipPath)==0)
+                    {
+                        P = P.Substr(baseZipPath.Length+1);
+                    }
+                    var f = zipPath + "://"+P;
+                    var i = 0;
+                    while (true)
+                    {
+                        var ipath = f + "_" + i + ".png";
+                        var img = zip.loadImage(ipath);
+
+                        var N = new HTMLImageElement();
+                        N.Src = img;
+                        ret.Add(N);
+                        i++;
+                    }
+                }
+                catch
+                {
+
+                }
+                if (ret.Count>0)
+                {
+                    Helper.Log("Loaded animation \""+path+"\" from zip file.");
+                    return ret;
+                }
+                return null;*/
+            /* List<HTMLImageElement> ret = new List<HTMLImageElement>();
+                JSZipHelper.LoadImage(zip,path,)
+                _loading.Add(path);
+                return ret;*/
+        },
         loadAnimationFromZip: function (path) {
+
             var ret = new (System.Collections.Generic.List$1(HTMLImageElement))();
             try {
                 var P = path;
@@ -471,11 +553,17 @@
                 return ret;
             }
             return null;
+            /* List<HTMLImageElement> ret = new List<HTMLImageElement>();
+                JSZipHelper.LoadImage(zip,path,)
+                _loading.Add(path);
+                return ret;*/
         },
         setZip: function (zipPath) {
             this.zipPath = zipPath;
             this.baseZipPath = System.String.replaceAll(zipPath, ".zip", "");
-            this.zip = new ZipLoader(zipPath);
+            if (this.jzip == null) {
+                this.zip = new ZipLoader(zipPath);
+            }
         },
         getAnimation: function (path) {
             path = System.String.concat(BNTest.AnimationLoader.directory, path);
@@ -483,11 +571,17 @@
                 return this._data.get(path);
             } else {
                 //_loading.Add(path);
-                if (this.zip != null) {
-                    var R = this.loadAnimationFromZip(path);
+                if (this.jzip != null) {
+                    var R = this.loadAnimationFromJZip(path);
                     if (R != null) {
                         this._data.set(path, R);
                         return R;
+                    }
+                } else if (this.zip != null) {
+                    var R1 = this.loadAnimationFromZip(path);
+                    if (R1 != null) {
+                        this._data.set(path, R1);
+                        return R1;
                     }
                 }
                 var L = new (System.Collections.Generic.List$1(HTMLImageElement))();
@@ -523,19 +617,24 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Coin Defender",
-            gameVersion: "0.4",
+            gameVersion: "0.5",
             IC: null,
             DEBUG: false,
+            started: false,
             update: function () {
                 BNTest.KeyboardManager.update();
-                BNTest.App.updateWindow();
+                if (!BNTest.App.started) {
+                    BNTest.App.updateWindow();
+                    BNTest.App.started = true;
+                }
             },
             updateWindow: function () {
                 //var R = Window.InnerWidth / Window.InnerHeight;
                 var H = window.innerHeight;
-                var size = Math.ceil(H * (1 / BNTest.App.targetAspect));
+
                 //if (size != _lSize)
                 if (H !== BNTest.App._lHeight) {
+                    var size = Math.ceil(H * (1 / BNTest.App.targetAspect));
                     /* Canvas.Style.Width = size + "px";
 
                     Canvas.Style.Position = Position.Absolute;
@@ -633,6 +732,8 @@
                 onclick: $_.BNTest.App.f1
             } );
             document.body.style.cssText = "overflow: hidden;margin: 0;padding: 0;";
+            document.body.onresize = $_.BNTest.App.f2;
+
             // Add the Button to the page
             //Document.Body.AppendChild(button);
 
@@ -643,6 +744,7 @@
                     Width = 1280,
                     Height = 960
                 };*/
+            BNTest.AnimationLoader.init();
             document.title = System.String.concat(System.String.concat(System.String.concat(BNTest.App.gameName, " "), BNTest.App.gameVersion), " by:RSGmaker");
 
             BNTest.WGMatrix.init();
@@ -677,7 +779,20 @@
             //Document.Body.AppendChild(canvas);
             BNTest.KeyboardManager.init();
             var GD = new BNTest.GLDemo();
-            GD.start(BNTest.App.canvas);
+            var CV = BNTest.App.canvas;
+            var path = "Assets/Images.zip";
+            var useJzip = false;
+
+
+            if (useJzip) {
+                JSZipHelper.openZip(path, function (obj) {
+                    console.log(System.String.concat("JZH!!!", obj));
+                    BNTest.AnimationLoader.get_this().jzip = obj;
+                    GD.start(CV);
+                });
+            } else {
+                GD.start(BNTest.App.canvas);
+            }
             //AnimationLoader._this.AsyncGet("Asset/rahmoo", s => new GLDemo().Start(Canvas));
 
             var smooth = true;
@@ -713,6 +828,9 @@
             // When Button is clicked, 
             // the Bridge Console should open.
             Bridge.Console.log("Success!");
+        },
+        f2: function (evt) {
+            BNTest.App.updateWindow();
         }
     });
 
@@ -973,7 +1091,6 @@
     Bridge.define("BNTest.Entity", {
         model: null,
         alive: true,
-        visible: true,
         speed: null,
         game: null,
         lastBB: null,
@@ -1122,11 +1239,15 @@
                 {
                     return (dynamic)L[0];
                 }*/
+            //var name = typeof(T).FullName;
+            var TT = T;
+
             var i = 0;
             var ln = this._behaviors.getCount();
             while (i < ln) {
                 var B = this._behaviors.getItem(i);
-                if (Bridge.is(B, T)) {
+                //if (B is T)
+                if (Bridge.Reflection.isInstanceOfType(B, TT)) {
                     return B;
                 }
                 i = (i + 1) | 0;
@@ -1138,11 +1259,15 @@
                 return default(T);*/
         },
         getBehavior$1: function (T, func) {
+            //var name = typeof(T).FullName;
+            var TT = T;
+
             var i = 0;
             var ln = this._behaviors.getCount();
             while (i < ln) {
                 var B = this._behaviors.getItem(i);
-                if (Bridge.is(B, T) && func(B)) {
+                //if (B is T && func(B.As<T>()))
+                if (Bridge.Reflection.isInstanceOfType(B, TT) && func(B)) {
                     return B;
                 }
                 i = (i + 1) | 0;
@@ -1309,8 +1434,15 @@
                 var cam = this.world.cam;
                 //double dist = (cam - LastBB.Center).RoughLength;
                 //double dist = (cam - LastBB.Center).Length;
-                var dist = cam.roughDistance(this.lastBB.getCenter());
-                this.model.inView = dist <= BNTest.World.viewDistance;
+
+                //this only works if the camera hasn't been rotated.
+                if (this.game.camera.rotation.y === 0 && ((this.lastBB.min.z - this.game.cameraDist) - 20 > cam.z || Math.abs(this.model.offset.x - cam.x) > BNTest.World.viewDistanceS)) {
+                    this.model.inView = false;
+                } else {
+                    var C = this.lastBB.getCenter();
+                    var dist = cam.roughDistance(C);
+                    this.model.inView = dist <= BNTest.World.viewDistance;
+                }
             }
         },
         refreshBehaviorTick: function (T) {
@@ -1403,7 +1535,18 @@
             return BNTest.GLVec3.op_Subtraction(this.max, this.min);
         },
         setSize: function (value) {
-            this.max = BNTest.GLVec3.op_Subtraction(value, this.min);
+            var Sz = BNTest.GLVec3.op_Division$1((value), 2);
+            this.min.x = -Sz.x;
+            this.min.y = -Sz.y;
+            this.min.z = -Sz.z;
+
+            this.max.x = Sz.x;
+            this.max.y = Sz.y;
+            this.max.z = Sz.z;
+            //Max = value - Min;
+        },
+        getRoughLength: function () {
+            return Math.abs(this.max.x - this.min.x) + Math.abs(this.max.y - this.min.y) + Math.abs(this.max.z - this.min.z);
         },
         getLeft: function () {
             return this.min.x;
@@ -1424,7 +1567,11 @@
             return this.max.z;
         },
         getCenter: function () {
-            return BNTest.GLVec3.op_Addition(this.min, (BNTest.GLVec3.op_Multiply$1(this.getSize(), 0.5)));
+            //return Min + (Size * 0.5);
+            var X = (this.max.x - this.min.x) * 0.5;
+            var Y = (this.max.y - this.min.y) * 0.5;
+            var Z = (this.max.z - this.min.z) * 0.5;
+            return new BNTest.GLVec3.ctor(this.min.x + X, this.min.y + Y, this.min.z + Z);
         },
         copyFrom: function (B) {
             var BM = B.min;
@@ -2294,7 +2441,7 @@
                     BNTest.GLDemo.lastTime = elapsedTime;
                 }
                 var T = (elapsedTime - BNTest.GLDemo.lastTime);
-                if (!BNTest.GLDemo._this.paused) {
+                if (!BNTest.GLDemo._this.paused && !BNTest.GLDemo._this.gameDisabled) {
                     BNTest.GLDemo._this.totaltime += T;
                 }
                 BNTest.GLDemo.missingTime += T;
@@ -2379,8 +2526,14 @@
         samplerUniform: null,
         alphaUniform: null,
         colorUniform: null,
+        lightPosUniform: null,
+        darknessLevelUniform: null,
+        ambientLightLevel: null,
+        defaultDarknessLevel: 0.0007,
+        defaultAmbientLightLevel: 0.6,
         world: null,
         camera: null,
+        skippedWave: false,
         foliage: null,
         hoster: true,
         fogActive: false,
@@ -2389,6 +2542,7 @@
         lastZnear: 0,
         bGMVolume: 0.4,
         bGMMute: false,
+        gameDisabled: false,
         gamePlaySettings: null,
         currentAlpha: 1,
         alphalist: null,
@@ -2429,6 +2583,9 @@
         titlescreen: true,
         defaultBulletSpeedRate: 0.65,
         bulletSpeedRate: 1,
+        lightLevel: 1,
+        currentlightlevel: 1,
+        testobj: null,
         wavetime: 3,
         wave: 0,
         enemyList: null,
@@ -2445,6 +2602,7 @@
         latencyM: 100,
         dlatency: 0,
         tflat: null,
+        FA: null,
         mvMatrixStack: null,
         pUniform: null,
         mvUniform: null,
@@ -2460,11 +2618,13 @@
                 this.BTS = new BNTest.TextSprite();
                 this.radar = new BNTest.Sprite();
                 this.tflat = System.Array.init(16, 0);
+                this.FA = new Float32Array(16);
                 this.mvMatrixStack = [];
             }
         },
         start: function (canvas) {
             this.canvas = canvas;
+            var self = this;
 
             this.VTS.setText(System.String.concat("Version:", BNTest.App.gameVersion));
             this.VTS.setFontSize(16);
@@ -2478,7 +2638,7 @@
             this.radar.spriteBuffer.width = (this.radar.spriteBuffer.height = 150, 150);
 
 
-            BNTest.AnimationLoader.init();
+            //AnimationLoader.Init();
             BNTest.AudioManager.init();
             BNTest.AnimationLoader.directory = "Assets/Images/";
             BNTest.AudioManager.directory = "Assets/Audio/";
@@ -2486,6 +2646,9 @@
             var path = "Assets/Images.zip";
             var f = System.String.concat(path, "://rahmoo_0.png");
             console.log(System.String.concat("test zip path:", f));
+
+
+            //JSZipHelper.OpenZip(path, obj => { Helper.Log("JZH!!!" + obj);self.testobj = obj; });
 
             /* var path = "Assets/Images.zip";
                 var zip = new ZipLoader(path);
@@ -2506,10 +2669,14 @@
             //executes on google chrome.
             var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
             //if (!Script.Write<bool>("typeof InstallTrigger !== 'undefined'"))
+
             if (!isFirefox) {
                 BNTest.AnimationLoader.get_this().setZip("Assets/Images.zip");
             } else {
                 this.bGMVolume *= 0.75;
+                if (BNTest.AnimationLoader.get_this().jzip != null) {
+                    BNTest.AnimationLoader.get_this().setZip("Assets/Images.zip");
+                }
             }
             if (BNTest.App.DEBUG) {
                 this.bGMMute = true;
@@ -2537,6 +2704,8 @@
                 this.gl.clearColor(0, 0, 0, 1);
                 this.gl.clearColor(0.5, 0.5, 0.5, 1);
                 this.gl.clearDepth(1);
+                this.gl.enable(this.gl.CULL_FACE);
+                this.gl.cullFace(this.gl.FRONT);
                 if (!BNTest.GLDemo.allowAlpha) {
                     this.depthTest = true;
                     this.gl.enable(this.gl.DEPTH_TEST);
@@ -2576,7 +2745,7 @@
                 Bridge.global.requestAnimationFrame(BNTest.GLDemo.doDrawScene);
                 //Script.Write("requestAnimationFrame(callback)");
 
-                var self = this;
+                //var self = this;
                 this.camera = new BNTest.Model(self);
 
                 //camera.Rotation.X = 45;
@@ -2651,6 +2820,8 @@
                 //character = "youmu";
                 //character = "reisen";
                 //character = "tenshi";
+                //character = "nazrin";
+                //character = "rumia";
                 var PC = new BNTest.PlayerCharacter(this.world, this.localplayer, character);
                 this.localplayer.character = PC;
                 //PC.Position.Y = -15;
@@ -2658,7 +2829,7 @@
                 PC.setCoins(1000);
                 //PC.defense = 4;
                 PC.defense = 5;
-                PC.visible = false;
+                PC.model.setVisible(false);
                 PC.setHitboxSize(PC.getHitboxSize()*0.35);
 
                 this.world.add(PC);
@@ -2695,6 +2866,13 @@
                 c.getBehavior(BNTest.LifeSpan).HP = 1;
                 c.model.setVisible(false);
                 this.world.add(c);
+
+                var hp = new BNTest.HPOrb(this.world);
+                hp.solid = false;
+                hp.setPosition(new BNTest.GLVec3.ctor(50, 10000, 50));
+                hp.getBehavior(BNTest.LifeSpan).HP = 1;
+                hp.model.setVisible(false);
+                this.world.add(hp);
 
                 /* var c = new Coin(world);
                     c.Solid = false;
@@ -2909,6 +3087,9 @@
             this.nPCs = (this.nPCs + 1) | 0;
         },
         setNPC: function (NPC) {
+            var DP = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f1);
+
+
             //float maxdist = 600;
             var maxdist = 500;
             var mindist = 250;
@@ -2916,24 +3097,109 @@
             var dist = mindist + (Math.random() * range);
             var V = BNTest.Vector2.op_Multiply(BNTest.Vector2.fromRadian(6.28 * Math.random()), dist);
 
-            NPC.setx(V.x);
+
+            NPC.setx(V.x + DP.getx());
             //NPC.y = -100;
             NPC.sety(-500);
-            NPC.setz(V.y);
+            NPC.setz(V.y + DP.getz());
+
+
 
             NPC.speed = new BNTest.GLVec3.ctor();
 
             NPC.setHP(100);
         },
+        addRisingPlatforms: function (number) {
+            var A = number + 0.5;
+            //double AA = 0.1;
+            //double AA = 0.035;
+            var AA = 0.025;
+            var B = new BNTest.BoundingBox.$ctor2(50);
+            //var rng = 800;
+            //var rng = 500;
+            var rng = 400;
+            var rng2 = (rng + rng) | 0;
+
+            var hrng6 = rng * 1.5;
+            //var range = new GLVec3(rng2, -5, rng2);
+            //var hrange = new GLVec3(rng, -15, rng);
+            var range = new BNTest.GLVec3.ctor(rng2, -55, rng2);
+            var hrange = new BNTest.GLVec3.ctor(rng, -65, rng);
+            var RND = new System.Random.ctor();
+            var max = 400;
+            var min = 50;
+
+            var DP = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f1).getPosition();
+            DP = BNTest.GLVec3.op_Addition(DP, new BNTest.GLVec3.ctor(0, 0, -30));
+
+            //var mx2 = max * 0.75;
+            var rate = 0.45;
+            var irate = 1 - rate;
+            var mx2 = max * (rate + 0.15);
+
+            var P = null;
+
+            //maximum volume a platform can be.(only measures in 2D X,Z)
+            var mmax = (((max * max) | 0)) * 0.12;
+            while (A >= 1) {
+                //B = new BoundingBox(35 + (50 * RND.NextDouble()));
+                //B = new BoundingBox(35 + (100 * RND.NextDouble()));
+                //B = new BoundingBox(50 + (150 * RND.NextDouble()));
+                //var sz = GLVec3.CreateUniform(50 + (200 * RND.NextDouble())) * new GLVec3(0.3 + (0.7 * RND.NextDouble()), 0.20 + (0.45 * RND.NextDouble()), 0.3 + (0.7 * RND.NextDouble()));
+                var sz = BNTest.GLVec3.op_Multiply(BNTest.GLVec3.createUniform(min + ((((max - min) | 0)) * RND.nextDouble())), new BNTest.GLVec3.ctor(0.3 + (0.7 * RND.nextDouble()), 0.1 + (0.3 * RND.nextDouble()), 0.3 + (0.7 * RND.nextDouble())));
+                B.setSize(sz);
+                //if (Math.Random() < 0.15 || P == null)
+                if (Math.random() < 0.2 || P == null) {
+                    P = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                } else {
+                    //float pr = 1 / 8f;
+                    var pr = 0.111111112;
+                    var NP = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(BNTest.GLVec3.op_Multiply$1(range, pr), RND), (BNTest.GLVec3.op_Multiply$1(hrange, pr)));
+                    P.add(NP);
+                    P.y = NP.y;
+                }
+                var C = BNTest.BoundingBox.op_Addition(B, P);
+                //var S = Math.Abs(sz.X) + Math.Abs(sz.Z);
+                var S = Math.abs(sz.x) * Math.abs(sz.z);
+                var PD = P.roughDistance(DP);
+                //if (P.RoughLength>150 && sz.RoughLength<320 && world.FindSolidCollision(C).Length<=0)
+                //if (P.RoughLength > 150 && S < 400 && world.FindSolidCollision(C).Length <= 0)
+                //if (P.RoughLength > 200 && S < mmax && world.FindSolidCollision(C).Length <= 0)
+                //if (P.RoughDistance(DP) > 200 && S < mmax && world.FindSolidCollision(C).Length <= 0)
+                //if (P.RoughDistance(DP) > mx2 && S < mmax && world.FindSolidCollision(C).Where(E => !(E is RisingPlatform)).ToArray().Length <= 0 && SafeForFoliage(P,true))
+                if (PD > (mx2 + (Math.max(Math.abs(sz.x), Math.abs(sz.z)) * irate)) && PD <= hrng6 && S < mmax && System.Linq.Enumerable.from(this.world.findSolidCollision(C)).where($_.BNTest.GLDemo.f2).toArray().length <= 0) {
+                    var R = new BNTest.RisingPlatform(this.world, B);
+                    this.world.add(R);
+                    R.setPosition(P);
+                    A -= 1;
+                }
+                A -= AA;
+            }
+        },
         generateFloor: function () {
             var self = this;
-            var FVM = BNTest.VoxelMap.gen(80, 2, 0, true, false, true);
+            var scl = 4;
+            //var sz = 30;
+            var sz = 80;
+            var hsz = (Bridge.Int.div(sz, 2)) | 0;
+            var Vsz = new BNTest.GLVec3.ctor(hsz, 0, hsz);
+            var Depth = 2;
+            //var Depth = 4;
+            var centered = true;
+            //var yr = 5;
+            var yr = 0;
+            var yr2 = (yr + yr) | 0;
+            var FVM = BNTest.VoxelMap.gen(sz, Depth, 0, true, false, true);
             var msh = new BNTest.Mesh(self);
-            msh.addVoxelMap(FVM, false, false, true);
+            msh.addVoxelMap(FVM, false, centered, true);
+
             var floor = new BNTest.Entity(this.world);
             floor.model = new BNTest.Model(self);
 
             var $final = floor;
+
+            //var rots = new double[] { 0, Math.PI, Math.PI + Math.PI, Math.PI + Math.PI + Math.PI };
+            var rots = [0, 90, 180, 270];
 
 
             var V;
@@ -2953,6 +3219,7 @@
 
 
             //world.Add(floor);
+            //var size = 5;
             var size = 2;
 
             var x = (-size) | 0;
@@ -2970,19 +3237,31 @@
                     //floor.groundFriction = 0.05;
 
 
-                    floor.sety(10);
-
-                    floor.getScale().x = 4;
+                    //floor.y = 10;
+                    floor.sety((((10 - yr) | 0)) + (Math.random() * yr2));
+                    if (centered) {
+                        floor.sety(floor.gety()+((Depth * scl) * 0.5));
+                    }
+                    floor.getScale().x = scl;
                     floor.getScale().y = floor.getScale().x;
                     floor.getScale().z = floor.getScale().x;
 
                     //V = msh.Size * floor.Scale.X * 0.5;
-                    V = BNTest.GLVec3.op_Multiply$1(new BNTest.GLVec3.ctor(40, 0, 40), floor.getScale().x);
+                    V = BNTest.GLVec3.op_Multiply$1(Vsz, floor.getScale().x);
                     floor.setx(-V.x);
                     floor.setz(-V.z);
 
-                    floor.setx(floor.getx()+(V.x * (((x * 2) | 0))));
-                    floor.setz(floor.getz()+(V.z * (((z * 2) | 0))));
+                    var cx = x;
+                    var cz = z;
+                    if (centered) {
+                        cx += 0.5;
+                        cz += 0.5;
+                    }
+
+                    floor.setx(floor.getx()+(V.x * (cx * 2)));
+                    floor.setz(floor.getz()+(V.z * (cz * 2)));
+
+
 
                     /* floor.x -= V.X;
                         floor.z += V.Z;*/
@@ -2994,6 +3273,18 @@
 
                     floor.cacheBoundingBox();
                     this.world.add(floor);
+
+
+                    /* if (Math.Random()>0.5)
+                        {
+                            //floor.Scale.X = -floor.Scale.X;
+                            floor.Scale.Z = -floor.Scale.Z;
+                        }*/
+                    /* if (Math.Random() > 0.5)
+                        {
+                            model.Scale.Z = -model.Scale.Z;
+                        }*/
+                    floor.model.rotation.y = BNTest.HelperExtensions.pick(System.Double, rots);
                     this.foliage.absorbModel(floor);
                     //final.model.children.Add(floor.model);
                     z = (z + 1) | 0;
@@ -3047,15 +3338,68 @@
                 }
             }
         },
+        endWave: function () {
+            this.boss = null;
+            if (this.wave >= 1 && !this.skippedWave) {
+                var P = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f1).getPosition();
+                var i = 4;
+                while (i > 0) {
+                    var hp = new BNTest.HPOrb(this.world);
+                    hp.setPosition(new BNTest.GLVec3.ctor(0, -20, 0));
+                    hp.getPosition().add(P);
+                    hp.solid = false;
+                    var m = 3;
+                    var m2 = (m + m) | 0;
+                    hp.speed = new BNTest.GLVec3.ctor(((-m) | 0) + (Math.random() * m2), 0, ((-m) | 0) + (Math.random() * m2));
+                    hp.speed.y = -1 + (((-m) | 0) * Math.random());
+                    hp.pickupDelay = 15;
+                    this.world.add(hp);
+                    i = (i - 1) | 0;
+                }
+            }
+            this.clearEntities();
+            /* var i = 0;
+                var LE = world.Entities;
+                var ln = LE.Count;
+                while (i < ln)
+                {
+                    dynamic E = LE[i];
+                    if (E.onNextWave)
+                    {
+                        E.onNextWave();
+                    }
+                    i++;
+                }*/
+        },
         nextWave: function (skip) {
             if (skip === void 0) { skip = 10; }
 
-            this.boss = null;
-            this.localplayer.character.setHP(100);
+            this.endWave();
+            //AddRisingPlatforms(5);
+            //AddRisingPlatforms(14);
             this.wave = (this.wave + 1) | 0;
-            this.clearEntities();
+            if (this.wave % 5 === 1) {
+                var i = 0;
+                var LE = this.world.entities;
+                var ln = LE.getCount();
+                while (i < ln) {
+                    var E = LE.getItem(i);
+                    /* if (E.onNextWave)
+                        {
+                            E.onNextWave();
+                        }*/
+                    if (E.active) {
+                        E.active = false;
+                    }
+                    i = (i + 1) | 0;
+                }
+                //AddRisingPlatforms(14);
+                //AddRisingPlatforms(20);
+                this.addRisingPlatforms(24);
+            }
+            this.bulletSpeedRate = this.defaultBulletSpeedRate + (this.wave * 0.015);
             //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.02);
-            this.bulletSpeedRate = this.defaultBulletSpeedRate + (this.wave * 0.022);
+            //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.022);
             this.bulletSpeedRate = Math.min(this.bulletSpeedRate, 2.5);
             this.waveDelay = this.maxWaveDelay;
             this.totaltime = 0;
@@ -3149,6 +3493,11 @@
                 BNTest.Helper.addMultiple(String, L, "suika", 5);
                 BNTest.Helper.addMultiple(String, L, "youmu", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 7);
+            } else if (this.wave === 16) {
+                BNTest.Helper.addMultiple(String, L, "nazrin", 8);
+                BNTest.Helper.addMultiple(String, L, "aya", 2);
+                BNTest.Helper.addMultiple(String, L, "sanae", 2);
+                BNTest.Helper.addMultiple(String, L, "suika", 12);
             } else if (this.wave === 18) {
                 BNTest.Helper.addMultiple(String, L, "suika", 10);
                 BNTest.Helper.addMultiple(String, L, "reisen", 2);
@@ -3157,6 +3506,14 @@
                 BNTest.Helper.addMultiple(String, L, "sakuya", 1);
                 BNTest.Helper.addMultiple(String, L, "reisen", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 6);
+            } else if (this.wave === 22 || (this.wave % 10 !== 0 && this.wave > 26 && Math.random() <= 0.07)) {
+                BNTest.Helper.addMultiple(String, L, "suika", 10);
+                BNTest.Helper.addMultiple(String, L, "rumia", 5);
+                BNTest.Helper.addMultiple(String, L, "cirno", 3);
+                BNTest.Helper.addMultiple(String, L, "suika", 6);
+                BNTest.Helper.addMultiple(String, L, "rumia", 1);
+                BNTest.Helper.addMultiple(String, L, "cirno", 1);
+                BNTest.Helper.addMultiple(String, L, "suika", 4);
             } else if (this.wave > 0 && this.wave % 10 === 0) {
                 var bosses = ["koishi", "marisa", "tenshi"];
                 var Char = "";
@@ -3164,11 +3521,11 @@
                     {
                         Char = "marisa";
                     }*/
-                var i = (Bridge.Int.div((((this.wave - 10) | 0)), 10)) | 0;
-                while (i >= bosses.length) {
-                    i = (i - bosses.length) | 0;
+                var i1 = (Bridge.Int.div((((this.wave - 10) | 0)), 10)) | 0;
+                while (i1 >= bosses.length) {
+                    i1 = (i1 - bosses.length) | 0;
                 }
-                Char = bosses[i];
+                Char = bosses[i1];
                 var NPC = new BNTest.PlayerCharacter(this.world, new BNTest.Player(true, true), Char);
                 NPC.defense = (12 + (((Bridge.Int.div(this.wave, 3)) | 0))) | 0;
                 this.setNPC(NPC);
@@ -3189,6 +3546,8 @@
             //since everything is spawned in pairs, halve the modifier.
             T *= 0.5;
             this.wavetime = ((((this.enemyList.length - skip) | 0)) * (T)) + basetime;
+
+            this.skippedWave = false;
         },
         doRandomWave: function () {
             var difficulty = this.wave * 0.1;
@@ -3202,6 +3561,7 @@
             BNTest.Helper.addMultiple(String, pool, "youmu", Bridge.Int.clip32(2 + (difficulty * 1.1)));
             if (this.wave > 20) {
                 BNTest.Helper.addMultiple(String, pool, "reisen", Bridge.Int.clip32(2 + (difficulty * 1.1)));
+                BNTest.Helper.addMultiple(String, pool, "nazrin", Bridge.Int.clip32(5 + (difficulty * 2)));
             }
             var RND = new System.Random.ctor();
             var i = 0;
@@ -3231,8 +3591,10 @@
                         this.localplayer.lives = 3;
                         this.localplayer.character.setCoins(1000);
 
+                        this.localplayer.character.setHP(100);
                         this.wave = 0;
                     }
+                    this.gameDisabled = false;
                     BNTest.App.guiCanvas.style.opacity = "0.85";
                     this.titleRunning = false;
                     this.titlescreen = false;
@@ -3459,7 +3821,7 @@
             //var max = 50;
             //var max = 60;
             //if (totaltime > NextSpawn && NPCs<max && !ended && AnimationLoader._this.IsIdle())
-            if (!this.paused) {
+            if (!this.paused && !this.gameDisabled) {
                 if (this.waveDelay > 0) {
                     this.totaltime = 0;
                     this.waveDelay = (this.waveDelay - 1) | 0;
@@ -3486,6 +3848,7 @@
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(67)) {
                 this.cameracontrols = !this.cameracontrols;
+                this.camera.rotation.y = 0;
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(66) && BNTest.AnimationLoader.get_this().isIdle() && !this.ended && this.boss == null) {
                 var Char = "koishi";
@@ -3502,7 +3865,18 @@
                 this.localplayer.character.setCoins((this.localplayer.character.getCoins() + 50) | 0);
                 this.waveDelay = 0;
                 this.wavetime = 0;
+                this.skippedWave = true;
                 this.nextWave();
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(79) && !this.ended) {
+                this.gameDisabled = !this.gameDisabled;
+                if (this.gameDisabled) {
+                    this.clearEntities();
+                } else {
+                    this.clearEntities();
+                    this.wave = (this.wave - 1) | 0;
+                    this.nextWave();
+                }
             }
         },
         drawGauge: function (g, position, size, border, progress, color, drawborder) {
@@ -3670,6 +4044,28 @@
 
                     fog /= this.cameraDist;
                     fog = fog * fog * 1.44;
+
+
+                    if (this.lightLevel !== this.currentlightlevel) {
+                        this.currentlightlevel = BNTest.MathHelper.incrementTowards$1(this.currentlightlevel, this.lightLevel, 0.0025, 0.01);
+                        //currentlightlevel = MathHelper.incrementTowards(currentlightlevel, lightLevel, 0.007);
+                    }
+                    this.currentlightlevel = BNTest.MathHelper.clamp(this.currentlightlevel);
+                    if (this.currentlightlevel !== 1) {
+                        //fog /= (0.5+(currentlightlevel * 0.5));
+                        fog /= (0.35 + (this.currentlightlevel * 0.65));
+                        //lightLevel = 1;
+
+
+                    }
+                    if (this.currentlightlevel > 0) {
+                        this.gl.uniform1f(this.darknessLevelUniform, this.defaultDarknessLevel / this.currentlightlevel);
+                    } else {
+                        this.gl.uniform1f(this.darknessLevelUniform, 1);
+                    }
+                    this.gl.uniform3f(this.lightPosUniform, 0, 0, (this.cameraDist / 2) - 50);
+                    this.gl.uniform1f(this.ambientLightLevel, this.defaultAmbientLightLevel * this.currentlightlevel);
+                    this.lightLevel = 1;
                     this.gl.uniform1f(this.gl.getUniformLocation(this.shaderProgram, "uFogDensity"), fog);
                 }
             }
@@ -3764,6 +4160,7 @@
                 this.doTitle();
             }
             if (this.camera != null) {
+                this.world.prepareRender();
                 this.camera.render();
             }
             var testest = new BNTest.WGMatrix();
@@ -3844,7 +4241,7 @@
 
             this.perspectiveMatrix = makePerspective(45, 640.0 / 480.0, znear, zfar);
             var flat = this.tflat;
-            this.flatten$1(this.perspectiveMatrix, flat);
+            this.flatten$2(this.perspectiveMatrix, flat);
             var A = new Float32Array(flat);
 
             this.gl.uniformMatrix4fv(this.pUniform, false, A);
@@ -3874,7 +4271,7 @@
             this.titleRunning = true;
             this.paused = false;
             this.world.remove(this.localplayer.character);
-            this.localplayer.character.visible = false;
+            this.localplayer.character.model.setVisible(false);
             var i = 0;
             while (i < 30) {
                 var Char = "suika";
@@ -3979,6 +4376,12 @@
                     this.loadProgress = Math.min(this.loadProgress, this.maxLoadQueue, 1);
                     this.drawGauge(gui, new BNTest.Vector2(350, 42), new BNTest.Vector2(320, 24), 2, this.loadProgress, "#00DD00");
                 }
+            } else if (this.currentlightlevel < 1) {
+                gui.fillStyle = "#000000";
+                //gui.GlobalAlpha = ((currentlightlevel)*0.5).As<float>();
+                gui.globalAlpha = ((1 - this.currentlightlevel));
+                gui.fillRect(0, 0, 1024, 1024);
+                gui.globalAlpha = 1.0;
             }
 
             gui.lineWidth = 3.0;
@@ -4024,6 +4427,11 @@
                             ok = true;
                             if (!Bridge.referenceEquals(D.team, team)) {
                                 color = "#FF0000";
+                                if (Bridge.referenceEquals(D, this.boss)) {
+                                    sz = (sz + 2) | 0;
+                                    //color = "#FF6600";
+                                    color = "#FF6633";
+                                }
                             }
                         }
                         var A = E.getAttacker;
@@ -4037,7 +4445,7 @@
                                     color = "#FF0000";
                                 }
                             }
-                        } else if (E.value) {
+                        } else if (E.value || E.healing) {
                             ok = true;
                             color = "#FFFF00";
                         } else if (E.defaultMaxHP) {
@@ -4102,6 +4510,11 @@
             var T = System.String.concat(System.String.alignString((""), -pad, 32), time);
             if (this.started) {
                 T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), "Coins:"), this.localplayer.character.getCoins()), "\nLives:"), Math.max(this.localplayer.lives, 0)), " Wave:"), this.wave);
+                if (BNTest.App.DEBUG) {
+                    var R = this.world.model.countElements();
+                    //T = T + "\n" + R[1] + " Verticies in " + R[0] + " Meshes.";
+                    T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), this.intToDigits(R[1])), " Verticies in "), this.intToDigits(R[0])), " Meshes.");
+                }
             }
             this.TS.setText(T);
             //TS.Position = new Vector2(2, 2);
@@ -4180,6 +4593,17 @@
 
 
         },
+        intToDigits: function (N) {
+            var ret = System.String.concat("", N);
+            var ln = ret.length;
+            var i = (ln - 3) | 0;
+            while (i > 0) {
+                ret = System.String.insert(i, ret, ",");
+                i = (i - 3) | 0;
+                ln = (ln + 1) | 0;
+            }
+            return ret;
+        },
         getTeamColor: function (Team) {
             return new BNTest.GLColor();
         },
@@ -4221,13 +4645,21 @@
             }
         },
         processEvent: function (msg, user, latency) {
-            var LP = new (System.Collections.Generic.List$1(BNTest.Player))(System.Linq.Enumerable.from(this.players).where(function (player) {
-                return user != null && Bridge.referenceEquals(player.networkID, user.userID);
-            }));
+            //List<Player> LP = new List<Player>(players.Where(player => user != null && player.NetworkID == user.userID));
+            var i = 0;
+            var ln = this.players.getCount();
+            var LP = System.Array.init(0, null);
+            while (i < ln) {
+                var Pl = this.players.getItem(i);
+                if (user != null && Bridge.referenceEquals(Pl.networkID, user.userID)) {
+                    LP.push(Pl);
+                }
+                i = (i + 1) | 0;
+            }
             var P = null;
             var D = msg.D;
             var hascharacter = true;
-            if (LP.getCount() <= 0) {
+            if (LP.length <= 0) {
                 if (P == null && user == null && !this.online) {
                     P = this.localplayer;
                 } else {
@@ -4239,7 +4671,7 @@
                     }
                 }
             } else {
-                P = LP.getItem(0);
+                P = LP[0];
             }
             var evt = msg.E;
             if (user != null && !user.getIsMe()) {
@@ -4289,6 +4721,10 @@
 
             this.gl.useProgram(this.shaderProgram);
 
+            //gl.EnableVertexAttribArray(0);
+            //Apparently forcing something into slot 0 and then enabling it can boost performance.
+            this.gl.bindAttribLocation(this.shaderProgram, 0, "aVertexPosition");
+
             this.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
             this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
 
@@ -4310,9 +4746,22 @@
 
             this.mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
 
+            this.lightPosUniform = this.gl.getUniformLocation(this.shaderProgram, "lightPosition");
+
+            this.darknessLevelUniform = this.gl.getUniformLocation(this.shaderProgram, "darknessLevel");
+
+            this.ambientLightLevel = this.gl.getUniformLocation(this.shaderProgram, "ambientLightLevel");
+
+
             this.fogActive = true;
             this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, "uUseFog"), this.fogActive);
             this.gl.uniform1f(this.alphaUniform, 1);
+
+
+            //gl.Uniform1f(darknessLevelUniform, 0.001);
+            this.gl.uniform1f(this.darknessLevelUniform, this.defaultDarknessLevel);
+            this.gl.uniform1f(this.ambientLightLevel, this.defaultAmbientLightLevel);
+            this.gl.uniform3f(this.lightPosUniform, 0, 0, (this.cameraDist / 2) - 50);
 
 
             var CV = document.createElement('canvas');
@@ -4507,17 +4956,76 @@
             if (this.matrixNeedsFlush) {
                 this.matrixNeedsFlush = false;
                 //setMatrixUniforms();
-                var flat = this.tflat;
-                this.flatten$1(this.mvMatrix, flat);
-                var A = new Float32Array(flat);
+                this.flatten$1(this.mvMatrix, this.FA);
+                /* var flat = tflat;
+                    flatten(mvMatrix,flat);
+                    var F = flat.As<float[]>();
+                    ///var flat = flatten(mvMatrix);
+
+                    FA[0] = F[0];
+                    FA[1] = F[1];
+                    FA[2] = F[2];
+                    FA[3] = F[3];
+
+                    FA[4] = F[4];
+                    FA[5] = F[5];
+                    FA[6] = F[6];
+                    FA[7] = F[7];
+
+                    FA[8] = F[8];
+                    FA[9] = F[9];
+                    FA[10] = F[10];
+                    FA[11] = F[11];
+
+                    FA[12] = F[12];
+                    FA[13] = F[13];
+                    FA[14] = F[14];
+                    FA[15] = F[15];*/
+                //var A = Script.Write<Array>("new Float32Array(flat)");
                 //var B = Script.Write<Array>("new Float32Array(this.mvMatrix.flatten())");
                 //var A = Script.Write<Array>("new Float32Array(this.mvMatrix.flatten())");
-                this.gl.uniformMatrix4fv(this.mvUniform, false, A);
+                //gl.UniformMatrix4fv(mvUniform, false, A);
+                this.gl.uniformMatrix4fv(this.mvUniform, false, this.FA);
             }
         },
         flatten: function (matrix) {
             var M = matrix.elements;
             return [M[0][0], M[1][0], M[2][0], M[3][0], M[0][1], M[1][1], M[2][1], M[3][1], M[0][2], M[1][2], M[2][2], M[3][2], M[0][3], M[1][3], M[2][3], M[3][3]];
+        },
+        flatten$2: function (matrix, OUT) {
+            var M = matrix.elements;
+            var O = OUT;
+            var A = M[0];
+            var B = M[1];
+            var C = M[2];
+            var D = M[3];
+            /* var i = 0;
+                var x = 0;
+                var y = 0;*/
+            O[0] = A[0];
+            O[1] = B[0];
+            O[2] = C[0];
+            O[3] = D[0];
+
+            O[4] = A[1];
+            O[5] = B[1];
+            O[6] = C[1];
+            O[7] = D[1];
+
+            O[8] = A[2];
+            O[9] = B[2];
+            O[10] = C[2];
+            O[11] = D[2];
+
+            O[12] = A[3];
+            O[13] = B[3];
+            O[14] = C[3];
+            O[15] = D[3];
+            /* return new double[] { M[0][0], M[1][0], M[2][0], M[3][0],
+                    M[0][1], M[1][1], M[2][1], M[3][1],
+                    M[0][2], M[1][2], M[2][2], M[3][2],
+                    M[0][3], M[1][3], M[2][3], M[3][3]
+                };*/
         },
         flatten$1: function (matrix, OUT) {
             var M = matrix.elements;
@@ -4591,6 +5099,17 @@
             me[1][1]=s.y;
             me[2][2]=s.z;
             this.multMatrix(m);
+        }
+    });
+
+    Bridge.ns("BNTest.GLDemo", $_);
+
+    Bridge.apply($_.BNTest.GLDemo, {
+        f1: function (E) {
+            return Bridge.is(E, BNTest.DonationBox);
+        },
+        f2: function (E) {
+            return !(Bridge.is(E, BNTest.RisingPlatform));
         }
     });
 
@@ -4685,8 +5204,38 @@
             min: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(Math.min(V1.x, V2.x), Math.min(V1.y, V2.y), Math.min(V1.z, V2.z));
             },
+            min$1: function (V) {
+                if (V === void 0) { V = []; }
+                //return new GLVec3(Math.Max(V1.X, V2.X), Math.Max(V1.Y, V2.Y), Math.Max(V1.Z, V2.Z));
+                var ret = V[0].clone();
+                var i = 1;
+                var ln = V.length;
+                while (i < ln) {
+                    var P = V[i];
+                    ret.x = Math.min(ret.x, P.x);
+                    ret.y = Math.min(ret.y, P.y);
+                    ret.z = Math.min(ret.z, P.z);
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            },
             max: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(Math.max(V1.x, V2.x), Math.max(V1.y, V2.y), Math.max(V1.z, V2.z));
+            },
+            max$1: function (V) {
+                if (V === void 0) { V = []; }
+                //return new GLVec3(Math.Max(V1.X, V2.X), Math.Max(V1.Y, V2.Y), Math.Max(V1.Z, V2.Z));
+                var ret = V[0].clone();
+                var i = 1;
+                var ln = V.length;
+                while (i < ln) {
+                    var P = V[i];
+                    ret.x = Math.max(ret.x, P.x);
+                    ret.y = Math.max(ret.y, P.y);
+                    ret.z = Math.max(ret.z, P.z);
+                    i = (i + 1) | 0;
+                }
+                return ret;
             },
             floor: function (V) {
                 return new BNTest.GLVec3.ctor(Math.floor(V.x), Math.floor(V.y), Math.floor(V.z));
@@ -4697,6 +5246,15 @@
                 var Y = V1.y + ((V2.y - V1.y) * 0.5);
                 var Z = V1.z + ((V2.z - V1.z) * 0.5);
                 return new BNTest.GLVec3.ctor(X, Y, Z);
+            },
+            getCenter$1: function (V1, V2, OUT) {
+                //return V1 + ((V2 - V1) * 0.5);
+                var X = V1.x + ((V2.x - V1.x) * 0.5);
+                var Y = V1.y + ((V2.y - V1.y) * 0.5);
+                var Z = V1.z + ((V2.z - V1.z) * 0.5);
+                OUT.x = X;
+                OUT.y = Y;
+                OUT.z = Z;
             },
             op_Addition$1: function (V1, Vec2) {
                 /* var V2 = new GLVec3(Vec2.X, 0, Vec2.Y);
@@ -4861,6 +5419,24 @@
         toString: function () {
             return System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat("X:", System.Double.format(this.x, 'G')), " Y:"), System.Double.format(this.y, 'G')), " Z:"), System.Double.format(this.z, 'G'));
             //return base.ToString();
+        },
+        alignedAxis: function (V) {
+            var ret = 0;
+            if (this.x === V.x) {
+                ret = (ret + 1) | 0;
+            }
+            if (this.y === V.y) {
+                ret = (ret + 1) | 0;
+            }
+            if (this.z === V.z) {
+                ret = (ret + 1) | 0;
+            }
+            return ret;
+        },
+        add: function (position) {
+            this.x += position.x;
+            this.y += position.y;
+            this.z += position.z;
         }
     });
 
@@ -5083,6 +5659,31 @@
                     list.push(val[i]);
                     i = (i + 1) | 0;
                 }
+            },
+            indexOf: function (T, list, Value) {
+                var i = 0;
+                var ln = list.length;
+                while (i < ln && i >= 0) {
+                    i = list.indexOf(Value[0]);
+                    var k = 1;
+                    var l = i;
+                    if (i < ln && i >= 0) {
+                        var ok = true;
+                        while (ok && k < Value.length) {
+                            var A = list[l];
+                            var B = Value[k];
+                            if (!Bridge.referenceEquals(A, B)) {
+                                ok = false;
+                            }
+                            k = (k + 1) | 0;
+                            l = (l + 1) | 0;
+                        }
+                        if (ok) {
+                            return i;
+                        }
+                    }
+                }
+                return -1;
             }
         }
     });
@@ -5610,6 +6211,36 @@
                 return radian;
                 //return radian % PI2;
             },
+            incrementTowards: function (current, destination, speed) {
+                if (current < destination) {
+                    current += speed;
+                    if (current > destination) {
+                        current = destination;
+                    }
+                }
+                if (current > destination) {
+                    current -= speed;
+                    if (current < destination) {
+                        current = destination;
+                    }
+                }
+                return current;
+            },
+            incrementTowards$1: function (current, destination, incspeed, decspeed) {
+                if (current < destination) {
+                    current += incspeed;
+                    if (current > destination) {
+                        current = destination;
+                    }
+                }
+                if (current > destination) {
+                    current -= decspeed;
+                    if (current < destination) {
+                        current = destination;
+                    }
+                }
+                return current;
+            },
             radianToVector: function (radian) {
                 return new BNTest.Vector2(Math.cos(radian), Math.sin(radian));
             },
@@ -5670,8 +6301,8 @@
         cubeVerticesTextureCoordBuffer: null,
         verticies: null,
         colors: null,
-        indices: null,
         textureCoords: null,
+        indices: null,
         needsUpdate: true,
         hasBuffer: false,
         offset: null,
@@ -5691,8 +6322,8 @@
             init: function () {
                 this.verticies = [];
                 this.colors = [];
-                this.indices = [];
                 this.textureCoords = [];
+                this.indices = [];
                 this.offset = new BNTest.GLVec3.ctor();
                 this.rotation = new BNTest.GLVec3.ctor();
                 this.scale = new BNTest.GLVec3.ctor(1, 1, 1);
@@ -5801,14 +6432,20 @@
                 this.draw();
             }
         },
-        replaceAllColors: function (NewColor) {
+        replaceAllColors: function (NewColor, keepAlpha) {
+            if (keepAlpha === void 0) { keepAlpha = false; }
             var N = System.Array.init(0, 0);
             var i = 0;
             while (i < this.colors.length) {
                 N.push(NewColor.r);
                 N.push(NewColor.g);
                 N.push(NewColor.b);
-                N.push(NewColor.a);
+                if (!keepAlpha) {
+                    N.push(NewColor.a);
+                } else {
+                    //N.Push(Colors[i+3]);
+                    N.push(NewColor.a);
+                }
                 i = (i + 4) | 0;
             }
             this.colors = N;
@@ -5914,6 +6551,10 @@
                 //GD.multMatrix(M.mvMatrix, true);
             }
         },
+        drawElements: function () {
+            var G = this.getgl();
+            G.drawElements(G.TRIANGLES, this.indices.length, G.UNSIGNED_SHORT, 0);
+        },
         draw: function () {
             this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
 
@@ -5923,22 +6564,24 @@
                 //GD.matrix.mvPushMatrix();
                 this.getGD().multMatrix(this.transformation.mvMatrix, true);
             }
-            var G = this.getgl();
+            //var G = gl;
             this.getGD().flushMatrix();
-            G.drawElements(G.TRIANGLES, this.indices.length, G.UNSIGNED_SHORT, 0);
+            this.drawElements();
+            //G.DrawElements(G.TRIANGLES, Indices.Length, G.UNSIGNED_SHORT, 0);
             if (this.transformed) {
                 //GD.matrix.mvPopMatrix();
                 this.getGD().mvPopMatrix();
             }
-            return;
-
-            var l = this.indices.length;
-            var i = 0;
-            var sz = 6;
-            while (i < l) {
-                G.drawElements(G.TRIANGLES, sz, G.UNSIGNED_SHORT, i);
-                i = (i + sz) | 0;
-            }
+            /* return;
+            
+                int l = Indices.Length;
+                var i = 0;
+                var sz = 6;
+                while (i < l)
+                {
+                    G.DrawElements(G.TRIANGLES, sz, G.UNSIGNED_SHORT, i);
+                    i += sz;
+                }*/
         },
         update: function () {
             if (!this.needsUpdate) {
@@ -6337,6 +6980,8 @@
             GV[5] = new BNTest.GLVec3.ctor(Max.x, Min.y, Max.z);
             GV[6] = new BNTest.GLVec3.ctor(Min.x, Max.y, Max.z);
             GV[7] = new BNTest.GLVec3.ctor(Max.x, Max.y, Max.z);
+            var temp = new BNTest.GLVec3.ctor();
+            var swap;
 
             if (interpolation != null) {
                 //if true, ends are round shaped, if false tips are pointy.
@@ -6348,7 +6993,11 @@
                 while (i < GVL) {
                     if (!interpolation[i]) {
                         if (quarter) {
-                            GV[i] = BNTest.GLVec3.getCenter(GV[i], center);
+                            //GV[i] = GLVec3.GetCenter(GV[i],center);
+                            swap = GV[i];
+                            BNTest.GLVec3.getCenter$1(swap, center, temp);
+                            GV[i] = temp;
+                            temp = swap;
                         } else {
                             GV[i] = center;
                         }
@@ -6360,32 +7009,36 @@
                 this.QV3 = (Bridge.Int.div(this.verticies.length, 3)) | 0;
             }
 
+            //C = new GLColor(0, 1, 0);
             //top
             if (!invisible[0]) {
-                this.quickAddRectangle(GV[0], GV[1], GV[2], GV[3], C);
+                this.quickAddRectangle(GV[0], GV[1], GV[2], GV[3], C, true);
             }
             //bottom
             if (!invisible[1]) {
                 this.quickAddRectangle(GV[4], GV[5], GV[6], GV[7], C);
             }
 
+            //C = new GLColor(0, 0, 1);
             //left
             if (!invisible[2]) {
-                this.quickAddRectangle(GV[0], GV[2], GV[4], GV[6], C);
+                this.quickAddRectangle(GV[0], GV[2], GV[4], GV[6], C, true);
             }
             //bottom
             if (!invisible[3]) {
                 this.quickAddRectangle(GV[1], GV[3], GV[5], GV[7], C);
             }
 
+            //C = new GLColor(1, 0, 0);
+            //
+            if (!invisible[5]) {
+                this.quickAddRectangle(GV[2], GV[3], GV[6], GV[7], C, true);
+            }
             //
             if (!invisible[4]) {
                 this.quickAddRectangle(GV[0], GV[1], GV[4], GV[5], C);
             }
-            //
-            if (!invisible[5]) {
-                this.quickAddRectangle(GV[2], GV[3], GV[6], GV[7], C);
-            }
+
         },
         addCube: function (Min, Max, C) {
             this.addCube1(Min, Max, C);
@@ -6428,7 +7081,9 @@
 
 
 
-            BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 3) | 0), ((ind + 1) | 0), ((ind + 2) | 0)]);
+            /* pushValue(Indices, ind,ind+1,ind+2
+                    ,ind+3,ind+1,ind+2);*/
+            BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 2) | 0), ((ind + 1) | 0), ((ind + 3) | 0)]);
 
             //if (texture)
             {
@@ -6458,7 +7113,8 @@
             this.min = BNTest.GLVec3.min(this.min, V);
             this.max = BNTest.GLVec3.max(this.max, V);
         },
-        quickAddRectangle: function (V1, V2, V3, V4, C) {
+        quickAddRectangle: function (V1, V2, V3, V4, C, inv) {
+            if (inv === void 0) { inv = false; }
             //int ind = Verticies.Length / 3;
             var ind = this.QV3;
             var V;
@@ -6480,7 +7136,18 @@
 
 
 
-            BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 3) | 0), ((ind + 1) | 0), ((ind + 2) | 0)]);
+            /* pushValue(Indices, ind, ind + 1, ind + 2
+                    , ind + 3, ind + 1, ind + 2);*/
+            /* pushValue(Indices, ind, ind + 1, ind + 2
+                , ind + 1, ind + 2, ind + 3);*/
+            //pushValue(Indices, ind + 1, ind + 3, ind + 2);
+            /* pushValue(Indices, ind, ind + 1, ind + 2
+                , ind + 1, ind + 2, ind + 3);*/
+            if (!inv) {
+                BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 2) | 0), ((ind + 1) | 0), ((ind + 3) | 0)]);
+            } else {
+                BNTest.Mesh.pushValue(this.indices, [((ind + 2) | 0), ((ind + 1) | 0), ind, ((ind + 3) | 0), ((ind + 1) | 0), ((ind + 2) | 0)]);
+            }
 
             //if (texture)
             {
@@ -6516,6 +7183,7 @@
         color: null,
         bleedThrough: false,
         znearRate: -1,
+        drawOrder: 0,
         config: {
             properties: {
                 gl: null,
@@ -6646,6 +7314,34 @@
         clone: function () {
             var ret = new BNTest.Model(this.getGD());
             ret.copyFrom(this);
+            return ret;
+        },
+        countElements: function () {
+            //0=total meshes
+            //1=total vertexes
+            var ret = System.Array.init(0, 0);
+            ret[0] = 0;
+            ret[1] = 0;
+            if (!this.getVisible() || (!this.inView && !this.forceRender)) {
+                return ret;
+            }
+            var i = 0;
+            var ln = this.meshes.getCount();
+            while (i < ln) {
+                var M = this.meshes.getItem(i);
+                ret[0] = (ret[0] + 1) | 0;
+                ret[1] = (ret[1] + M.indices.length) | 0;
+                i = (i + 1) | 0;
+            }
+            i = 0;
+            ln = this.children.getCount();
+            while (i < ln) {
+                var C = this.children.getItem(i);
+                var R = C.countElements();
+                ret[0] = (ret[0] + R[0]) | 0;
+                ret[1] = (ret[1] + R[1]) | 0;
+                i = (i + 1) | 0;
+            }
             return ret;
         },
         copyFrom: function (source, shallow) {
@@ -7273,6 +7969,93 @@
         }
     });
 
+    Bridge.define("BNTest.Quad", {
+        V1: null,
+        V2: null,
+        V3: null,
+        V4: null,
+        /**
+         * if true, the quad's indice order is reversed.
+         *
+         * @instance
+         * @public
+         * @memberof BNTest.Quad
+         * @default false
+         * @type boolean
+         */
+        reversed: false,
+        ctor: function () {
+            this.$initialize();
+
+        },
+        $ctor1: function (Min, Max) {
+            this.$initialize();
+            this.V1 = Min;
+            var MnP = Min.position;
+            var MxP = Max.position;
+            var C = Min.color;
+            this.V2 = new BNTest.Vertex.$ctor1(new BNTest.GLVec3.ctor(MxP.x, MnP.y, MnP.z), new BNTest.Vector2(Max.textureCoord.x, Min.textureCoord.y), C);
+            this.V3 = new BNTest.Vertex.$ctor1(new BNTest.GLVec3.ctor(MnP.x, MxP.y, MxP.z), new BNTest.Vector2(Min.textureCoord.x, Max.textureCoord.y), C);
+            this.V4 = Max;
+        },
+        getCenter: function () {
+            var V = [this.V1.position, this.V2.position, this.V3.position, this.V4.position];
+            var min = BNTest.GLVec3.min$1(V);
+            var max = BNTest.GLVec3.max$1(V);
+            var X = (max.x - min.x) * 0.5;
+            var Y = (max.y - min.y) * 0.5;
+            var Z = (max.z - min.z) * 0.5;
+            return new BNTest.GLVec3.ctor(min.x + X, min.y + Y, min.z + Z);
+        },
+        getMinMax: function () {
+            /* GLVec3 Min = V1.Position.Clone();
+                GLVec3 Max = V4.Position.Clone();
+                Min = GLVec3.Max()*/
+            /* var V1P = V1.Position;
+                var V2P = V2.Position;
+                var V3P = V3.Position;
+                var V4P = V4.Position;*/
+            var V = [this.V1.position, this.V2.position, this.V3.position, this.V4.position];
+
+            return [BNTest.GLVec3.min$1(V), BNTest.GLVec3.max$1(V)];
+        },
+        isCombinable: function (Q) {
+            var R = 0;
+            R = (R + (this.V1.position.alignedAxis(Q.V1.position))) | 0;
+            R = (R + (this.V2.position.alignedAxis(Q.V2.position))) | 0;
+            R = (R + (this.V3.position.alignedAxis(Q.V3.position))) | 0;
+            R = (R + (this.V4.position.alignedAxis(Q.V4.position))) | 0;
+            if (R >= 8) {
+                var QC = Q.getCenter();
+                //if (Center.RoughDistance(Q.Center) == 1)
+                if (this.V1.position.roughDistance(QC) === 1 || this.V2.position.roughDistance(QC) === 1 || this.V3.position.roughDistance(QC) === 1 || this.V4.position.roughDistance(QC) === 1) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        combine: function (Q) {
+            var V1 = this.getMinMax();
+            var V2 = Q.getMinMax();
+            var min = BNTest.GLVec3.min(V1[0], V2[0]);
+            var max = BNTest.GLVec3.max(V1[0], V2[0]);
+            this.setMinMax(min, max);
+        },
+        setMinMax: function (min, max) {
+            this.V1.position = min.clone();
+            this.V2.position.x = max.x;
+            this.V2.position.y = min.y;
+            this.V2.position.z = min.z;
+            if (this.V2.position.equals(this.V1.position)) {
+                this.V2.position.z = max.z;
+            }
+            this.V3.position.x = min.x;
+            this.V3.position.y = max.y;
+            this.V3.position.z = max.z;
+            this.V4.position = max.clone();
+        }
+    });
+
     Bridge.define("BNTest.Rectangle", {
         x: 0,
         y: 0,
@@ -7680,6 +8463,13 @@
             return new BNTest.Vector2(x, y);
         },
         equals: function (o) {
+            var B = o;
+            if (BNTest.Vector2.op_Inequality(this, B) && BNTest.Vector2.op_Equality(B, null)) {
+                return false;
+            }
+            return B.x === this.x && B.y === this.y;
+        },
+        equals$1: function (o) {
             if (Bridge.is(o, BNTest.Vector2)) {
                 var B = Bridge.cast(o, BNTest.Vector2);
                 if (BNTest.Vector2.op_Inequality(this, B) && BNTest.Vector2.op_Equality(B, null)) {
@@ -7701,6 +8491,25 @@
         }
     });
 
+    Bridge.define("BNTest.Vertex", {
+        position: null,
+        textureCoord: null,
+        color: null,
+        ctor: function () {
+            this.$initialize();
+
+        },
+        $ctor1: function (Position, TextureCoord, Color) {
+            this.$initialize();
+            this.position = Position;
+            this.textureCoord = TextureCoord;
+            this.color = Color;
+        },
+        equals: function (V) {
+            return (this.position.equals(V.position) && this.textureCoord.equals(V.textureCoord) && this.color.equals(V.color));
+        }
+    });
+
     Bridge.define("BNTest.VoxelMap", {
         statics: {
             maps: null,
@@ -7713,7 +8522,7 @@
                 if (smoothness === void 0) { smoothness = 0.95; }
                 var hsz = (Bridge.Int.div(size, 2)) | 0;
                 var hhsz = (Bridge.Int.div(hsz, 2)) | 0;
-                var VM = new BNTest.VoxelMap();
+                var VM = new BNTest.VoxelMap.ctor();
                 VM.map = System.Array.create(null, null, hsz, size, hsz);
                 var S = new BNTest.GLVec3.ctor(((hhsz - 1) | 0), ((size - 1) | 0), hhsz);
                 var E = S.clone();
@@ -7727,7 +8536,7 @@
             generateRock: function (size, color, smoothness) {
                 if (smoothness === void 0) { smoothness = 0.9; }
                 var hsz = (Bridge.Int.div(size, 2)) | 0;
-                var VM = new BNTest.VoxelMap();
+                var VM = new BNTest.VoxelMap.ctor();
                 VM.map = System.Array.create(null, null, size, hsz, size);
                 //VM.Map = new GLColor[hsz, hsz, hsz];
                 //VM.DrawPyramid(0, hsz / 2, 0, (int)Math.Round(hsz * 0.75), color);
@@ -7801,7 +8610,7 @@
                 }
             },
             fromImages: function (images) {
-                var ret = new BNTest.VoxelMap();
+                var ret = new BNTest.VoxelMap.ctor();
                 var ln = images.getCount();
                 ret.map = System.Array.create(null, null, images.getItem(0).width, images.getItem(0).height, ln);
                 var i = 0;
@@ -7825,7 +8634,7 @@
                 if (sizez === 0) {
                     sizez = size;
                 }
-                var ret = new BNTest.VoxelMap();
+                var ret = new BNTest.VoxelMap.ctor();
                 ret.map = System.Array.create(null, null, size, sizey, sizez);
                 ret.randomize(holes, transparent, bottomsolid, winter);
                 return ret;
@@ -7842,6 +8651,18 @@
             }
         },
         map: null,
+        ctor: function () {
+            this.$initialize();
+
+        },
+        $ctor2: function (size) {
+            this.$initialize();
+            this.map = System.Array.create(null, null, size, size, size);
+        },
+        $ctor1: function (size) {
+            this.$initialize();
+            this.map = System.Array.create(null, null, Bridge.Int.clip32(size.x), Bridge.Int.clip32(size.y), Bridge.Int.clip32(size.z));
+        },
         getVoxel: function (X, Y, Z) {
             if (X >= 0 && Y >= 0 && Z >= 0 && X < System.Array.getLength(this.map, 0) && Y < System.Array.getLength(this.map, 1) && Z < System.Array.getLength(this.map, 2)) {
                 return this.map.get([X, Y, Z]);
@@ -7853,6 +8674,9 @@
                 return true;
             }
             return false;
+        },
+        getSizeAsBoundingBox: function () {
+            return new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(), new BNTest.GLVec3.ctor(System.Array.getLength(this.map, 0), System.Array.getLength(this.map, 1), System.Array.getLength(this.map, 2)));
         },
         randomize: function (holes, transparent, bottomsolid, winter) {
             if (holes === void 0) { holes = true; }
@@ -7890,25 +8714,39 @@
                 X = (X + 1) | 0;
             }
         },
-        setColor: function (color) {
-            var X = 0;
-            var Y = 0;
-            var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
-                        if (this.valid(this.map.get([X, Y, Z]))) {
-                            this.map.set([X, Y, Z], color);
-                        }
-                        Z = (Z + 1) | 0;
-                    }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
+        setColor: function (color, visibleOnly) {
+            if (visibleOnly === void 0) { visibleOnly = true; }
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                if (this.valid(M[i]) || !visibleOnly) {
+                    M[i] = color;
                 }
-                Y = 0;
-                Z = 0;
-                X = (X + 1) | 0;
+                i = (i + 1) | 0;
             }
+            /* int X = 0;
+                int Y = 0;
+                int Z = 0;
+                while (X < Map.GetLength(0))
+                {
+                    while (Y < Map.GetLength(1))
+                    {
+                        while (Z < Map.GetLength(2))
+                        {
+                            if (Valid(Map[X, Y, Z]))
+                            {
+                                Map[X, Y, Z] = color;
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }*/
         },
         flipX: function () {
             var N = System.Array.create(null, null, System.Array.getLength(this.map, 0), System.Array.getLength(this.map, 1), System.Array.getLength(this.map, 2));
@@ -7965,6 +8803,8 @@
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
             var m2 = strength + strength;
+
+
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
@@ -8041,6 +8881,57 @@
                 V = BNTest.GLVec3.op_Addition(V, spd);
                 i = (i + 1) | 0;
             }
+        },
+        entropy: function (noise, holes) {
+            var n2 = noise + noise;
+
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                /* if (Valid(M[i]))
+                    {
+                        M[i] = color;
+                        i++;
+                    }*/
+                var C = M[i];
+                if (Math.random() < holes) {
+                    M[i] = null;
+                } else if (this.valid(C)) {
+                    C = BNTest.GLColor.op_Addition(C, new BNTest.GLColor(-noise + (n2 * Math.random()), -noise + (n2 * Math.random()), -noise + (n2 * Math.random())));
+                    M[i] = C;
+                }
+                i = (i + 1) | 0;
+            }
+
+            /* int X = 0;
+                int Y = 0;
+                int Z = 0;
+                while (X < Map.GetLength(0))
+                {
+                    while (Y < Map.GetLength(1))
+                    {
+                        while (Z < Map.GetLength(2))
+                        {
+                            var C = Map[X, Y, Z];
+                            if (Math.Random() < holes)
+                            {
+                                Map[X, Y, Z] = null;
+                            }
+                            else if (Valid(C))
+                            {
+                                C = C + new GLColor(-noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()));
+                                Map[X, Y, Z] = C;
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }*/
         },
         addHoles: function (chance) {
             var X = 0;
@@ -8138,7 +9029,7 @@
             var YY = (Y + (((size - 1) | 0))) | 0;
             var ZZ = Z;
             while (size > 0) {
-                this.fill$1(XX, YY, ZZ, size, 1, size, color);
+                this.fill$2(XX, YY, ZZ, size, 1, size, color);
                 XX = (XX + 1) | 0;
                 ZZ = (ZZ + 1) | 0;
                 YY = (YY - 1) | 0;
@@ -8298,24 +9189,44 @@
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
             var N = System.Array.create(null, null, MX, MY, MZ);
-            var X = 0;
-            var Y = 0;
-            var Z = 0;
-            while (X < MX) {
-                while (Y < MY) {
-                    while (Z < MZ) {
-                        N.set([X, Y, Z], this.map.get([X, Y, Z]));
-                        Z = (Z + 1) | 0;
-                    }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
-                }
-                Y = 0;
-                X = (X + 1) | 0;
+            var M = this.map;
+            var NM = N;
+            //var ind = Script.Write<int>("System.Array.toIndex(M, [X,Y,Z])");
+            var i = 0;
+            var ln = this.map.length;
+            while (i < ln) {
+                NM[i] = M[i];
+                i = (i + 1) | 0;
             }
-            var VM = new BNTest.VoxelMap();
+            //NM[ind] = M[ind];
+            var VM = new BNTest.VoxelMap.ctor();
             VM.map = N;
             return VM;
+            /* var MX = Map.GetLength(0);
+                var MY = Map.GetLength(1);
+                var MZ = Map.GetLength(2);
+                GLColor[,,] N = new GLColor[MX, MY, MZ];
+                int X = 0;
+                int Y = 0;
+                int Z = 0;
+                while (X < MX)
+                {
+                    while (Y < MY)
+                    {
+                        while (Z < MZ)
+                        {
+                            N[X, Y, Z] = Map[X, Y, Z];
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    X++;
+                }
+                VoxelMap VM = new VoxelMap();
+                VM.Map = N;
+                return VM;*/
         },
         importImageLayer: function (image, z) {
             if (z === void 0) { z = 0; }
@@ -8377,43 +9288,85 @@
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
             var key = null;
+
+            var M = this.map;
+            //var ind = Script.Write<int>("System.Array.toIndex(M, [X,Y,Z])");
             var i = 0;
+            var Xln = this.map.length;
             var ln = Keys.getCount();
-            while (X < MX) {
-                while (Y < MY) {
-                    while (Z < MZ) {
-                        var C = this.map.get([X, Y, Z]);
-                        if (C != null && C.a > 0) {
+            while (X < Xln) {
+                var C = M[X];
+                if (C != null && C.a > 0) {
 
-                            //var ind = Keys.IndexOf(C);
-                            key = null;
-                            i = 0;
-                            while (i < ln) {
-                                var t = Keys.getItem(i);
-                                if (t.similar(C)) {
-                                    key = t;
-                                    i = ln;
-                                }
-                                i = (i + 1) | 0;
-                            }
-                            //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
-
-                            if (key != null) {
-                                var ind = Keys.indexOf(key);
-                                if (ind >= 0) {
-                                    this.map.set([X, Y, Z], Vals.getItem(ind));
-                                }
-                            }
+                    //var ind = Keys.IndexOf(C);
+                    key = null;
+                    i = 0;
+                    while (i < ln) {
+                        var t = Keys.getItem(i);
+                        if (t.similar(C)) {
+                            key = t;
+                            i = ln;
                         }
-                        Z = (Z + 1) | 0;
+                        i = (i + 1) | 0;
                     }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
+                    //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
+
+                    if (key != null) {
+                        var ind = Keys.indexOf(key);
+                        if (ind >= 0) {
+                            M[X] = Vals.getItem(ind);
+                        }
+                    }
                 }
-                Y = 0;
-                Z = 0;
                 X = (X + 1) | 0;
             }
+
+            /* int i = 0;
+                int ln = Keys.Count;
+                while (X < MX)
+                {
+                    while (Y < MY)
+                    {
+                        while (Z < MZ)
+                        {
+                            var C = Map[X, Y, Z];
+                            if (C != null && C.A>0)
+                            {
+
+                                //var ind = Keys.IndexOf(C);
+                                ///Keys.ForEach(K => { if (K.Similar(C)){ key = K; } });
+                                key = null;
+                                i = 0;
+                                while (i < ln)
+                                {
+                                    var t = Keys[i];
+                                    if (t.Similar(C))
+                                    {
+                                        key = t;
+                                        i = ln;
+                                    }
+                                    i++;
+                                }
+                                //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
+
+                                if (key != null)
+                                {
+                                    int ind = Keys.IndexOf(key);
+                                    if (ind>=0)
+                                    {
+                                        Map[X, Y, Z] = Vals[ind];
+                                    }
+                                }
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }*/
         },
         swapYZ: function () {
             var N = System.Array.create(null, null, System.Array.getLength(this.map, 0), System.Array.getLength(this.map, 2), System.Array.getLength(this.map, 1));
@@ -8498,9 +9451,13 @@
         },
         fill: function (box, C) {
             var sz = box.getSize();
-            this.fill$1(Bridge.Int.clip32(box.min.x), Bridge.Int.clip32(box.min.y), Bridge.Int.clip32(box.min.z), Bridge.Int.clip32(sz.x), Bridge.Int.clip32(sz.y), Bridge.Int.clip32(sz.z), C);
+            this.fill$2(Bridge.Int.clip32(box.min.x), Bridge.Int.clip32(box.min.y), Bridge.Int.clip32(box.min.z), Bridge.Int.clip32(sz.x), Bridge.Int.clip32(sz.y), Bridge.Int.clip32(sz.z), C);
         },
-        fill$1: function (X, Y, Z, Width, Height, Depth, C) {
+        fill$1: function (box, ColorSetter) {
+            var sz = box.getSize();
+            this.fill$3(Bridge.Int.clip32(box.min.x), Bridge.Int.clip32(box.min.y), Bridge.Int.clip32(box.min.z), Bridge.Int.clip32(sz.x), Bridge.Int.clip32(sz.y), Bridge.Int.clip32(sz.z), ColorSetter);
+        },
+        fill$2: function (X, Y, Z, Width, Height, Depth, C) {
             var SX = X;
             var SY = Y;
             var SZ = Z;
@@ -8520,13 +9477,37 @@
                 X = (X + 1) | 0;
             }
         },
+        fill$3: function (X, Y, Z, Width, Height, Depth, ColorSetter) {
+            var SX = X;
+            var SY = Y;
+            var SZ = Z;
+            var X2 = (SX + Width) | 0;
+            var Y2 = (SY + Height) | 0;
+            var Z2 = (SZ + Depth) | 0;
+            while (X < X2) {
+                while (Y < Y2) {
+                    while (Z < Z2) {
+                        var C = new BNTest.GLColor(1, 1, 1);
+                        ColorSetter(C);
+                        this.setVoxel$1(X, Y, Z, C);
+                        Z = (Z + 1) | 0;
+                    }
+                    Z = SZ;
+                    Y = (Y + 1) | 0;
+                }
+                Y = SY;
+                X = (X + 1) | 0;
+            }
+        },
         setVoxel: function (V, C) {
             return this.setVoxel$1(Bridge.Int.clip32(V.x), Bridge.Int.clip32(V.y), Bridge.Int.clip32(V.z), C);
         },
         setVoxel$1: function (X, Y, Z, C) {
             if (X >= 0 && Y >= 0 && Z >= 0 && X < System.Array.getLength(this.map, 0) && Y < System.Array.getLength(this.map, 1) && Z < System.Array.getLength(this.map, 2)) {
-                if (!Bridge.referenceEquals(this.map.get([X, Y, Z]), C)) {
-                    this.map.set([X, Y, Z], C);
+                var M = this.map;
+                var ind = System.Array.toIndex(M, [X,Y,Z]);
+                if (!Bridge.referenceEquals(M[ind], C)) {
+                    M[ind] = C;
                     return true;
                 }
             }
@@ -8541,6 +9522,23 @@
                 this.resize(ND);
                 VM.resize(ND);
             }
+            if (XOffset === 0 && YOffset === 0 && ZOffset === 0) {
+                var i = 0;
+                var ln = this.map.length;
+                var M = this.map;
+                var RVM = VM.map;
+                while (i < ln) {
+                    var OV = M[i];
+                    //var V = VM.Map[X, Y, Z];
+                    var V = RVM[i];
+                    if (OV == null || (V != null && V.a >= OV.a)) {
+                        //SetVoxel(X + XOffset, Y + XOffset, Z + ZOffset, V);
+                        M[i] = V;
+                    }
+                    i = (i + 1) | 0;
+                }
+                return;
+            }
 
             var X = 0;
             var Y = 0;
@@ -8552,17 +9550,13 @@
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
-                        /* var OV = Map[X, Y, Z];
-                            var V = VM.Map[X, Y, Z];
-                            if (OV == null || (V != null && V.A >= OV.A))
-                            {
-                                Map[X, Y, Z] = V;
-                            }*/
-                        var OV = this.getVoxel(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0));
+
+
+                        var OV1 = this.getVoxel(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0));
                         //var V = VM.Map[X, Y, Z];
-                        var V = VM.getVoxel(X, Y, Z);
-                        if (OV == null || (V != null && V.a >= OV.a)) {
-                            this.setVoxel$1(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0), V);
+                        var V1 = VM.getVoxel(X, Y, Z);
+                        if (OV1 == null || (V1 != null && V1.a >= OV1.a)) {
+                            this.setVoxel$1(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0), V1);
                         }
                         Z = (Z + 1) | 0;
                     }
@@ -8638,6 +9632,16 @@
             tbmatrix: null,
             t2matrix: null,
             tmatobj: null,
+            T1: null,
+            T2: null,
+            T3: null,
+            config: {
+                init: function () {
+                    this.T1 = System.Array.init(16, 0);
+                    this.T2 = System.Array.init(16, 0);
+                    this.T3 = System.Array.init(16, 0);
+                }
+            },
             init: function () {
                 if (BNTest.WGMatrix.tmatrix == null) {
                     var c = System.Array.init(4, null);
@@ -8672,6 +9676,41 @@
                 var D = M[3];
                 return [A[0], B[0], C[0], D[0], A[1], B[1], C[1], D[1], A[2], B[2], C[2], D[2], A[3], B[3], C[3], D[3]];
             },
+            flatten$1: function (matrix, OUT) {
+                var M = matrix.elements;
+                var O = OUT;
+                var A = M[0];
+                var B = M[1];
+                var C = M[2];
+                var D = M[3];
+                /* var i = 0;
+                var x = 0;
+                var y = 0;*/
+                O[0] = A[0];
+                O[1] = B[0];
+                O[2] = C[0];
+                O[3] = D[0];
+
+                O[4] = A[1];
+                O[5] = B[1];
+                O[6] = C[1];
+                O[7] = D[1];
+
+                O[8] = A[2];
+                O[9] = B[2];
+                O[10] = C[2];
+                O[11] = D[2];
+
+                O[12] = A[3];
+                O[13] = B[3];
+                O[14] = C[3];
+                O[15] = D[3];
+                /* return new double[] { M[0][0], M[1][0], M[2][0], M[3][0],
+                    M[0][1], M[1][1], M[2][1], M[3][1],
+                    M[0][2], M[1][2], M[2][2], M[3][2],
+                    M[0][3], M[1][3], M[2][3], M[3][3]
+                };*/
+            },
             flattenB: function (matrix) {
                 var M = matrix.elements;
                 var A = M[0];
@@ -8683,6 +9722,11 @@
             copyFrom: function (source, destination) {
                 var a = source.elements;
                 var b = destination.elements;
+                BNTest.WGMatrix.copyFromRaw(a, b);
+            },
+            copyFromRaw: function (source, destination) {
+                var a = source;
+                var b = destination;
                 var t = b[0];
                 var t2 = a[0];
                 t[0] = t2[0];
@@ -8742,6 +9786,39 @@
                 t[2] = C[3];
                 t[3] = D[3];
             },
+            mat4MultMatrix: function (matrix1, matrix2) {
+                //prepare for mat4 usage
+                BNTest.WGMatrix.flatten$1(matrix1, BNTest.WGMatrix.T1);
+                BNTest.WGMatrix.flatten$1(matrix2, BNTest.WGMatrix.T2);
+                mat4.multiply(BNTest.WGMatrix.T3, BNTest.WGMatrix.T1, BNTest.WGMatrix.T2);
+                //migrate the new data into the matrix.
+                BNTest.WGMatrix.deflat(BNTest.WGMatrix.T3, matrix1.elements);
+            },
+            deflat: function (M, destination) {
+                var D = destination[0];
+                D[0] = M[0];
+                D[1] = M[1];
+                D[2] = M[2];
+                D[3] = M[3];
+
+                D = destination[1];
+                D[0] = M[4];
+                D[1] = M[5];
+                D[2] = M[6];
+                D[3] = M[7];
+
+                D = destination[2];
+                D[0] = M[8];
+                D[1] = M[9];
+                D[2] = M[10];
+                D[3] = M[11];
+
+                D = destination[3];
+                D[0] = M[12];
+                D[1] = M[13];
+                D[2] = M[14];
+                D[3] = M[15];
+            },
             multMatrix: function (matrix1, matrix2) {
                 var a = matrix1.elements;
                 BNTest.WGMatrix.copyFromInverted(matrix2.elements, BNTest.WGMatrix.tbmatrix);
@@ -8749,6 +9826,8 @@
                 var c = BNTest.WGMatrix.tmatrix;
                 //var l = 4;
                 var l = 3;
+                //4 is required when a perspective is active within the matrix.
+                //var l = 4;
                 //double cij = 0;
                 var ci;
                 var ai;
@@ -8804,16 +9883,27 @@
             clear: function (matrix) {
                 var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
                 var D = matrix;
-                D[0][1] = ($t = ($t1 = ($t2 = ($t3 = ($t4 = ($t5 = ($t6 = ($t7 = ($t8 = ($t9 = (D[3][2] = 0, 0), D[3][1] = $t9, $t9), D[3][0] = $t8, $t8), D[2][3] = $t7, $t7), D[2][1] = $t6, $t6), D[2][0] = $t5, $t5), D[1][3] = $t4, $t4), D[1][2] = $t3, $t3), D[1][0] = $t2, $t2), D[0][3] = $t1, $t1), D[0][2] = $t, $t);
-                D[0][0] = ($t10 = ($t11 = (D[3][3] = 1, 1), D[2][2] = $t11, $t11), D[1][1] = $t10, $t10);
+                /* D[0][1] = D[0][2] = D[0][3] =
+                    D[1][0] = D[1][2] = D[1][3] =
+                    D[2][0] = D[2][1] = D[2][3] =
+                    D[3][0] = D[3][1] = D[3][2] = 0;
+                D[0][0] = D[1][1] = D[2][2] = D[3][3] = 1;*/
+                var D0 = D[0];
+                var D1 = D[1];
+                var D2 = D[2];
+                var D3 = D[3];
+                D0[1] = ($t = ($t1 = ($t2 = ($t3 = ($t4 = ($t5 = ($t6 = ($t7 = ($t8 = ($t9 = (D3[2] = 0, 0), D3[1] = $t9, $t9), D3[0] = $t8, $t8), D2[3] = $t7, $t7), D2[1] = $t6, $t6), D2[0] = $t5, $t5), D1[3] = $t4, $t4), D1[2] = $t3, $t3), D1[0] = $t2, $t2), D0[3] = $t1, $t1), D0[2] = $t, $t);
+                D0[0] = ($t10 = ($t11 = (D3[3] = 1, 1), D2[2] = $t11, $t11), D1[1] = $t10, $t10);
 
             }
         },
         mvMatrix: null,
         identity: true,
+        freeMatrix: null,
         mvMatrixStack: null,
         config: {
             init: function () {
+                this.freeMatrix = System.Array.init(0, null);
                 this.mvMatrixStack = System.Array.init(0, null);
             }
         },
@@ -8855,29 +9945,6 @@
             b[1] = [M[1][0], M[1][1], M[1][2], M[1][3]];
             b[2] = [M[2][0], M[2][1], M[2][2], M[2][3]];
             b[3] = [M[3][0], M[3][1], M[3][2], M[3][3]];
-            /* b[0] = new double[0];
-                b[1] = new double[0];
-                b[2] = new double[0];
-                b[3] = new double[0];
-                b[0][0] = a[0][0];
-                b[0][1] = a[0][1];
-                b[0][2] = a[0][2];
-                b[0][3] = a[0][3];
-
-                b[1][0] = a[1][0];
-                b[1][1] = a[1][1];
-                b[1][2] = a[1][2];
-                b[1][3] = a[1][3];
-
-                b[2][0] = a[2][0];
-                b[2][1] = a[2][1];
-                b[2][2] = a[2][2];
-                b[2][3] = a[2][3];
-
-                b[3][0] = a[3][0];
-                b[3][1] = a[3][1];
-                b[3][2] = a[3][2];
-                b[3][3] = a[3][3];*/
             return b;
         },
         multiplyMatrix: function (matrix) {
@@ -8955,7 +10022,13 @@
                     identity = IsIdentity();
                 }
                 mvMatrixStack.Push(m);*/
-            this.mvMatrixStack.push(this.getMatrix());
+            if (this.freeMatrix.length > 0) {
+                var F = this.freeMatrix.pop();
+                BNTest.WGMatrix.copyFromRaw(this.mvMatrix.elements, F);
+                this.mvMatrixStack.push(F);
+            } else {
+                this.mvMatrixStack.push(this.getMatrix());
+            }
             //mvMatrix["elements"] = GetMatrix();
             //mvMatrixStack.Add(m);
             //identity = IsIdentity();
@@ -8969,6 +10042,7 @@
                 mvMatrix = Script.Write<object>("this.mvMatrixStack.pop()");*/
             //mvMatrix = Script.Write<object>("mvMatrixStack.pop()");
             //mvMatrix["elements"]
+            this.freeMatrix.push(this.mvMatrix.elements);
             var D = this.mvMatrixStack.pop();
             this.mvMatrix.elements = D;
             this.identity = this.isIdentity();
@@ -8990,6 +10064,7 @@
             return Bridge.equals(this, o);
         },
         clear: function () {
+            var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
             /* double[] D = mvMatrix.As<double[]>();
                 var i = 0;
                 while (i < 16)
@@ -9000,10 +10075,16 @@
                 D[0] = D[5] = D[10] = D[15] = 1;*/
             var D = this.mvMatrix.elements;
 
-            D[0] = [1, 0, 0, 0];
-            D[1] = [0, 1, 0, 0];
-            D[2] = [0, 0, 1, 0];
-            D[3] = [0, 0, 0, 1];
+            /* D[0] = new double[] { 1,0,0,0};
+                D[1] = new double[] { 0, 1, 0, 0 };
+                D[2] = new double[] { 0, 0, 1, 0 };
+                D[3] = new double[] { 0, 0, 0, 1 };*/
+            var D0 = D[0];
+            var D1 = D[1];
+            var D2 = D[2];
+            var D3 = D[3];
+            D0[1] = ($t = ($t1 = ($t2 = ($t3 = ($t4 = ($t5 = ($t6 = ($t7 = ($t8 = ($t9 = (D3[2] = 0, 0), D3[1] = $t9, $t9), D3[0] = $t8, $t8), D2[3] = $t7, $t7), D2[1] = $t6, $t6), D2[0] = $t5, $t5), D1[3] = $t4, $t4), D1[2] = $t3, $t3), D1[0] = $t2, $t2), D0[3] = $t1, $t1), D0[2] = $t, $t);
+            D0[0] = ($t10 = ($t11 = (D3[3] = 1, 1), D2[2] = $t11, $t11), D1[1] = $t10, $t10);
 
             this.identity = true;
             /* Script.Write("me[0][0]=s.x");
@@ -9167,6 +10248,7 @@
     Bridge.define("BNTest.World", {
         statics: {
             viewDistance: 100,
+            viewDistanceS: 75,
             blank: null,
             config: {
                 init: function () {
@@ -9177,6 +10259,7 @@
         model: null,
         game: null,
         entities: null,
+        platforms: null,
         octree: null,
         cam: null,
         config: {
@@ -9189,6 +10272,7 @@
             this.game = Game;
             this.model = new BNTest.Model(Game);
             this.entities = new (System.Collections.Generic.List$1(BNTest.Entity))();
+            this.platforms = new (System.Collections.Generic.List$1(BNTest.Entity))();
 
             this.octree = new BNTest.Octree(50, 4);
         },
@@ -9203,6 +10287,9 @@
                 E.world.remove(E);
             }
             if (!this.entities.contains(E)) {
+                if (!E.char) {
+                    this.platforms.add(E);
+                }
                 this.entities.add(E);
             }
             if (E.model != null) {
@@ -9217,6 +10304,9 @@
         },
         remove: function (E) {
             if (this.entities.contains(E)) {
+                if (!E.char) {
+                    this.platforms.remove(E);
+                }
                 this.entities.remove(E);
             }
             if (E.model != null) {
@@ -9230,22 +10320,9 @@
                 this.model.children.remove(M);
             }
         },
-        bringToFront: function (M) {
-            //Remove(M);
-            if (this.model.children.contains(M)) {
-                this.model.children.remove(M);
-                this.model.children.add(M);
-            }
-        },
-        sendToBack: function (M) {
-            //Remove(M);
-            if (this.model.children.contains(M)) {
-                this.model.children.remove(M);
-                this.model.children.insert(0, M);
-            }
-        },
         update: function () {
             BNTest.World.viewDistance = this.game.cameraDist * 4;
+            BNTest.World.viewDistanceS = BNTest.World.viewDistance * 0.67;
             //octree.Update(Entities);
             //Cam = Offset * -1;
             this.cam = BNTest.GLVec3.op_UnaryNegation(this.getOffset());
@@ -9295,6 +10372,38 @@
             }
             return ret;
         },
+        findPlatformCollision: function (box, exclusion) {
+            if (exclusion === void 0) { exclusion = null; }
+            var none = true;
+            var ret = [];
+            var Ent = this.platforms.items;
+            var i = 0;
+            var ln = Ent.length;
+            while (i < ln) {
+                var E = Ent[i];
+                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.intersection$2(box)) {
+                    ret.push(E);
+                }
+                i = (i + 1) | 0;
+            }
+            return ret;
+        },
+        findPlatformCollision$1: function (Position, exclusion) {
+            if (exclusion === void 0) { exclusion = null; }
+            var none = true;
+            var ret = [];
+            var Ent = this.platforms.items;
+            var i = 0;
+            var ln = Ent.length;
+            while (i < ln) {
+                var E = Ent[i];
+                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.contains(Position)) {
+                    ret.push(E);
+                }
+                i = (i + 1) | 0;
+            }
+            return ret;
+        },
         findSolidCollision: function (box, exclusion) {
             if (exclusion === void 0) { exclusion = null; }
             var none = true;
@@ -9336,6 +10445,9 @@
         },
         updateCollisions: function () {
             this.updateAttackCollisions();
+        },
+        prepareRender: function () {
+            this.model.children.sort($_.BNTest.World.f1);
         },
         updateAttackCollisions: function () {
             //List<Entity> LC = entities.(E => E is IHarmfulEntity);
@@ -9401,6 +10513,14 @@
         }
     });
 
+    Bridge.ns("BNTest.World", $_);
+
+    Bridge.apply($_.BNTest.World, {
+        f1: function (M1, M2) {
+            return Bridge.compare(M1.drawOrder, M2.drawOrder);
+        }
+    });
+
     Bridge.define("BNTest.AimedWandering", {
         inherits: [BNTest.EntityBehavior],
         target: null,
@@ -9448,6 +10568,83 @@
         }
     });
 
+    Bridge.define("BNTest.AirDash", {
+        inherits: [BNTest.EntityBehavior],
+        _platformer: null,
+        dashes: 0,
+        maxDashes: 1,
+        activeTime: 0,
+        maxActiveTime: 10,
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+            this._platformer = entity;
+        },
+        update: function () {
+            var controller = this._platformer.controller;
+            var lcontroller = this._platformer.lController;
+            var Floor = this._platformer.floor;
+            if (Floor != null && this._platformer.onGround) {
+                this.dashes = this.maxDashes;
+            }
+            if (Floor == null || !this._platformer.onGround) {
+                if (this.dashes < this.maxDashes) {
+                    this.activeTime = (this.activeTime + 1) | 0;
+                    if (this.activeTime === this.maxActiveTime) {
+                        this._platformer.speed.x *= 0.35;
+                        this._platformer.speed.z *= 0.35;
+                    }
+                }
+            }
+
+            if (!this._platformer.onGround) {
+                if (controller[4] && !lcontroller[4] && this.dashes > 0) {
+                    //_platformer.Vspeed = -jumpSpeed;
+                    var V = BNTest.Vector2.fromRadian(BNTest.MathHelper.degreesToRadians(this._platformer.model.rotation.y + 90));
+                    if (controller[0] || controller[1] || controller[2] || controller[3]) {
+                        V.x = 0;
+                        V.y = 0;
+                        if (controller[0]) {
+                            V.x = -1;
+                        } else {
+                            if (controller[1]) {
+                                V.x = 1;
+                            }
+                        }
+                        //
+                        if (controller[2]) {
+                            V.y = -1;
+                        } else {
+                            if (controller[3]) {
+                                V.y = 1;
+                            }
+                        }
+                    }
+                    //_platformer.Speed += V.Normalize(6);
+                    this._platformer.speed = BNTest.GLVec3.op_Addition$1(this._platformer.speed, V.normalize(8));
+                    //_platformer.Speed.Y = -1.8;
+                    this._platformer.speed.y = -2.0;
+                    this._platformer.playSound("zoom");
+                    this.activeTime = 0;
+                    this.dashes = (this.dashes - 1) | 0;
+                }
+                /* if (controller[2] && _platformer.Ceiling == null)
+                    {
+                        _platformer.Vspeed = -jumpSpeed;
+                        entity.PlaySound("jump");
+                    }
+                    else if (controller[3] && _platformer.Floor != null)
+                    {
+                        //platformer.y = groundY + 2;
+                        _platformer.onGround = false;
+                        _platformer.Floor = null;
+                        _platformer.y += 2;
+                    }*/
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        }
+    });
+
     Bridge.define("BNTest.Barrier", {
         inherits: [BNTest.Entity],
         ctor: function (world, size) {
@@ -9457,6 +10654,8 @@
             this.model = new BNTest.Model(this.game);
             this.solid = true;
 
+            this.model.forceRender = true;
+
             var M = new BNTest.Mesh(this.game);
             M.addCube2(new BNTest.GLVec3.ctor(), size, new BNTest.GLColor(0, 0, 0, 0.3), null);
 
@@ -9465,7 +10664,8 @@
         },
         update: function () {
             BNTest.Entity.prototype.update.call(this);
-            this.world.bringToFront(this.model);
+            //world.BringToFront(model);
+            this.model.drawOrder = 1;
         },
         draw: function (gl) {
             BNTest.Entity.prototype.draw.call(this, gl);
@@ -9682,7 +10882,8 @@
                     this.model.children.add(md);
 
                     //force this model back to prevent main part of coin from doing a bleed through.
-                    world.sendToBack(this.model);
+                    //world.SendToBack(model);
+                    this.model.drawOrder = -1;
 
 
                     /* md = new Model(Game);
@@ -9834,6 +11035,10 @@
                 this.lastBB = new BNTest.BoundingBox.ctor();
             }
             if (this.game.ended) {
+                return;
+            }
+            if (!this.solid && !this.model.getVisible()) {
+                BNTest.Entity.prototype.update.call(this);
                 return;
             }
             var B = BNTest.BoundingBox.op_Multiply$1(this.lastBB, 1.5);
@@ -10192,7 +11397,7 @@
         addPatch: function (position, color, size, thickness, scale) {
             if (thickness === void 0) { thickness = 0.7; }
             if (scale === void 0) { scale = 1.0; }
-            var VM = new BNTest.VoxelMap();
+            var VM = new BNTest.VoxelMap.ctor();
             var N = System.Array.create(null, null, size, 1, size);
             var X = 0;
             var Y = 0;
@@ -10253,7 +11458,7 @@
                 }
                 M.Rotation.Y = Math.Random() * 360;
                 AddFoliage(M);*/
-            var VM = new BNTest.VoxelMap();
+            var VM = new BNTest.VoxelMap.ctor();
             var N = System.Array.create(null, null, 10, 1, 10);
             VM.map = N;
             VM.fill(new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(), new BNTest.GLVec3.ctor(10, 1, 10)), color);
@@ -10316,7 +11521,7 @@
                     inner = new BNTest.GLColor(0.7, 0.7, 0);
                 }
             }
-            var VM = new BNTest.VoxelMap();
+            var VM = new BNTest.VoxelMap.ctor();
             var N = System.Array.create(null, null, 3, 1, 3);
             N.set([1, 0, 0], ($t = ($t1 = (N.set([2, 0, 1], petal), petal), N.set([0, 0, 1], $t1), $t1), N.set([1, 0, 2], $t), $t));
             N.set([1, 0, 1], inner);
@@ -10398,6 +11603,144 @@
         }
     });
 
+    Bridge.define("BNTest.HPOrb", {
+        inherits: [BNTest.Entity],
+        healing: 10,
+        pickupDelay: 0,
+        ready: false,
+        ctor: function (world, lifespan) {
+            if (lifespan === void 0) { lifespan = 900; }
+
+            this.$initialize();
+            BNTest.Entity.ctor.call(this, world);
+            this.game = world.game;
+            this.model = new BNTest.Model(this.game);
+            var smooth = this.game.smooth;
+            this.customBoundingBox = new BNTest.BoundingBox.$ctor2(10);
+            var mdl = "redOrb";
+            var tmdl = BNTest.ModelCache.get_this().get(mdl, false);
+            if (tmdl != null) {
+                console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
+                //model.CopyFrom(tmdl);
+                this.model.copyFrom(tmdl, true);
+                this.model.alpha = 1;
+                this.model.setVisible(true);
+            } else {
+                var coin = "object/orb";
+                //coin = "object/yinyangorb";
+                BNTest.AnimationLoader.get_this().asyncGet$1([coin], Bridge.fn.bind(this, function () {
+                    if (tmdl != null) {
+                        console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
+                        //model.CopyFrom(tmdl);
+                        this.model.copyFrom(tmdl, true);
+                        this.ready = true;
+                        return;
+                    }
+                    if (this.model != null) {
+                        this.model.unloadBuffers();
+                        world.remove$1(this.model);
+                    }
+                    this.model.setVisible(false);
+                    //model.Clear();
+                    //HP = maxHP = defaultMaxHP;
+                    world.add$1(this.model);
+
+                    var alpha = 0.54;
+
+                    var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                    pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0, 0, alpha));
+
+                    var box = this.game.getVoxelCombo([coin]);
+                    box.applyPalette(pal);
+                    //body.ApplyPalette(pal);
+                    var md = new BNTest.Model(this.game);
+                    var M = new BNTest.Mesh(this.game);
+                    md.scale = BNTest.GLVec3.createUniform(0.6);
+                    M.addVoxelMap(box, smooth);
+                    md.meshes.add(M.clone());
+                    //md.BleedThrough = true;
+                    this.model.children.add(md);
+
+
+                    box = this.game.getVoxelCombo([coin]);
+                    //pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, 0.12);
+                    pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0, 0, alpha * 0.4));
+                    box.applyPalette(pal);
+
+
+                    md = new BNTest.Model(this.game);
+                    M = new BNTest.Mesh(this.game);
+                    M.addVoxelMap(box, smooth);
+                    md.scale = BNTest.GLVec3.createUniform(1);
+                    md.meshes.add(M);
+                    //md.alpha = 0.5f;
+                    //model.children.Add(md);
+
+                    //M.AddVoxelMap(box, smooth);
+                    this.model.children.add(md);
+                    //model.Scale = GLVec3.CreateUniform(1.5);
+                    //model.Scale = GLVec3.CreateUniform(0.75);
+                    this.model.scale = BNTest.GLVec3.createUniform(1);
+                    this.ready = true;
+                    //CacheBoundingBox();
+                    if (tmdl == null) {
+                        BNTest.ModelCache.get_this().set$1(mdl, this.model);
+                    }
+                }));
+            }
+            this.solid = false;
+            var HP = new BNTest.LifeSpan(this, lifespan, 120);
+            this.addBehavior(HP);
+        },
+        update: function () {
+            this.model.rotation.y += 5;
+            var f = BNTest.MathHelper.clamp(this.model.scale.x * (1 + (-0.1 + (0.2 * Math.random()))), 0.8, 1.2);
+            //model.Rotation.X = 45;
+
+            BNTest.Entity.prototype.update.call(this);
+
+
+            var player = this.world.game.localplayer.character;
+            var BS = this.lastBB.getSize();
+            //Speed.Y = 0;
+            this.speed = BNTest.GLVec3.op_Multiply$1(this.speed, 0.96);
+
+            if (this.world.findSolidCollision$2(BNTest.GLVec3.op_Addition(this.getPosition(), new BNTest.GLVec3.ctor(0, (BS.y) + 1, 0))).length > 0) {
+                //Position.Y += 1;
+                this.speed.y = 0;
+            } else {
+
+                this.speed.y += 0.05;
+            }
+            if (this.pickupDelay > 0) {
+                this.pickupDelay = (this.pickupDelay - 1) | 0;
+            } else if (player.restTime >= 5 && player.invincibilityFrames <= 5) {
+                var dist = this.getPosition().roughDistance(player.getPosition());
+
+                //if (dist < 40)
+                if (dist < 110) {
+                    //var spd = 2.5 - (dist * 0.01);
+                    var spd = 7.0 - (dist * 0.01);
+                    var S = (BNTest.GLVec3.op_Subtraction(player.getPosition(), this.getPosition())).normalize(spd);
+                    this.speed = BNTest.GLVec3.lerp(this.speed, S, 0.07);
+                    /* Speed.X = S.X;
+                        Speed.Y = S.Y;
+                        Speed.Z = S.Z;*/
+                }
+            }
+            if (this.pickupDelay <= 0 && BS.getRoughLength() > 0 && player.lastBB.getSize().getRoughLength() > 0 && player.lastBB.intersection$2(this.lastBB)) {
+                /* var val = Value;
+                    player.Coins += val;*/
+                player.setHP(Math.min(100, player.getHP() + this.healing));
+                this.playSound("powerup");
+                this.alive = false;
+            }
+        },
+        draw: function (gl) {
+            BNTest.Entity.prototype.draw.call(this, gl);
+        }
+    });
+
     Bridge.define("BNTest.LifeSpan", {
         inherits: [BNTest.EntityBehavior],
         HP: 0,
@@ -10424,6 +11767,34 @@
             }
             if (this.HP < this.fadeTime) {
                 this.entity.model.alpha = this.HP / this.fadeTime;
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        }
+    });
+
+    Bridge.define("BNTest.LightMuffler", {
+        inherits: [BNTest.EntityBehavior],
+        maximumDist: 0,
+        maximumDarkness: 0,
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+            this.maximumDist = 800;
+            //maximumDarkness = 0.65;
+            this.maximumDarkness = 0.75;
+            //maximumDarkness = 1;
+        },
+        update: function () {
+            if (!this.entity.model.getVisible()) {
+                BNTest.EntityBehavior.prototype.update.call(this);
+                return;
+            }
+            var PC = this.entity.game.localplayer.character;
+            var L = (BNTest.GLVec3.op_Subtraction(PC.getPosition(), this.entity.getPosition())).getLength();
+            if (L < this.maximumDist) {
+                var level = ((this.maximumDist - L) / this.maximumDist);
+                level *= this.maximumDarkness;
+                this.entity.game.lightLevel = Math.min(this.entity.game.lightLevel, 1 - level);
             }
             BNTest.EntityBehavior.prototype.update.call(this);
         }
@@ -10767,7 +12138,6 @@
         ready: false,
         started: false,
         entity: null,
-        coinsToRelease: 0,
         ctor: function (world, entity) {
             this.$initialize();
             BNTest.Entity.ctor.call(this, world);
@@ -10799,7 +12169,7 @@
                         this.model.unloadBuffers();
                         world.remove$1(this.model);
                     }
-                    this.visible = false;
+                    this.model.setVisible(false);
                     //model.Clear();
                     //HP = maxHP = defaultMaxHP;
                     world.add$1(this.model);
@@ -10855,13 +12225,14 @@
                 this.started = true;
                 this.setPosition(this.entity.getPosition().clone());
             }
-            this.world.bringToFront(this.model);
+            //world.BringToFront(model);
+            this.model.drawOrder = 1;
             //var f = MathHelper.Clamp(model.Scale.X * (1+(-0.1 + (0.2 * Math.Random()))),1.0,2.0);
             var f = BNTest.MathHelper.clamp(this.model.scale.x * (1 + (-0.1 + (0.2 * Math.random()))), 1.1, 1.9);
             this.model.scale = BNTest.GLVec3.createUniform(f);
             this.model.rotation.y = this.entity.model.rotation.y;
             if (this.entity != null) {
-                this.visible = this.entity.visible;
+                this.model.setVisible(this.entity.model.getVisible());
                 var off = new BNTest.Vector2(10, 0).rotate(BNTest.MathHelper.degreesToRadians(this.entity.model.rotation.y) - 0.6);
 
                 var P = BNTest.GLVec3.op_Addition$1(this.entity.getPosition().clone(), off);
@@ -10881,7 +12252,7 @@
                         this.alive = false;
                     }
                 }
-                this.visible = this.entity.visible;
+                this.model.setVisible(this.entity.model.getVisible());
             } else {
                 this.alive = false;
             }
@@ -10945,6 +12316,10 @@
                         _platformer.Floor = null;
                         _platformer.y += 2;
                     }*/
+            } else if (this._platformer.getVspeed() < 0 && !this._platformer.onGround) {
+                if (!controller[4]) {
+                    this._platformer.setVspeed(this._platformer.getVspeed()*0.95);
+                }
             }
             BNTest.EntityBehavior.prototype.update.call(this);
         }
@@ -10961,6 +12336,7 @@
         ifriction: 1,
         rotationSpeed: null,
         multiHit: false,
+        lastDamaged: null,
         damaged: null,
         config: {
             alias: [
@@ -10971,6 +12347,7 @@
             "ontouchDamage", "BNTest$IHarmfulEntity$ontouchDamage"
             ],
             init: function () {
+                this.lastDamaged = new (System.Collections.Generic.List$1(BNTest.ICombatant))();
                 this.damaged = new (System.Collections.Generic.List$1(BNTest.ICombatant))();
             }
         },
@@ -11069,6 +12446,10 @@
                 }
 
             }
+            var LD = this.lastDamaged;
+            this.lastDamaged = this.damaged;
+            this.damaged = LD;
+            this.damaged.clear();
             BNTest.Entity.prototype.update.call(this);
         },
         ontouchDamage: function (target) {
@@ -11076,7 +12457,7 @@
             if (ret) {
                 this.damaged.add(target);
             }
-            return ret;
+            return !this.lastDamaged.contains(target);
             //throw new NotImplementedException();
         }
     });
@@ -11540,6 +12921,75 @@
         }
     });
 
+    Bridge.define("BNTest.RisingPlatform", {
+        inherits: [BNTest.Entity],
+        maxY: 0,
+        minY: 0,
+        active: true,
+        ctor: function (world, size) {
+            this.$initialize();
+            BNTest.Entity.ctor.call(this, world);
+            var scale = 5;
+            //int sz = (int)(size.Size.X / 2);
+            this.model = new BNTest.Model(world.game);
+            var sz = size.getSize();
+            var V = new BNTest.VoxelMap.$ctor1(BNTest.GLVec3.op_Division$1(sz, scale));
+            //V.Fill(GLColor.CreateShade(0.7));
+            //V.SetColor(GLColor.CreateShade(0.7),false);
+            //V.SetColor(GLColor.CreateShade(0.7), false);
+            //var dirt = new GLColor(0.47, 0.29, 0.04);
+            var dirt = new BNTest.GLColor(0.5, 0.35, 0.06);
+            V.setColor(dirt, false);
+            var BB = V.getSizeAsBoundingBox();
+            BB.max.y = 3;
+            var grass = $_.BNTest.RisingPlatform.f1;
+            //V.Fill(BB, new GLColor(0.15, 0.75, 0.25));
+            V.fill$1(BB, grass);
+            /* V.AddNoise(0.04);
+                V.AddHoles(0.15);*/
+            //V.Entropy(0.04, 0.15);
+            V.entropy(0.04, 0.1);
+            //maxY = -sz.Y / scale;
+            this.maxY = -sz.y / 2;
+            this.solid = true;
+
+            var M = new BNTest.Mesh(world.game);
+            M.addVoxelMap(V, true);
+            //M.AddVoxelMap(V, false);
+            this.model.meshes.add(M);
+            this.model.scale = BNTest.GLVec3.createUniform(scale);
+            this.customBoundingBox = size.clone();
+            this.getPosition().y = -this.maxY;
+
+            this.minY = size.min.y + 12;
+        },
+        onNextWave: function () {
+            this.active = false;
+        },
+        update: function () {
+            var spd = 0.5;
+            //if (active && Position.Y>maxY)
+            if (this.active && this.getPosition().y > this.minY) {
+                this.getPosition().y -= spd;
+            } else if (!this.active) {
+                if (this.getPosition().y < -this.maxY) {
+                    this.getPosition().y += spd;
+                } else {
+                    this.alive = false;
+                }
+            }
+            BNTest.Entity.prototype.update.call(this);
+        }
+    });
+
+    Bridge.ns("BNTest.RisingPlatform", $_);
+
+    Bridge.apply($_.BNTest.RisingPlatform, {
+        f1: function (C) {
+            C.copy(BNTest.GLColor.randomB(0, 0.6, 0.1, 0.3, 0.9, 0.4));
+        }
+    });
+
     Bridge.define("BNTest.Rock", {
         inherits: [BNTest.Entity],
         size: 18,
@@ -11625,6 +13075,171 @@
                 E.controller[6] = false;
             }
             BNTest.EntityBehavior.prototype.update.call(this);
+        }
+    });
+
+    Bridge.define("BNTest.Shadow", {
+        inherits: [BNTest.Entity],
+        ready: false,
+        started: false,
+        entity: null,
+        frame: 0,
+        ctor: function (world, entity) {
+            this.$initialize();
+            BNTest.Entity.ctor.call(this, world);
+            this.game = world.game;
+            this.model = new BNTest.Model(this.game);
+            this.entity = entity;
+            var smooth = this.game.smooth;
+            this.solid = false;
+            this.customBoundingBox = new BNTest.BoundingBox.$ctor2(20);
+            this.customBoundingBox.min.y = -2;
+            this.customBoundingBox.max.y = 999999999;
+            this.lastBB = this.customBoundingBox.clone();
+            this.model.setVisible(false);
+            var mdl = "shadow";
+            var tmdl = BNTest.ModelCache.get_this().get(mdl, false);
+            if (tmdl != null) {
+                console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
+                //model.CopyFrom(tmdl);
+                this.model.copyFrom(tmdl, true);
+                this.ready = true;
+            } else {
+                BNTest.AnimationLoader.get_this().asyncGet$1(["object/softshadow"], Bridge.fn.bind(this, function () {
+                    if (tmdl != null) {
+                        console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
+                        //model.CopyFrom(tmdl);
+                        this.model.copyFrom(tmdl, true);
+                        this.ready = true;
+                        return;
+                    }
+                    if (this.model != null) {
+                        this.model.unloadBuffers();
+                        world.remove$1(this.model);
+                    }
+                    this.model.setVisible(false);
+                    //model.Clear();
+                    //HP = maxHP = defaultMaxHP;
+                    world.add$1(this.model);
+
+                    //var alpha = 0.36;
+
+                    var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                    pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 1, 1, 0.36));
+
+                    var box = this.game.getVoxelCombo(["object/softshadow"]);
+                    box.swapYZ();
+                    //box.ApplyPalette(pal);
+                    //body.ApplyPalette(pal);
+                    var md = new BNTest.Model(this.game);
+                    var M = new BNTest.Mesh(this.game);
+                    md.scale.y = 0.01;
+                    //md.Scale.X = md.Scale.Z = 0.5;
+                    //md.Scale = GLVec3.CreateUniform(0.6);
+                    //M.AddVoxelMap(box, smooth);
+                    M.addVoxelMap(box, smooth, true, true);
+                    md.meshes.add(M.clone());
+                    //md.BleedThrough = true;
+                    this.model.children.add(md);
+                    md.alpha = 0.5;
+
+
+                    /* box = Game.GetVoxelCombo(new string[] { "object/orb" });
+                        //pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, 0.12);
+                        pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, alpha * 0.4);
+                        box.ApplyPalette(pal);
+
+
+                        md = new Model(Game);
+                        M = new Mesh(Game);
+                        M.AddVoxelMap(box, smooth);
+                        md.Scale = GLVec3.CreateUniform(1);
+                        md.meshes.Add(M);
+                        //md.alpha = 0.5f;
+                        //model.children.Add(md);
+
+                        //M.AddVoxelMap(box, smooth);
+                        model.children.Add(md);
+                        model.Scale = GLVec3.CreateUniform(1.5);*/
+                    //model.Smoothen();
+                    this.ready = true;
+                    //CacheBoundingBox();
+                    if (tmdl == null) {
+                        BNTest.ModelCache.get_this().set$1(mdl, this.model);
+                    }
+                }));
+            }
+        },
+        update: function () {
+            var $t;
+            if (this.lastBB == null) {
+                this.lastBB = new BNTest.BoundingBox.ctor();
+            }
+            if (this.ready && !this.started && this.entity != null) {
+                this.started = true;
+                this.setPosition(this.entity.getPosition().clone());
+                this.model.scale = this.model.scale.clone();
+            }
+            this.frame = (this.frame + 1) | 0;
+            if ((this.frame & 1) > 0) {
+                this.model.offset.x = this.entity.model.offset.x;
+                this.model.offset.z = this.entity.model.offset.z;
+                return;
+            }
+            this.lastBB.copyFrom(this.customBoundingBox);
+            this.lastBB.add(this.getPosition());
+            //LastBB = CustomBoundingBox + Position;
+            if ((this.frame & 7) === 0) {
+                //world.BringToFront(model);
+                this.model.drawOrder = 1;
+            }
+            //base.Update();
+            this.model.setVisible(false);
+            //Visible = true;
+            if (this.started && this.entity != null) {
+                if (!this.entity.model.getVisible()) {
+                    return;
+                }
+                var O = this.model.offset;
+                var EO = this.entity.model.offset;
+                O.x = EO.x;
+                O.y = EO.y;
+                O.z = EO.z;
+                if (this.entity.lastBB != null && this.entity.lastBB.getRoughLength() > 0) {
+                    O.y = this.entity.lastBB.max.y;
+                }
+                var LE = System.Linq.Enumerable.from(this.world.findPlatformCollision(this.lastBB)).where(function (E) {
+                    return E.lastBB != null && E.lastBB.min.y > O.y;
+                }).toList(BNTest.Entity);
+                LE.sort($_.BNTest.Shadow.f1);
+                if (LE.getCount() > 0) {
+                    var dist = Math.abs(this.entity.gety() - LE.getItem(0).lastBB.min.y);
+                    O.y = LE.getItem(0).lastBB.min.y - 0.25;
+                    //model.Scale = model.Scale.Clone();
+                    var minscale = 0.3;
+                    this.model.scale.x = ($t = minscale + (dist * 0.003), this.model.scale.z = $t, $t);
+                    //model.alpha = 1 - ((model.Scale.X-(minscale+0.05)) * 0.75f).As<float>();
+                    this.model.alpha = 1 - ((this.model.scale.x - (minscale + 0.05)) * 2.5);
+                    this.model.alpha *= this.entity.model.alpha;
+                    if (this.model.alpha > 0) {
+                        this.model.setVisible(true);
+                    }
+                }
+            }
+            if (this.entity == null || !this.entity.alive) {
+                this.alive = false;
+            }
+        },
+        draw: function (gl) {
+            BNTest.Entity.prototype.draw.call(this, gl);
+        }
+    });
+
+    Bridge.ns("BNTest.Shadow", $_);
+
+    Bridge.apply($_.BNTest.Shadow, {
+        f1: function (E1, E2) {
+            return Bridge.compare(E1.lastBB.min.y, E2.lastBB.min.y);
         }
     });
 
@@ -12088,7 +13703,7 @@
 
     Bridge.define("BNTest.Tree", {
         inherits: [BNTest.Entity],
-        size: 90,
+        size: 110,
         ctor: function (world) {
             this.$initialize();
             BNTest.Entity.ctor.call(this, world);
@@ -12123,7 +13738,11 @@
             }
             this.model.rotation.y = 360 * Math.random();
             this.setScale(BNTest.GLVec3.op_Multiply$1(this.getScale(), (0.8 + (Math.random() * 0.4))));
-            this.getPosition().y = -(this.size * this.model.scale.x * 0.5) + 10;
+            //var width = (0.7 + (Math.Random() * 0.6));
+            var width = (0.5 + (Math.random() * 0.9));
+            this.getScale().x *= width;
+            this.getScale().z *= width;
+            this.getPosition().y = -(this.size * this.model.scale.y * 0.5) + 10;
             this.cacheBoundingBox();
 
         },
@@ -12547,7 +14166,8 @@
             var Y = this.lastBB.min.y;
             var Y2 = this.lastBB.max.y;
 
-            var EB = BNTest.BoundingBox.op_Multiply$1(this.lastBB, 1.5);
+            //var EB = LastBB * 1.5;
+            var EB = BNTest.BoundingBox.op_Addition(new BNTest.BoundingBox.$ctor2(300), this.getPosition());
 
             var STY = ((this.lastBB.getSize().y / 2) + 3);
 
@@ -12575,7 +14195,7 @@
                 }).ToList();*/
             ground.sort($_.BNTest.PlatformerEntity.f1);
 
-            var MB = BNTest.BoundingBox.op_Addition(this.lastBB, new BNTest.GLVec3.ctor(0, 5.0, 0));
+            //BoundingBox MB = LastBB + new GLVec3(0, 5.0, 0);
 
             var B = null;
             if (ground.length > 0) {
@@ -12642,7 +14262,9 @@
 
                 TB.max.y -= (this.stepheight * 0.75);
                 var S = new BNTest.GLVec3.ctor(this.speed.x, 0, 0);
-                PB = BNTest.BoundingBox.op_Addition(TB, S);
+                //PB = TB + S;
+                PB.copyFrom(TB);
+                PB.add(S);
                 if (PB.intersection(L).length <= 0) {
                     this.model.offset.x += this.speed.x;
                     TB = BNTest.BoundingBox.op_Addition(TB, S);
@@ -12653,7 +14275,9 @@
 
                 //if (!B.Intersection(LastBB + (new GLVec3(0, 0, Speed.Z))))
                 S = new BNTest.GLVec3.ctor(0, 0, this.speed.z);
-                PB = BNTest.BoundingBox.op_Addition(TB, S);
+                //PB = TB + S;
+                PB.copyFrom(TB);
+                PB.add(S);
                 if (PB.intersection(L).length <= 0) {
                     this.model.offset.z += this.speed.z;
                     TB = BNTest.BoundingBox.op_Addition(TB, S);
@@ -12662,7 +14286,9 @@
                     this.cantstep = true;
                 }
                 S = new BNTest.GLVec3.ctor(0, this.speed.y, 0);
-                PB = BNTest.BoundingBox.op_Addition(TB, S);
+                //PB = TB + S;
+                PB.copyFrom(TB);
+                PB.add(S);
                 if (PB.intersection(L).length <= 0) {
                     //model.Offset.Y += Speed.Y;
                     //TB += S;
@@ -12732,6 +14358,8 @@
         reward: true,
         useSwingAnimation: false,
         flickerColor: null,
+        maxHPDrops: 3,
+        dropsChance: 1,
         _HP: 100,
         _PointsForKilling: 10,
         pmesh: null,
@@ -12782,11 +14410,14 @@
             this.me = me;
             var csz = 8.0;
             var hsz = csz / 2;
+            var Sh = new BNTest.Shadow(world, this);
+            world.add(Sh);
             this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
             this.setHitboxSize(hsz);
             this.char = character;
             //Char = "reimu";
-            var weaponGraphic = "object/amulet";
+            //string weaponGraphic = "object/amulet";
+            var weaponGraphic = "object/basicshot";
             this.team = team;
             if (this.team === -1000) {
                 if (me.CPU) {
@@ -12796,8 +14427,10 @@
                 }
             }
             if (me.CPU) {
-                if (false && Math.random() < 0.2) {
-                    this.char = "reisen";
+                if (false && Math.random() < 0.3) {
+                    this.char = "rumia";
+                    //Char = "nazrin";
+                    //Char = "reisen";
                     //Char = "youmu";
                     //Char = "marisa";
                 }
@@ -12827,6 +14460,7 @@
                 this.infiniteAmmo = true;
             }
             var weapons = new (System.Collections.Generic.Dictionary$2(String,String))();
+            weapons.set("reimu", (weapons.set("sanae", "object/amulet"), "object/amulet"));
             weapons.set("sakuya", "object/knife");
             weapons.set("cirno", "object/ice");
             weapons.set("marisa", "object/star");
@@ -12876,7 +14510,7 @@
                 this.initCPU();
                 this.initModel();
             } else {
-                BNTest.AnimationLoader.get_this().asyncGet$1(["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches"], Bridge.fn.bind(this, function () {
+                BNTest.AnimationLoader.get_this().asyncGet$1(["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches", "head/mouseEars", "body/Lsidependant", "body/mouseTail", "foot/shortsocks", "body/capelet", "arm/capelet"], Bridge.fn.bind(this, function () {
                     var $t1, $t2, $t3, $t4;
                     tmdl = BNTest.ModelCache.get_this().get(this.char, false);
 
@@ -12921,7 +14555,11 @@
                         }
                         if (Bridge.referenceEquals(this.char, "suika")) {
                             //model.Scale *= 0.8;
-                            this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.7);
+                            //model.Scale *= 0.7;
+                            this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.65);
+                            csz *= this.model.scale.x;
+                            hsz = csz / 2;
+                            this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
                             //CustomBoundingBox *= model.Scale.X;
                             pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.6, 0, 0.8));
                             pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
@@ -13051,6 +14689,35 @@
                             //Hatpal[new GLColor(0, 0, 0)] = new GLColor(0.85, 0, 0);
                             //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
                         }
+                        if (Bridge.referenceEquals(this.char, "nazrin")) {
+                            Bodypal.set(new BNTest.GLColor(1, 0, 0), BNTest.GLColor.createShade(0.4));
+                            //pal[new GLColor(1, 1, 0)] = GLColor.CreateShade(1);
+
+                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), BNTest.GLColor.createShade(0.8));
+
+                            hd = ["head/base", "head/medium"];
+                            ht = ["head/mouseEars"];
+                            bdy = ["body/shortskirt", "body/mouseTail", "body/Lsidependant", "body/capelet", "body/tie"];
+                            ar = ["arm/base", "arm/sleeve", "arm/capelet"];
+                            ft = ["foot/base", "foot/shortsocks", "foot/shoe"];
+                            Armpal.set(BNTest.GLColor.createShade(0.5), BNTest.GLColor.createShade(0.75));
+
+                            this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.85);
+                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0.05, 0.80, 0.25);
+                            //bdy.Push("body/top");
+
+                            //item = new string[] { "object/katana" };
+                        }
+                        if (Bridge.referenceEquals(this.char, "rumia")) {
+                            Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.1, 0.1, 0.1));
+                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
+                            //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
+                            hd = ["head/base", "head/rahmoo"];
+                            ht = ["head/sideribbon"];
+                            ar = ["arm/base", "arm/sleeve"];
+                        }
 
                         //bdy = new string[] { "body/rahmoo", "body/top" };
                         if (this.team === 1) {
@@ -13058,6 +14725,10 @@
                         }
                     }
 
+                    var armrotation = 45;
+                    if (Bridge.referenceEquals(this.char, "rumia")) {
+                        armrotation = 67;
+                    }
                     //model = new Model(game);
                     var off = this.model.offset;
                     this.model.offset = off;
@@ -13086,8 +14757,9 @@
                     M.Spd = 1.5 * mult;
                     M.addVoxelMap(arm, smooth);
                     M.offset.x = 1.5;
-                    M.offset.y = 3;
-                    M.rotation.z = 45;
+                    M.offset.y = 2;
+                    M.rotation.z = armrotation;
+                    M.scale.z = 0.75;
                     if (item.length > 0) {
                         var itm = BNTest.VoxelMap.fromAnimationCombo(item);
                         itm.applyPalette(Itempal);
@@ -13112,8 +14784,9 @@
                     M.Spd = 1.5 * mult;
                     M.addVoxelMap(arm, smooth);
                     M.offset.x = -1.5;
-                    M.offset.y = 3;
-                    M.rotation.z = -45;
+                    M.offset.y = 2;
+                    M.rotation.z = (-armrotation) | 0;
+                    M.scale.z = 0.75;
                     this.model.meshes.add(M);
 
                     var foot = BNTest.VoxelMap.fromAnimationCombo(ft);
@@ -13159,6 +14832,9 @@
             }
 
             this.addBehavior(new BNTest.PlatformerControls(this));
+            if (!me.minion) {
+                this.addBehavior(new BNTest.AirDash(this));
+            }
             var secondaryWeaponGraphic = "";
             if (Bridge.referenceEquals(this.char, "koishi")) {
                 this.addBehavior(new BNTest.RingShot(this));
@@ -13190,6 +14866,13 @@
             var speedrate = this.game.bulletSpeedRate;
             var minion = me.minion;
             if (me.CPU && minion) {
+                this.maxHPDrops = 1;
+                this.dropsChance = 0.1;
+
+                if (Bridge.referenceEquals(this.char, "rumia")) {
+                    var T = new BNTest.LightMuffler(this);
+                    this.addBehavior(T);
+                }
                 //GetBehavior<PlatformerControls>().maxSpeed *= 0.67f;
                 //GetBehavior<PlatformerControls>().maxSpeed *= 0.5f;
                 var spd = 0.4;
@@ -13198,11 +14881,11 @@
                 if (Bridge.referenceEquals(this.char, "aya")) {
                     this.canShoot = true;
 
-                    var T = new BNTest.EnemyStrafer(this);
+                    var T1 = new BNTest.EnemyStrafer(this);
                     //T.FramesPerTick = 20;
-                    T.framesPerTick = 10;
-                    T.predict = false;
-                    this.addBehavior(T);
+                    T1.framesPerTick = 10;
+                    T1.predict = false;
+                    this.addBehavior(T1);
                     //default stuff is sanae
 
                     T2._maxAmmo = 1;
@@ -13216,14 +14899,14 @@
                 } else if (Bridge.referenceEquals(this.char, "youmu")) {
                     this.canShoot = true;
 
-                    var T1 = new BNTest.EnemyStrafer(this);
+                    var T3 = new BNTest.EnemyStrafer(this);
                     //T.FramesPerTick = 20;
-                    T1.framesPerTick = 10;
-                    T1.predict = false;
-                    T1.attackType = 6;
-                    this.addBehavior(T1);
+                    T3.framesPerTick = 10;
+                    T3.predict = false;
+                    T3.attackType = 6;
+                    this.addBehavior(T3);
                     //T.attackrange = 100;
-                    T1.attackrange = 150;
+                    T3.attackrange = 150;
                     //default stuff is sanae
                     //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
                     //T2.MinCoolDown = 300;
@@ -13302,6 +14985,16 @@
                     }
                     this.maxRespawnTime = (60 * TimeToRespawn3) | 0;
 
+                }
+                if (Bridge.referenceEquals(this.char, "nazrin")) {
+                    var W = this.getBehavior(BNTest.AimedWandering);
+                    W.focus = 1;
+                    //W.FramesPerTick -= 10;
+                    W.framesPerTick = (W.framesPerTick - 15) | 0;
+                    var TimeToRespawn4 = 2;
+                    spd *= 2;
+                    this.defense = 1.4;
+                    this.maxRespawnTime = (60 * TimeToRespawn4) | 0;
                 }
 
                 if (T2 != null) {
@@ -13432,6 +15125,10 @@
         //return Hitbox + Position;
     },
     initModel: function () {
+        var armrotation = 45;
+        if (Bridge.referenceEquals(this.char, "rumia")) {
+            armrotation = 67;
+        }
         //double mult = 3;
         var mult = 3.5;
 
@@ -13454,18 +15151,20 @@
         M.Spd = 1.5 * mult;
 
         M.offset.x = 1.5;
-        M.offset.y = 3;
+        M.offset.y = 2;
         M.rotation = new BNTest.GLVec3.ctor();
-        M.rotation.z = 45;
+        M.rotation.z = armrotation;
+        M.scale.z = 0.75;
 
         M = this.model.meshes.getItem(Bridge.identity(i, (i = (i + 1) | 0)));
         M.Dir = -1;
         M.Spd = 1.5 * mult;
 
         M.offset.x = -1.5;
-        M.offset.y = 3;
+        M.offset.y = 2;
         M.rotation = new BNTest.GLVec3.ctor();
-        M.rotation.z = -45;
+        M.rotation.z = (-armrotation) | 0;
+        M.scale.z = 0.75;
 
 
         M = this.model.meshes.getItem(Bridge.identity(i, (i = (i + 1) | 0)));
@@ -13492,6 +15191,12 @@
         M.Max = 4.5;
         M.Spd = 0.15 * mult;
         M.rotation = new BNTest.GLVec3.ctor();
+        if (Bridge.referenceEquals(this.char, "suika")) {
+            var csz = 8.0;
+            csz *= this.model.scale.x;
+            var hsz = csz / 2;
+            this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
+        }
     },
     initCPU: function () {
         var T = new BNTest.NavigatorAI(this);
@@ -13576,6 +15281,7 @@
         }
     },
     update: function () {
+        var $t;
 
         if (this.respawnPosition == null) {
             this.respawnPosition = this.getPosition().clone();
@@ -13628,6 +15334,7 @@
         if (this.model.inView) {
             this.animate();
         }
+        ($t=this.controller, System.Array.copy($t, 0, this.lController, 0, $t.length));
     },
     animate: function () {
         if (this.flickerColor != null && (this.game.frame & 2) > 0) {
@@ -13643,12 +15350,15 @@
         //if (!started)
         {
             //started = true;
-            if (this.zpos > 0) {
-                this.world.bringToFront(this.model);
-            }
-            if (this.zpos < 0) {
-                this.world.sendToBack(this.model);
-            }
+            this.model.drawOrder = this.zpos;
+            /* if (zpos>0)
+                    {
+                        world.BringToFront(model);
+                    }
+                    if (zpos<0)
+                    {
+                        world.SendToBack(model);
+                    }*/
         }
         if (this.invincibilityFrames > 0) {
             this.model.setVisible(!this.model.getVisible());
@@ -13765,7 +15475,8 @@
         this.setHP(this.getHP()-((amount / this.defense)));
         if (!this.me.CPU) {
             //DropCoins(50, 5, 1);
-            this.dropCoins(((5 + (((5 * (((Bridge.Int.div(this.game.wave, 2)) | 0))) | 0))) | 0), 5, 1);
+            //DropCoins(5+(5 * (int)Math.Floor(Game.wave/2.5)), 5, 1);
+            this.dropCoins(((5 + (((5 * Bridge.Int.clip32(Math.floor(this.game.wave / 2.5))) | 0))) | 0), 4, 1);
 
             this.invincibilityFrames = this.maxInvincibilityFrames;
             if (!src.multiHit) {
@@ -13827,12 +15538,34 @@
         if (this.me != null) {
             this.me.lives = (this.me.lives - 1) | 0;
         }
-        this.visible = false;
+        this.model.setVisible(false);
         if (!this.me.CPU) {
-            this.dropCoins(Bridge.Int.clip32(this.getCoins() * 0.2), 3, 1, 1500);
-            this.dropCoins(((20 * this.game.wave) | 0), 1, 0, 1500);
+            /* DropCoins((int)(Coins * 0.20), 3, 1,1500);
+                    DropCoins(20*Game.wave, 1, 0, 1500);*/
+            this.dropCoins(Bridge.Int.clip32(this.getCoins() * 0.1), 3, 1, 1500);
+            this.dropCoins(((15 * this.game.wave) | 0), 1, 0, 1500);
             this.respawnTime = 120;
             this.setHP(100);
+        }
+        if (this.maxHPDrops > 0 && this.dropsChance > Math.random()) {
+            var i = Bridge.Int.clip32((((this.maxHPDrops - 1) | 0)) * Math.random());
+            if (i < 0) {
+                i = 0;
+            }
+            i = (i + 1) | 0;
+            while (i > 0) {
+                var hp = new BNTest.HPOrb(this.world);
+                hp.setPosition(new BNTest.GLVec3.ctor(0, -20, 0));
+                hp.getPosition().add(this.getPosition());
+                hp.solid = false;
+                var m = 2;
+                var m2 = (m + m) | 0;
+                hp.speed = new BNTest.GLVec3.ctor(((-m) | 0) + (Math.random() * m2), 0, ((-m) | 0) + (Math.random() * m2));
+                hp.speed.y = -1 + (((-m) | 0) * Math.random());
+                hp.pickupDelay = 15;
+                this.world.add(hp);
+                i = (i - 1) | 0;
+            }
         }
         //var N = new string[] { "sakuya","sanae","cirno","aya","youmu","reisen"};
         var N = new (System.Collections.Generic.Dictionary$2(String,System.Int32))();
@@ -13842,6 +15575,7 @@
         N.set("aya", 80);
         N.set("youmu", 50);
         N.set("reisen", 60);
+        N.set("nazrin", 20);
         var c = new BNTest.Coin(this.world);
         if (!this.me.minion) {
             c.setValue((((((100 * this.game.wave) | 0)) + 500) | 0));
@@ -13886,8 +15620,18 @@
                     this.defense = 6;
                     this.knockbackResistLevel = 3.0;
                 } else {
-                    this.model.scale = BNTest.GLVec3.op_Multiply$1(BNTest.GLVec3.getOne(), 0.8);
+                    //model.Scale = GLVec3.One * 0.8;
+                    /* model.Scale = GLVec3.One * 0.65;
+                            var csz = 8.0;
+                            var hsz = csz / 2;
+                            CustomBoundingBox = new BoundingBox(new GLVec3(-hsz, -csz, -hsz), new GLVec3(hsz, csz, hsz));
+                            HitboxSize = hsz;
+                            stepheight = 5;
+                            defense = 1;
+                            knockbackResistLevel = 1;*/
+                    this.model.scale = BNTest.GLVec3.op_Multiply$1(BNTest.GLVec3.getOne(), 0.65);
                     var csz1 = 8.0;
+                    csz1 *= this.model.scale.x;
                     var hsz1 = csz1 / 2;
                     this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz1, -csz1, -hsz1), new BNTest.GLVec3.ctor(hsz1, csz1, hsz1));
                     this.setHitboxSize(hsz1);
@@ -13895,6 +15639,7 @@
                     this.defense = 1;
                     this.knockbackResistLevel = 1;
                 }
+
             }
 
         }
