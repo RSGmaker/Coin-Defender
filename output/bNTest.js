@@ -617,10 +617,29 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Coin Defender",
-            gameVersion: "0.5",
+            gameVersion: "0.6",
+            storage: null,
             IC: null,
             DEBUG: false,
             started: false,
+            config: {
+                init: function () {
+                    this.storage = Bridge.global.localStorage;
+                }
+            },
+            initSaveData: function () {
+                if (BNTest.App.storage.Mon == null || Bridge.referenceEquals(BNTest.App.storage.Mon, "")) {
+                    BNTest.App.storage.Mon = 0;
+                }
+                if (BNTest.App.storage.MaxLevel == null || Bridge.referenceEquals(BNTest.App.storage.MaxLevel, "")) {
+                    BNTest.App.storage.MaxLevel = 0;
+                }
+                if (BNTest.App.storage.Characters == null) {
+                    var Chars = {  };
+                    Chars.Reimu = true;
+                    BNTest.App.storage.Characters = Chars;
+                }
+            },
             update: function () {
                 BNTest.KeyboardManager.update();
                 if (!BNTest.App.started) {
@@ -731,6 +750,9 @@
                 innerHTML: "Click Me",
                 onclick: $_.BNTest.App.f1
             } );
+            BNTest.App.initSaveData();
+
+
             document.body.style.cssText = "overflow: hidden;margin: 0;padding: 0;";
             document.body.onresize = $_.BNTest.App.f2;
 
@@ -1442,6 +1464,7 @@
                     var C = this.lastBB.getCenter();
                     var dist = cam.roughDistance(C);
                     this.model.inView = dist <= BNTest.World.viewDistance;
+                    //C.Release();
                 }
             }
         },
@@ -1478,21 +1501,42 @@
     Bridge.define("BNTest.BoundingBox", {
         statics: {
             op_Addition: function (B, V) {
-                return new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Addition(B.min, V), BNTest.GLVec3.op_Addition(B.max, V));
+                var ret = B.clone();
+                ret.add(V);
+                return ret;
             },
             op_Subtraction: function (B, V) {
-                return new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Subtraction(B.min, V), BNTest.GLVec3.op_Subtraction(B.max, V));
+                var ret = B.clone();
+                ret.subtract(V);
+                return ret;
+                //return new BoundingBox(B.Min - V, B.Max - V);
             },
             op_Multiply: function (B, V) {
                 var A = B.getCenter();
                 var S = BNTest.GLVec3.op_Multiply$1((BNTest.GLVec3.op_Multiply(B.getSize(), V)), 0.5);
-                return new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Subtraction(A, S), BNTest.GLVec3.op_Addition(A, S));
+                var min = BNTest.GLVec3.op_Subtraction(A, S);
+                var max = BNTest.GLVec3.op_Addition(A, S);
+                var ret = new BNTest.BoundingBox.$ctor1(min, max);
+                /* min.Release();
+                max.Release();
+                S.Release();
+                A.Release();*/
+                return ret;
+                //return new BoundingBox(A - S, A + S);
             },
             op_Multiply$1: function (B, Scale) {
                 var V = new BNTest.GLVec3.ctor(Scale, Scale, Scale);
                 var A = B.getCenter();
                 var S = BNTest.GLVec3.op_Multiply$1((BNTest.GLVec3.op_Multiply(B.getSize(), V)), 0.5);
-                return new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Subtraction(A, S), BNTest.GLVec3.op_Addition(A, S));
+                var min = BNTest.GLVec3.op_Subtraction(A, S);
+                var max = BNTest.GLVec3.op_Addition(A, S);
+                var ret = new BNTest.BoundingBox.$ctor1(min, max);
+                /* min.Release();
+                max.Release();
+                S.Release();
+                A.Release();*/
+                return ret;
+                //return new BoundingBox(A - S, A + S);
             }
         },
         min: null,
@@ -1572,6 +1616,7 @@
             var Y = (this.max.y - this.min.y) * 0.5;
             var Z = (this.max.z - this.min.z) * 0.5;
             return new BNTest.GLVec3.ctor(this.min.x + X, this.min.y + Y, this.min.z + Z);
+            //return new GLVec3(Min.X + X, Min.Y + Y, Min.Z + Z);
         },
         copyFrom: function (B) {
             var BM = B.min;
@@ -1592,12 +1637,39 @@
             this.max.y += offset.y;
             this.max.z += offset.z;
         },
+        add$1: function (X, Y, Z) {
+            this.min.x += X;
+            this.min.y += Y;
+            this.min.z += Z;
+
+            this.max.x += X;
+            this.max.y += Y;
+            this.max.z += Z;
+        },
+        subtract: function (offset) {
+            this.min.x -= offset.x;
+            this.min.y -= offset.y;
+            this.min.z -= offset.z;
+
+            this.max.x -= offset.x;
+            this.max.y -= offset.y;
+            this.max.z -= offset.z;
+        },
+        subtract$1: function (X, Y, Z) {
+            this.min.x -= X;
+            this.min.y -= Y;
+            this.min.z -= Z;
+
+            this.max.x -= X;
+            this.max.y -= Y;
+            this.max.z -= Z;
+        },
         toString: function () {
             return System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat("{Pos:", this.min.toString()), "}"), "{Size:"), this.getSize().toString()), "}");
             //return "Min|" + Min.ToString() + " Max|" + Max.ToString();
         },
         clone: function () {
-            return new BNTest.BoundingBox.$ctor1(this.min.clone(), this.max.clone());
+            return new BNTest.BoundingBox.$ctor1(this.min, this.max);
         },
         intersection$3: function (list) {
             return System.Linq.Enumerable.from(list).where(Bridge.fn.bind(this, $_.BNTest.BoundingBox.f1)).toList(BNTest.BoundingBox);
@@ -1606,7 +1678,8 @@
             var ret = System.Array.init(0, null);
             //List<Entity> ret = new List<Entity>();
             var i = 0;
-            while (i < list.length) {
+            var ln = list.length;
+            while (i < ln) {
                 var B = list[i];
                 if (B.lastBB.intersection$2(this)) {
                     //ret.Add(B);
@@ -1622,7 +1695,8 @@
             var ret = System.Array.init(0, null);
             var L = list.items;
             var i = 0;
-            while (i < L.length) {
+            var ln = L.length;
+            while (i < ln) {
                 var B = L[i];
                 if (B.lastBB.intersection$2(this)) {
                     //ret.Add(B);
@@ -1643,7 +1717,14 @@
             /* return (a.Max.X >= b.Min.X && a.Min.X <= b.Max.X)
                 && (a.Max.Y >= b.Min.Y && a.Min.Y <= b.Max.Y)
                 && (a.Max.Z >= b.Min.Z & a.Min.Z <= b.Max.Z);*/
-            return (this.max.x >= b.min.x && this.min.x <= b.max.x) && (this.max.y >= b.min.y && this.min.y <= b.max.y) && (!!(this.max.z >= b.min.z & this.min.z <= b.max.z));
+
+
+            /* return (Max.X >= b.Min.X && Min.X <= b.Max.X)
+                && (Max.Y >= b.Min.Y && Min.Y <= b.Max.Y)
+                && (Max.Z >= b.Min.Z & Min.Z <= b.Max.Z);*/
+            var bmn = b.min;
+            var bmx = b.max;
+            return (this.max.x >= bmn.x && this.min.x <= bmx.x) && (this.max.y >= bmn.y && this.min.y <= bmx.y) && (!!(this.max.z >= bmn.z & this.min.z <= bmx.z));
         },
         contains: function (V) {
             return (BNTest.GLVec3.op_LessThanOrEqual(this.min, V) && BNTest.GLVec3.op_GreaterThanOrEqual(this.max, V));
@@ -1655,6 +1736,288 @@
     Bridge.apply($_.BNTest.BoundingBox, {
         f1: function (B) {
             return this.intersection$2(B);
+        }
+    });
+
+    Bridge.define("BNTest.ButtonMenu", {
+        rows: null,
+        menuWidth: 0,
+        menuHeight: 0,
+        fontSize: 0,
+        selectionMenu: false,
+        selected: null,
+        self: null,
+        onChoose: null,
+        position: null,
+        config: {
+            init: function () {
+                this.position = new BNTest.Vector2();
+            }
+        },
+        ctor: function (menuWidth, menuHeight, FontSize, selectionMenu) {
+            if (selectionMenu === void 0) { selectionMenu = false; }
+
+            this.$initialize();
+            this.rows = new (System.Collections.Generic.List$1(System.Collections.Generic.List$1(BNTest.ButtonSprite)))();
+            this.menuWidth = menuWidth;
+            this.menuHeight = menuHeight;
+            this.fontSize = FontSize;
+            this.selectionMenu = selectionMenu;
+            this.self = this;
+        },
+        getSelectedData: function () {
+            if (this.self.selected != null) {
+                return this.self.selected.data;
+            }
+            return null;
+        },
+        getSelectedText: function () {
+            if (this.self.selected != null) {
+                if (Bridge.is(this.self.selected.getContents(), BNTest.TextSprite)) {
+                    return Bridge.cast(this.self.selected.getContents(), BNTest.TextSprite).getText();
+                }
+            }
+            return null;
+        },
+        setSelectedText: function (value) {
+            var B = null;
+            BNTest.HelperExtensions.forEach(System.Collections.Generic.List$1(BNTest.ButtonSprite), this.rows, function (F) {
+                BNTest.HelperExtensions.forEach(BNTest.ButtonSprite, F, function (BB) {
+                    if (Bridge.is(BB.getContents(), BNTest.TextSprite) && Bridge.referenceEquals(BB.getContents().getText(), value)) {
+                        B = BB;
+                    }
+                });
+            });
+            if (B != null) {
+                this.select(B);
+            }
+        },
+        getAllButtons: function () {
+            var all = new (System.Collections.Generic.List$1(BNTest.ButtonSprite))();
+            BNTest.HelperExtensions.forEach(System.Collections.Generic.List$1(BNTest.ButtonSprite), this.rows, function (R) {
+                all.addRange(R);
+            });
+            return all;
+        },
+        getSpriteByData: function (data) {
+            var all = new (System.Collections.Generic.List$1(BNTest.ButtonSprite))(System.Linq.Enumerable.from(this.getAllButtons()).where(function (B) {
+                return Bridge.referenceEquals(B.data, data);
+            }));
+            if (all.getCount() > 0) {
+                return all.getItem(0);
+            }
+            return null;
+        },
+        addButtons: function (buttonText) {
+            BNTest.HelperExtensions.forEach(String, buttonText, Bridge.fn.bind(this, $_.BNTest.ButtonMenu.f1));
+        },
+        addButton: function (buttonText, row, data) {
+            if (row === void 0) { row = -1; }
+            if (data === void 0) { data = null; }
+            var T = new BNTest.TextSprite();
+            T.setText(buttonText);
+            T.setFontSize(this.fontSize);
+            //ButtonSprite B = new ButtonSprite(T, (int)(FontSize * 0.05));
+            var B = new BNTest.ButtonSprite.ctor(T, Bridge.Int.clip32(this.fontSize * 0.1));
+            if (data != null) {
+                B.data = data;
+            }
+            this.addButton$1(B, row);
+            return B;
+        },
+        addButton$1: function (button, row) {
+            if (row === void 0) { row = -1; }
+            if (this.rows.getCount() === 0) {
+                this.rows.add(new (System.Collections.Generic.List$1(BNTest.ButtonSprite))());
+            }
+            if (row === -1) {
+                row = (this.rows.getCount() - 1) | 0;
+            }
+            if (button != null) {
+                button.onClick = Bridge.fn.bind(this, function () {
+                    this.self.select(button);
+                });
+            }
+            this.rows.getItem(row).add(button);
+        },
+        select: function (button) {
+            if (!Bridge.referenceEquals(this.selected, button) || !this.selectionMenu) {
+                if (this.selected != null && this.selectionMenu) {
+                    //Selected.BorderColor = "#00AA33";
+                    //Selected.ButtonColor = "#11CC55";
+                    this.selected.setColorScheme$1(0);
+                }
+                this.selected = button;
+                var OSC = this.onChoose;
+                var self = this;
+                if (this.selectionMenu && this.selected != null) {
+                    //Selected.BorderColor = "#FFFFFF";
+                    //Selected.ButtonColor = "#FF0000";
+                    this.selected.setColorScheme$1(1);
+                }
+                if (this.selected != null && OSC) {
+                    self.onChoose();
+                }
+            }
+        },
+        combineRows: function () {
+            var all = new (System.Collections.Generic.List$1(BNTest.ButtonSprite))();
+            BNTest.HelperExtensions.forEach(System.Collections.Generic.List$1(BNTest.ButtonSprite), this.rows, function (R) {
+                all.addRange(R);
+            });
+
+            this.rows = new (System.Collections.Generic.List$1(System.Collections.Generic.List$1(BNTest.ButtonSprite)))();
+            this.rows.add(all);
+        },
+        addRow: function () {
+            var ret = new (System.Collections.Generic.List$1(BNTest.ButtonSprite))();
+            this.rows.add(ret);
+            return ret;
+        },
+        breakUp: function (totalRows) {
+            this.combineRows();
+            var all = this.rows.getItem(0);
+            this.rows = new (System.Collections.Generic.List$1(System.Collections.Generic.List$1(BNTest.ButtonSprite)))();
+            var C = Math.ceil(all.getCount() / totalRows);
+            var row = this.addRow();
+            var i = 0;
+            while (i < all.getCount()) {
+                if (row.getCount() >= C) {
+                    row = this.addRow();
+                }
+                this.addButton$1(all.getItem(i));
+                i = (i + 1) | 0;
+            }
+        },
+        centerOn: function (sprite, Center) {
+            sprite.draw(null);
+            var S = sprite.getSize();
+            var S2 = BNTest.Vector2.op_Division(S, 2.0);
+            sprite.position = BNTest.Vector2.op_Subtraction(Center, S2);
+        },
+        updateRow: function (index, y) {
+            var row = this.rows.getItem(index);
+            var X = (this.menuWidth / (row.getCount() + 1.0));
+            var i = 0;
+            var CX = X;
+
+            CX += this.position.x;
+            while (i < row.getCount()) {
+                var B = row.getItem(i);
+                if (B != null) {
+                    this.centerOn(B, new BNTest.Vector2(CX, y));
+                }
+                CX += X;
+                i = (i + 1) | 0;
+            }
+        },
+        finish: function (totalRows) {
+            if (totalRows === void 0) { totalRows = -1; }
+            if (totalRows > 0) {
+                this.breakUp(totalRows);
+            }
+            var y = 0;
+            var CY = 0;
+            if (totalRows > 0 && this.rows.getCount() < totalRows) {
+                y = (this.menuHeight / (((this.rows.getCount() + 1) | 0)));
+                CY = y;
+            } else {
+                y = (this.menuHeight / (this.rows.getCount()));
+                CY = 0;
+            }
+
+            CY += this.position.y;
+            var i = 0;
+            while (i < this.rows.getCount()) {
+                this.updateRow(i, CY);
+                CY += y;
+                i = (i + 1) | 0;
+            }
+        },
+        update: function (mousePosition, clicked) {
+            if (mousePosition === void 0) { mousePosition = null; }
+            if (clicked === void 0) { clicked = true; }
+            if (BNTest.Vector2.op_Equality(mousePosition, null)) {
+                mousePosition = BNTest.KeyboardManager.get_this().cMouse;
+                clicked = BNTest.KeyboardManager.get_this().tappedMouseButtons.contains(0);
+            }
+            if (clicked) {
+                BNTest.HelperExtensions.forEach(System.Collections.Generic.List$1(BNTest.ButtonSprite), this.rows, function (R) {
+                    BNTest.HelperExtensions.forEach(BNTest.ButtonSprite, R, function (B) {
+                        if (B != null) {
+                            B.checkClick(mousePosition);
+                        }
+                    });
+                });
+            }
+        },
+        draw: function (g) {
+            BNTest.HelperExtensions.forEach(System.Collections.Generic.List$1(BNTest.ButtonSprite), this.rows, function (R) {
+                BNTest.HelperExtensions.forEach(BNTest.ButtonSprite, R, function (B) {
+                    if (B != null) {
+                        B.draw(g);
+                    }
+                });
+            });
+        }
+    });
+
+    Bridge.ns("BNTest.ButtonMenu", $_);
+
+    Bridge.apply($_.BNTest.ButtonMenu, {
+        f1: function (T) {
+            this.addButton(T);
+        }
+    });
+
+    Bridge.define("BNTest.Sprite", {
+        position: null,
+        spriteBuffer: null,
+        visible: true,
+        spriteGraphics: null,
+        ctor: function () {
+            this.$initialize();
+            this.spriteBuffer = document.createElement('canvas');
+            this.spriteGraphics = this.spriteBuffer.getContext("2d");
+            this.position = new BNTest.Vector2();
+        },
+        getSize: function () {
+            return new BNTest.Vector2(this.spriteBuffer.width, this.spriteBuffer.height);
+        },
+        setSize: function (value) {
+            if (BNTest.Vector2.op_Equality(value, null)) {
+                value = new BNTest.Vector2();
+            }
+            this.spriteBuffer.width = Bridge.Int.clip32(value.x);
+            this.spriteBuffer.height = Bridge.Int.clip32(value.y);
+        },
+        getGraphics: function () {
+            return this.spriteGraphics;
+        },
+        onFrame: function () {
+
+        },
+        draw: function (g) {
+            if (!this.visible) {
+                return;
+            }
+            g.drawImage(this.spriteBuffer, this.position.x, this.position.y);
+        },
+        getBounds: function () {
+            return new BNTest.Rectangle(this.position.x, this.position.y, this.spriteBuffer.width, this.spriteBuffer.height);
+        }
+    });
+
+    Bridge.define("BNTest.ButtonSprite.ColorScheme", {
+        borderColor: null,
+        buttonColor: null,
+        ctor: function (borderColor, buttonColor) {
+            if (borderColor === void 0) { borderColor = "#00AA33"; }
+            if (buttonColor === void 0) { buttonColor = "#11CC55"; }
+
+            this.$initialize();
+            this.borderColor = borderColor;
+            this.buttonColor = buttonColor;
         }
     });
 
@@ -2045,6 +2408,92 @@
         }
     });
 
+    Bridge.define("BNTest.FeatureCategory", {
+        name: null,
+        parent: null,
+        subCategories: null,
+        items: null,
+        oneOnly: false,
+        displayAsOneCategory: false,
+        config: {
+            init: function () {
+                this.subCategories = new (System.Collections.Generic.List$1(BNTest.FeatureCategory))();
+                this.items = new (System.Collections.Generic.List$1(BNTest.FeatureItem))();
+            }
+        },
+        getItems: function () {
+            var ret = System.Linq.Enumerable.from(this.items).toList(BNTest.FeatureItem);
+            if (this.displayAsOneCategory) {
+                var i = 0;
+                while (i < this.subCategories.getCount()) {
+                    ret.addRange(this.subCategories.getItem(i).getItems());
+                    i = (i + 1) | 0;
+                }
+            }
+            /* if (AvailableOnly)
+                {
+                    ret = ret.Where(R => R.Purchased).ToList();
+                }*/
+            return ret;
+        }
+    });
+
+    Bridge.define("BNTest.FeatureItem", {
+        name: null,
+        category: null,
+        cost: 0,
+        requirements: null,
+        config: {
+            init: function () {
+                this.requirements = $_.BNTest.FeatureItem.f1;
+            }
+        },
+        getPurchased: function () {
+            var A = BNTest.App.storage[System.String.concat(System.String.concat(this.category.name, "_"), this.name)];
+            if (A == null || Bridge.referenceEquals(A, "")) {
+                return false;
+            }
+            return System.Boolean.parse(A);
+        },
+        setPurchased: function (value) {
+            BNTest.App.storage[System.String.concat(System.String.concat(this.category.name, "_"), this.name)] = value;
+        },
+        getBuyable: function () {
+            /* int levelrequirement = 10;
+                    return int.Parse(App.Storage.MaxLevel) >= levelrequirement;*/
+            return this.requirements();
+        },
+        purchase: function () {
+            if (!this.getPurchased() && this.getBuyable()) {
+                var money = System.Int32.parse(BNTest.App.storage.Mon);
+                if (money >= this.cost) {
+                    money = (money - this.cost) | 0;
+                    BNTest.App.storage.Mon = money;
+                    this.setPurchased(true);
+                    return true;
+                }
+            }
+            return false;
+        },
+        clone: function () {
+            var ret = new BNTest.FeatureItem();
+            ret.name = this.name;
+            ret.category = this.category;
+            ret.requirements = this.requirements;
+            ret.cost = this.cost;
+
+            return ret;
+        }
+    });
+
+    Bridge.ns("BNTest.FeatureItem", $_);
+
+    Bridge.apply($_.BNTest.FeatureItem, {
+        f1: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 10;
+        }
+    });
+
     Bridge.define("BNTest.GameMode.ModeTypes", {
         $kind: "enum",
         statics: {
@@ -2424,6 +2873,20 @@
             this.r = C.r;
             this.g = C.g;
             this.b = C.b;
+        },
+        add: function (C) {
+            this.r = BNTest.MathHelper.clamp(this.r + C.r);
+            this.g = BNTest.MathHelper.clamp(this.g + C.g);
+            this.b = BNTest.MathHelper.clamp(this.b + C.b);
+            //var A = MathHelper.Clamp(C1.A + C2.A);
+        },
+        add$1: function (R, G, B) {
+            this.r = BNTest.MathHelper.clamp(this.r + R);
+            this.g = BNTest.MathHelper.clamp(this.g + G);
+            this.b = BNTest.MathHelper.clamp(this.b + B);
+        },
+        clone: function () {
+            return new BNTest.GLColor(this.r, this.g, this.b, this.a);
         }
     });
 
@@ -2449,7 +2912,9 @@
                     BNTest.GLDemo.missingTime = 35;
                 }
                 if (BNTest.GLDemo.updated) {
-                    BNTest.GLDemo._this.drawScene(elapsedTime);
+                    if (!BNTest.GLDemo._this.serverMode) {
+                        BNTest.GLDemo._this.drawScene(elapsedTime);
+                    }
                     BNTest.GLDemo.updated = false;
                 }
                 BNTest.GLDemo._this.update(elapsedTime);
@@ -2531,11 +2996,15 @@
         ambientLightLevel: null,
         defaultDarknessLevel: 0.0007,
         defaultAmbientLightLevel: 0.6,
+        currentSong: 0,
+        serverMode: false,
         world: null,
         camera: null,
         skippedWave: false,
         foliage: null,
+        guiVisible: true,
         hoster: true,
+        showVertCounter: false,
         fogActive: false,
         cameraDist: 300,
         lastCameraDist: 0,
@@ -2569,10 +3038,12 @@
         online: false,
         frame: 0,
         music: null,
+        lastMusic: null,
         VTS: null,
         TS: null,
         LTS: null,
         BTS: null,
+        CTS: null,
         radar: null,
         ended: true,
         gameover: false,
@@ -2586,6 +3057,11 @@
         lightLevel: 1,
         currentlightlevel: 1,
         testobj: null,
+        characters: null,
+        CS: null,
+        startButton: null,
+        shopButton: null,
+        shop: null,
         wavetime: 3,
         wave: 0,
         enemyList: null,
@@ -2603,6 +3079,7 @@
         dlatency: 0,
         tflat: null,
         FA: null,
+        temp: null,
         mvMatrixStack: null,
         pUniform: null,
         mvUniform: null,
@@ -2616,15 +3093,20 @@
                 this.TS = new BNTest.TextSprite();
                 this.LTS = new BNTest.TextSprite();
                 this.BTS = new BNTest.TextSprite();
+                this.CTS = new BNTest.TextSprite();
                 this.radar = new BNTest.Sprite();
                 this.tflat = System.Array.init(16, 0);
                 this.FA = new Float32Array(16);
+                this.temp = new BNTest.WGMatrix();
                 this.mvMatrixStack = [];
             }
         },
         start: function (canvas) {
             this.canvas = canvas;
             var self = this;
+            this.enemyList = System.Array.init(0, null);
+
+            this.initFeatures();
 
             this.VTS.setText(System.String.concat("Version:", BNTest.App.gameVersion));
             this.VTS.setFontSize(16);
@@ -2632,6 +3114,15 @@
             this.VTS.setShadowBlur(5);
             this.VTS.setShadowOffset(new BNTest.Vector2(3, 3));
             this.VTS.setShadowColor("#000000");
+
+            this.CTS.alpha = 0;
+            this.CTS.setText("Combo:0");
+            this.CTS.setFontSize(32);
+            this.CTS.setTextColor("#FFFFFF");
+            this.CTS.setShadowBlur(5);
+            this.CTS.setShadowOffset(new BNTest.Vector2(3, 3));
+            this.CTS.setShadowColor("#000000");
+            this.CTS.position = new BNTest.Vector2(830, 660);
 
             /* Radar.spriteBuffer.Width = 100;
                 Radar.spriteBuffer.Height = 100;*/
@@ -2702,7 +3193,8 @@
 
             if (this.gl != null) {
                 this.gl.clearColor(0, 0, 0, 1);
-                this.gl.clearColor(0.5, 0.5, 0.5, 1);
+                //gl.ClearColor(0.5, 0.5, 0.5, 1);
+                this.gl.clearColor(0.5, 0.75, 0.95, 1);
                 this.gl.clearDepth(1);
                 this.gl.enable(this.gl.CULL_FACE);
                 this.gl.cullFace(this.gl.FRONT);
@@ -2758,62 +3250,16 @@
                 this.generateFloor();
 
                 this.world.add(this.foliage);
-                /* var FVM = VoxelMap.Gen(100,2,0,true,false,true);
-                    var msh = new Mesh(self);
-                    msh.AddVoxelMap(FVM,false,false,true);
-                    var floor = new Entity(world);
-                    floor.model = new Model(self);
 
 
-                    floor.y = 10;
-                
-                    floor.Scale.X = 4;
-                    floor.Scale.Y = floor.Scale.X;
-                    floor.Scale.Z = floor.Scale.X;
-
-                    GLVec3 V = msh.Size * floor.Scale.X*0.5;
-                    floor.x -= V.X;
-                    floor.z -= V.Z;
-                    floor.model.meshes.Add(msh);
-
-                    floor.GetBoundingBox();
-
-
-                
-                    world.Add(floor);
-                    /////////
-                    FVM = VoxelMap.Gen(100, 2, 0, true, false, true,true);
-                    msh = new Mesh(self);
-                    msh.AddVoxelMap(FVM, false, false, true);
-                    floor = new Entity(world);
-                    floor.model = new Model(self);
-
-                    floor.groundFriction = 0.05;
-                
-
-                    floor.y = 10;
-
-                    floor.Scale.X = 4;
-                    floor.Scale.Y = floor.Scale.X;
-                    floor.Scale.Z = floor.Scale.X;
-
-                    V = msh.Size * floor.Scale.X * 0.5;
-                    floor.x -= V.X;
-                    floor.z += V.Z;
-                    floor.model.meshes.Add(msh);
-
-                    floor.GetBoundingBox();
-
-
-
-                    world.Add(floor);*/
 
                 this.gamePlaySettings = new BNTest.GamePlaySettings();
                 this.gamePlaySettings.gameMode = BNTest.GameMode.teamBattle;
 
 
                 this.localplayer = new BNTest.Player(true, false);
-                var character = "reimu";
+                var character = "default";
+                //var character = "reimu";
                 //character = "marisa";
                 //character = "koishi";
                 //character = "aya";
@@ -2834,27 +3280,7 @@
 
                 this.world.add(PC);
 
-                /* var NPC = new PlayerCharacter(world, new Player(true, true));
-                    NPC.x += 50;
-                    NPC.z += 200;
-                    world.Add(NPC);
 
-                    NPC = new PlayerCharacter(world, new Player(true, true));
-                    NPC.x -= 50;
-                    NPC.z += 200;
-                    world.Add(NPC);*/
-
-                //int i = 10;
-                //int i = 20;
-                //int i = 20;
-                /* while (i>0)
-                    {
-                        AddNPC();
-                        i--;
-                    }*/
-                /* int i = 10;
-                
-                    NextSpawn = -((NPCSpawntime-1) * (i / 2));*/
 
                 var box = new BNTest.DonationBox(this.world);
                 this.world.add(box);
@@ -3010,19 +3436,45 @@
         },
         playMusic: function (song, volume) {
             if (volume === void 0) { volume = 1.0; }
-            if (Bridge.referenceEquals(song, this.lastsong)) {
+            if (Bridge.referenceEquals(song, this.lastsong) || this.serverMode) {
                 return;
             }
-            if (this.music != null) {
-                this.music.stop();
+            /* if (music != null)
+                {
+                    music.Stop();
+                }*/
+            if (this.lastMusic != null) {
+                this.lastMusic.stop();
+                this.lastMusic = null;
             }
+            this.lastMusic = this.music;
             this.music = BNTest.AudioManager.get_this().play(System.String.concat(System.String.concat("BGM/", song), ".ogg"), true);
-            if (this.bGMMute) {
-                this.music.setVolume(0);
-            } else {
-                this.music.setVolume(BNTest.MathHelper.clamp(this.bGMVolume) * BNTest.MathHelper.clamp(volume));
-            }
+            /* if (BGMMute)
+                {
+                    music.Volume = 0;
+                }
+                else
+                {
+                    music.Volume = MathHelper.Clamp(BGMVolume) * MathHelper.Clamp(volume);
+                }*/
+            this.music.setVolume(0);
             this.lastsong = song;
+        },
+        updateAudio: function () {
+            //var spd = 0.005;
+            var spd = 0.004;
+            if (this.lastMusic != null) {
+                this.lastMusic.setVolume(BNTest.MathHelper.clamp(this.lastMusic.getVolume() - spd));
+                if (this.lastMusic.getVolume() <= 0) {
+                    this.lastMusic.stop();
+                    this.lastMusic = null;
+                }
+            }
+            if (this.music != null && !this.bGMMute) {
+                if (this.music.getVolume() < this.bGMVolume) {
+                    this.music.setVolume(BNTest.MathHelper.clamp(this.music.getVolume() + spd, 0, this.bGMVolume));
+                }
+            }
         },
         safeForFoliage: function (V, solid) {
             if (solid === void 0) { solid = false; }
@@ -3111,18 +3563,12 @@
         },
         addRisingPlatforms: function (number) {
             var A = number + 0.5;
-            //double AA = 0.1;
-            //double AA = 0.035;
             var AA = 0.025;
             var B = new BNTest.BoundingBox.$ctor2(50);
-            //var rng = 800;
-            //var rng = 500;
             var rng = 400;
             var rng2 = (rng + rng) | 0;
 
             var hrng6 = rng * 1.5;
-            //var range = new GLVec3(rng2, -5, rng2);
-            //var hrange = new GLVec3(rng, -15, rng);
             var range = new BNTest.GLVec3.ctor(rng2, -55, rng2);
             var hrange = new BNTest.GLVec3.ctor(rng, -65, rng);
             var RND = new System.Random.ctor();
@@ -3132,7 +3578,6 @@
             var DP = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f1).getPosition();
             DP = BNTest.GLVec3.op_Addition(DP, new BNTest.GLVec3.ctor(0, 0, -30));
 
-            //var mx2 = max * 0.75;
             var rate = 0.45;
             var irate = 1 - rate;
             var mx2 = max * (rate + 0.15);
@@ -3142,13 +3587,8 @@
             //maximum volume a platform can be.(only measures in 2D X,Z)
             var mmax = (((max * max) | 0)) * 0.12;
             while (A >= 1) {
-                //B = new BoundingBox(35 + (50 * RND.NextDouble()));
-                //B = new BoundingBox(35 + (100 * RND.NextDouble()));
-                //B = new BoundingBox(50 + (150 * RND.NextDouble()));
-                //var sz = GLVec3.CreateUniform(50 + (200 * RND.NextDouble())) * new GLVec3(0.3 + (0.7 * RND.NextDouble()), 0.20 + (0.45 * RND.NextDouble()), 0.3 + (0.7 * RND.NextDouble()));
                 var sz = BNTest.GLVec3.op_Multiply(BNTest.GLVec3.createUniform(min + ((((max - min) | 0)) * RND.nextDouble())), new BNTest.GLVec3.ctor(0.3 + (0.7 * RND.nextDouble()), 0.1 + (0.3 * RND.nextDouble()), 0.3 + (0.7 * RND.nextDouble())));
                 B.setSize(sz);
-                //if (Math.Random() < 0.15 || P == null)
                 if (Math.random() < 0.2 || P == null) {
                     P = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
                 } else {
@@ -3159,13 +3599,8 @@
                     P.y = NP.y;
                 }
                 var C = BNTest.BoundingBox.op_Addition(B, P);
-                //var S = Math.Abs(sz.X) + Math.Abs(sz.Z);
                 var S = Math.abs(sz.x) * Math.abs(sz.z);
                 var PD = P.roughDistance(DP);
-                //if (P.RoughLength>150 && sz.RoughLength<320 && world.FindSolidCollision(C).Length<=0)
-                //if (P.RoughLength > 150 && S < 400 && world.FindSolidCollision(C).Length <= 0)
-                //if (P.RoughLength > 200 && S < mmax && world.FindSolidCollision(C).Length <= 0)
-                //if (P.RoughDistance(DP) > 200 && S < mmax && world.FindSolidCollision(C).Length <= 0)
                 //if (P.RoughDistance(DP) > mx2 && S < mmax && world.FindSolidCollision(C).Where(E => !(E is RisingPlatform)).ToArray().Length <= 0 && SafeForFoliage(P,true))
                 if (PD > (mx2 + (Math.max(Math.abs(sz.x), Math.abs(sz.z)) * irate)) && PD <= hrng6 && S < mmax && System.Linq.Enumerable.from(this.world.findSolidCollision(C)).where($_.BNTest.GLDemo.f2).toArray().length <= 0) {
                     var R = new BNTest.RisingPlatform(this.world, B);
@@ -3177,10 +3612,19 @@
             }
         },
         generateFloor: function () {
+            var rndshft = false;
+
             var self = this;
             var scl = 4;
             //var sz = 30;
             var sz = 80;
+            //var sz = 53;
+            var size = 2;
+            if (rndshft) {
+                sz = (Bridge.Int.div(sz, 2)) | 0;
+                size = (size * 2) | 0;
+            }
+
             var hsz = (Bridge.Int.div(sz, 2)) | 0;
             var Vsz = new BNTest.GLVec3.ctor(hsz, 0, hsz);
             var Depth = 2;
@@ -3193,34 +3637,26 @@
             var msh = new BNTest.Mesh(self);
             msh.addVoxelMap(FVM, false, centered, true);
 
+            //msh.RandomShift(0.25);
+            if (rndshft) {
+                msh.randomShift(0.15);
+                //scale up the mesh slightly, to hide seams with an overlap.
+                msh.scale.x = 1.04;
+                msh.scale.z = 1.04;
+            }
+
             var floor = new BNTest.Entity(this.world);
             floor.model = new BNTest.Model(self);
 
             var $final = floor;
+
 
             //var rots = new double[] { 0, Math.PI, Math.PI + Math.PI, Math.PI + Math.PI + Math.PI };
             var rots = [0, 90, 180, 270];
 
 
             var V;
-            /* floor.y = 10;
 
-                floor.Scale.X = 4;
-                floor.Scale.Y = floor.Scale.X;
-                floor.Scale.Z = floor.Scale.X;
-
-                GLVec3 V = msh.Size * floor.Scale.X * 0.5;
-                floor.x -= V.X;
-                floor.z -= V.Z;
-                floor.model.meshes.Add(msh);*/
-
-            //floor.GetBoundingBox();
-
-
-
-            //world.Add(floor);
-            //var size = 5;
-            var size = 2;
 
             var x = (-size) | 0;
             var z = (-size) | 0;
@@ -3237,7 +3673,6 @@
                     //floor.groundFriction = 0.05;
 
 
-                    //floor.y = 10;
                     floor.sety((((10 - yr) | 0)) + (Math.random() * yr2));
                     if (centered) {
                         floor.sety(floor.gety()+((Depth * scl) * 0.5));
@@ -3261,68 +3696,24 @@
                     floor.setx(floor.getx()+(V.x * (cx * 2)));
                     floor.setz(floor.getz()+(V.z * (cz * 2)));
 
-
-
-                    /* floor.x -= V.X;
-                        floor.z += V.Z;*/
                     floor.model.meshes.add(msh.clone());
-
-
-                    //floor.GetBoundingBox();
 
 
                     floor.cacheBoundingBox();
                     this.world.add(floor);
 
 
-                    /* if (Math.Random()>0.5)
-                        {
-                            //floor.Scale.X = -floor.Scale.X;
-                            floor.Scale.Z = -floor.Scale.Z;
-                        }*/
-                    /* if (Math.Random() > 0.5)
-                        {
-                            model.Scale.Z = -model.Scale.Z;
-                        }*/
                     floor.model.rotation.y = BNTest.HelperExtensions.pick(System.Double, rots);
                     this.foliage.absorbModel(floor);
-                    //final.model.children.Add(floor.model);
                     z = (z + 1) | 0;
                 }
                 z = (-size) | 0;
                 x = (x + 1) | 0;
             }
             var B = this.world.model.getBoundingBox();
-            B.min.y -= 100;
-            //B.Max.Y = 20;
+            //B.Min.Y -= 100;
+            B.min.y -= 200;
             this.setBarriers(B, 5);
-            //world.Add(final);
-            //final.CacheBoundingBox();
-            /* FVM = VoxelMap.Gen(100, 2, 0, true, false, true, true);
-                msh = new Mesh(self);
-                msh.AddVoxelMap(FVM, false, false, true);
-                floor = new Entity(world);
-                floor.model = new Model(self);
-
-                floor.groundFriction = 0.05;
-
-
-                floor.y = 10;
-
-                floor.Scale.X = 4;
-                floor.Scale.Y = floor.Scale.X;
-                floor.Scale.Z = floor.Scale.X;
-
-                V = msh.Size * floor.Scale.X * 0.5;
-                floor.x -= V.X;
-                floor.z += V.Z;
-                floor.model.meshes.Add(msh);
-
-                floor.GetBoundingBox();
-
-
-
-                world.Add(floor);*/
         },
         setDepthFunc: function (DF) {
             this.gl.depthFunc(DF);
@@ -3337,6 +3728,99 @@
                     this.gl.disable(this.gl.DEPTH_TEST);
                 }
             }
+        },
+        initFeatures: function () {
+            var FC = new BNTest.FeatureCategory();
+            this.characters = FC;
+            FC.name = "Characters";
+            FC.oneOnly = true;
+            var FI = FC.items;
+
+            var F = new BNTest.FeatureItem();
+            F.name = "Reimu";
+            F.category = FC;
+            F.cost = 0;
+            F.setPurchased(true);
+            F.requirements = $_.BNTest.GLDemo.f3;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Cirno";
+            F.category = FC;
+            F.cost = 90;
+            F.requirements = $_.BNTest.GLDemo.f4;
+            FI.add(F);
+
+            var cost = 200;
+
+            F = new BNTest.FeatureItem();
+            F.name = "Sanae";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f5;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Reisen";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f6;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Youmu";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f7;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Koishi";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f8;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Marisa";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f9;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Tenshi";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f10;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Flandre";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f11;
+            FI.add(F);
+
+            this.CS = new BNTest.CharacterSelect(FC);
+
+            //StartButton = new ButtonSprite("Start",50);
+            this.startButton = new BNTest.ButtonSprite.$ctor1("Start Game", 63);
+            //StartButton.Position = new Vector2(680, 500);
+            this.startButton.position = new BNTest.Vector2(680, 400);
+            var self = this;
+            this.startButton.onClick = function () {
+                self.startGame();
+            };
+
+            this.shopButton = new BNTest.ButtonSprite.$ctor1("Shop", 50);
+            this.shopButton.position = new BNTest.Vector2(680, 550);
+            var A = System.Int32.parse(BNTest.App.storage.MaxLevel);
+            //ShopButton.Visible = A > 0;
+            this.shopButton.onClick = Bridge.fn.bind(this, $_.BNTest.GLDemo.f12);
+
+            this.shop = new BNTest.ShopScreen(FC);
+            this.shop.visible = false;
         },
         endWave: function () {
             this.boss = null;
@@ -3355,6 +3839,20 @@
                     hp.pickupDelay = 15;
                     this.world.add(hp);
                     i = (i - 1) | 0;
+                }
+                /* double rate = 0.001;
+                    rate += (wave * 0.0001);*/
+                /* double rate = 0.01;
+                    rate += (wave * 0.001);*/
+                var rate = 0.005;
+                rate += (this.wave * 0.0005);
+                var money = Bridge.Int.clip32(this.localplayer.character.getCoins() * rate);
+
+                BNTest.App.storage.Mon = (System.Int32.parse(BNTest.App.storage.Mon) + money);
+
+                var ml = System.Int32.parse(BNTest.App.storage.MaxLevel);
+                if (this.wave > ml) {
+                    BNTest.App.storage.MaxLevel = this.wave;
                 }
             }
             this.clearEntities();
@@ -3378,7 +3876,10 @@
             //AddRisingPlatforms(5);
             //AddRisingPlatforms(14);
             this.wave = (this.wave + 1) | 0;
-            if (this.wave % 5 === 1) {
+            //PlayStageMusic();
+            //if (wave % 5 == 1)
+            if (this.wave % 4 === 1) {
+                this.playNextSong(this.wave > 1);
                 var i = 0;
                 var LE = this.world.entities;
                 var ln = LE.getCount();
@@ -3397,7 +3898,8 @@
                 //AddRisingPlatforms(20);
                 this.addRisingPlatforms(24);
             }
-            this.bulletSpeedRate = this.defaultBulletSpeedRate + (this.wave * 0.015);
+            this.bulletSpeedRate = this.defaultBulletSpeedRate + (this.wave * 0.01);
+            //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.015);
             //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.02);
             //bulletSpeedRate = defaultBulletSpeedRate + (wave * 0.022);
             this.bulletSpeedRate = Math.min(this.bulletSpeedRate, 2.5);
@@ -3455,17 +3957,17 @@
                 BNTest.Helper.addMultiple(String, L, "sakuya", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 7);
                 BNTest.Helper.addMultiple(String, L, "sakuya", 2);
-            } else if (this.wave === 8) {
+            } else if (this.wave === 9) {
+                D = 0.81;
+                BNTest.Helper.addMultiple(String, L, "cirno", 27);
+                basetime = 0.27;
+            } else if (this.wave === 10) {
                 D = 0.9;
                 BNTest.Helper.addMultiple(String, L, "suika", 7);
                 BNTest.Helper.addMultiple(String, L, "sanae", 1);
                 BNTest.Helper.addMultiple(String, L, "sakuya", 2);
                 BNTest.Helper.addMultiple(String, L, "sanae", 5);
                 BNTest.Helper.addMultiple(String, L, "suika", 6);
-            } else if (this.wave === 9) {
-                D = 0.81;
-                BNTest.Helper.addMultiple(String, L, "cirno", 27);
-                basetime = 0.25;
             } else if (this.wave === 11) {
                 D = 0.85;
                 BNTest.Helper.addMultiple(String, L, "cirno", 3);
@@ -3493,7 +3995,7 @@
                 BNTest.Helper.addMultiple(String, L, "suika", 5);
                 BNTest.Helper.addMultiple(String, L, "youmu", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 7);
-            } else if (this.wave === 16) {
+            } else if (this.wave === 15) {
                 BNTest.Helper.addMultiple(String, L, "nazrin", 8);
                 BNTest.Helper.addMultiple(String, L, "aya", 2);
                 BNTest.Helper.addMultiple(String, L, "sanae", 2);
@@ -3514,14 +4016,17 @@
                 BNTest.Helper.addMultiple(String, L, "rumia", 1);
                 BNTest.Helper.addMultiple(String, L, "cirno", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 4);
-            } else if (this.wave > 0 && this.wave % 10 === 0) {
-                var bosses = ["koishi", "marisa", "tenshi"];
+            } else if (this.wave === 101) {
+                D = 0.25;
+                BNTest.Helper.addMultiple(String, L, "suika", 101);
+            } else if (this.wave > 0 && this.wave % 8 === 0) {
+                var bosses = ["koishi", "marisa", "tenshi", "flandre"];
                 var Char = "";
                 /* if (wave % 20==0)
                     {
                         Char = "marisa";
                     }*/
-                var i1 = (Bridge.Int.div((((this.wave - 10) | 0)), 10)) | 0;
+                var i1 = (Bridge.Int.div((((this.wave - 8) | 0)), 8)) | 0;
                 while (i1 >= bosses.length) {
                     i1 = (i1 - bosses.length) | 0;
                 }
@@ -3570,47 +4075,114 @@
                 i = (i + 1) | 0;
             }
         },
+        startGame: function () {
+            if (!this.ended || !BNTest.AnimationLoader.get_this().isIdle()) {
+                return;
+            }
+            if (this.localplayer.character == null) {
+                //localplayer.Character = new PlayerCharacter(world, localplayer, "reimu");
+                this.localplayer.character = new BNTest.PlayerCharacter(this.world, this.localplayer, "default");
+            }
+            if (this.gameover) {
+
+                this.localplayer.lives = 3;
+                this.localplayer.character.setCoins(1000);
+
+                this.localplayer.character.setHP(100);
+                this.wave = 0;
+            }
+            this.guiVisible = true;
+            BNTest.KeyboardManager.update();
+            var Char = this.CS.menu.getSelectedText();
+            Char = Char.toLowerCase();
+            var LPC = this.localplayer.character;
+            if (!Bridge.referenceEquals(Char, LPC.char)) {
+                this.localplayer.character = null;
+                this.world.remove(LPC);
+                var PC = new BNTest.PlayerCharacter(this.world, this.localplayer, Char, LPC.team);
+                this.localplayer.character = PC;
+                this.world.add(PC);
+                PC.setPosition(LPC.getPosition());
+                PC.setHP(LPC.getHP());
+                PC.setCoins(LPC.getCoins());
+                PC.defense = LPC.defense;
+                PC.setHitboxSize(LPC.getHitboxSize());
+                PC.respawnPosition = LPC.respawnPosition;
+            }
+
+            this.gameDisabled = false;
+            BNTest.App.guiCanvas.style.opacity = "0.85";
+            this.titleRunning = false;
+            this.titlescreen = false;
+            this.world.add(this.localplayer.character);
+            this.localplayer.character.setPosition(new BNTest.GLVec3.ctor(0, -15, 0));
+            this.world.model.rotation.y = 0;
+            this.gameover = false;
+            this.ended = false;
+            //PlayMusic("music0");
+            this.localplayer.character.respawnPosition = this.localplayer.character.getPosition().clone();
+            //PlayStageMusic();
+            this.nextWave();
+            this.clearEntities();
+        },
+        playNextSong: function (next) {
+            if (next === void 0) { next = true; }
+            var totalSongs = 4;
+            if (next) {
+                this.currentSong = (this.currentSong + 1) | 0;
+            }
+            this.currentSong = this.currentSong % totalSongs;
+            this.playMusic(System.String.concat("music", this.currentSong));
+        },
+        playStageMusic: function () {
+            var totalSongs = 2;
+
+            var i = ((((((Bridge.Int.div((((this.wave - 1) | 0)), 8)) | 0)) + 1) | 0));
+            i = (i + 1) | 0;
+            i = i % totalSongs;
+            this.playMusic(System.String.concat("music", i));
+        },
         updateControls: function () {
             var $t, $t1;
+            if (this.CS.visible && !this.shop.visible) {
+                this.CS.update();
+                this.startButton.checkClick();
+                this.shopButton.checkClick();
+            }
+            if (this.shop.visible) {
+                this.shop.update();
+            }
             if (BNTest.App.DEBUG) {
                 this.updateDebug();
             }
 
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(77)) {
+                if (this.lastMusic != null) {
+                    this.lastMusic.stop();
+                    this.lastMusic = null;
+                }
                 if (this.music.getVolume() === 0) {
                     this.music.setVolume(this.bGMVolume);
                     this.bGMMute = false;
                 } else {
                     this.music.setVolume(0);
+
                     this.bGMMute = true;
                 }
             }
-            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(BNTest.GLDemo.VK_Enter) && BNTest.AnimationLoader.get_this().isIdle()) {
-                if (this.ended) {
-                    if (this.gameover) {
-                        this.localplayer.lives = 3;
-                        this.localplayer.character.setCoins(1000);
-
-                        this.localplayer.character.setHP(100);
-                        this.wave = 0;
+            /* if (KeyboardManager._this.TappedButtons.Contains(VK_Enter) && AnimationLoader._this.IsIdle())
+                {
+                    if (ended)
+                    {
+                        StartGame();
                     }
-                    this.gameDisabled = false;
-                    BNTest.App.guiCanvas.style.opacity = "0.85";
-                    this.titleRunning = false;
-                    this.titlescreen = false;
-                    this.world.add(this.localplayer.character);
-                    this.localplayer.character.setPosition(new BNTest.GLVec3.ctor(0, -15, 0));
-                    this.world.model.rotation.y = 0;
-                    this.gameover = false;
-                    this.ended = false;
-                    this.playMusic("music");
-                    this.localplayer.character.respawnPosition = this.localplayer.character.getPosition().clone();
-
-                    this.nextWave();
-                    this.clearEntities();
-                } else {
-                    this.paused = !this.paused;
-                }
+                    else
+                    {
+                        Paused = !Paused;
+                    }
+                }*/
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(BNTest.GLDemo.VK_Enter) && !this.ended) {
+                this.paused = !this.paused;
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(48)) {
                 this.radar.visible = !this.radar.visible;
@@ -3624,9 +4196,12 @@
 
             var PC = this.localplayer.character;
             var threshhold = 0.7;
-            var C = PC.controller;
+            var C = null;
+            if (PC != null) {
+                C = PC.controller;
+            }
 
-            if (BNTest.App.IC == null) {
+            if (BNTest.App.IC == null || C == null) {
                 return;
             }
             var x = BNTest.App.IC.getState(0);
@@ -3821,17 +4396,19 @@
             //var max = 50;
             //var max = 60;
             //if (totaltime > NextSpawn && NPCs<max && !ended && AnimationLoader._this.IsIdle())
-            if (!this.paused && !this.gameDisabled) {
-                if (this.waveDelay > 0) {
-                    this.totaltime = 0;
-                    this.waveDelay = (this.waveDelay - 1) | 0;
-                } else {
-                    if (this.totaltime > this.nextSpawn && !this.ended && BNTest.AnimationLoader.get_this().isIdle()) {
-                        this.nextSpawn += this.nPCSpawntime;
-                        var i = 2;
-                        while (i > 0) {
-                            this.addNPC();
-                            i = (i - 1) | 0;
+            if (!this.paused) {
+                if (!this.gameDisabled) {
+                    if (this.waveDelay > 0) {
+                        this.totaltime = 0;
+                        this.waveDelay = (this.waveDelay - 1) | 0;
+                    } else {
+                        if (this.totaltime > this.nextSpawn && !this.ended && BNTest.AnimationLoader.get_this().isIdle()) {
+                            this.nextSpawn += this.nPCSpawntime;
+                            var i = 2;
+                            while (i > 0) {
+                                this.addNPC();
+                                i = (i - 1) | 0;
+                            }
                         }
                     }
                 }
@@ -3851,18 +4428,21 @@
                 this.camera.rotation.y = 0;
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(66) && BNTest.AnimationLoader.get_this().isIdle() && !this.ended && this.boss == null) {
-                var Char = "koishi";
+                //var Char = "koishi";
+                var Char = "marisa";
 
                 var NPC = new BNTest.PlayerCharacter(this.world, new BNTest.Player(true, true), Char);
                 NPC.defense = (15 + this.wave) | 0;
                 this.setNPC(NPC);
+                NPC.setHP(10);
                 this.world.add(NPC);
                 this.boss = NPC;
                 //NPCs++;
             }
             //if (KeyboardManager._this.TappedButtons.Contains(78) && !ended)
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(78) && !this.ended) {
-                this.localplayer.character.setCoins((this.localplayer.character.getCoins() + 50) | 0);
+                //localplayer.Character.Coins += 50;
+                this.localplayer.character.setCoins((this.localplayer.character.getCoins() + 100) | 0);
                 this.waveDelay = 0;
                 this.wavetime = 0;
                 this.skippedWave = true;
@@ -3873,8 +4453,58 @@
                 if (this.gameDisabled) {
                     this.clearEntities();
                 } else {
+                    this.skippedWave = true;
                     this.clearEntities();
                     this.wave = (this.wave - 1) | 0;
+                    this.nextWave();
+                }
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(88)) {
+                //localplayer.Character.model.Smoothen();
+                this.localplayer.character.model.smoothen(0.7);
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(90)) {
+                var Char1 = Bridge.global.prompt("Enter a character name", "Reimu");
+                //Char = Char[0].ToString().ToUpper() + Char.Substr(1);
+                Char1 = Char1.toLowerCase();
+                var LPC = this.localplayer.character;
+                if (!Bridge.referenceEquals(Char1, LPC.char)) {
+                    this.localplayer.character = null;
+                    this.world.remove(LPC);
+                    var PC = new BNTest.PlayerCharacter(this.world, this.localplayer, Char1, LPC.team);
+                    this.localplayer.character = PC;
+                    this.world.add(PC);
+                    PC.setPosition(LPC.getPosition());
+                    PC.setHP(LPC.getHP());
+                    PC.setCoins(LPC.getCoins());
+                    PC.respawnPosition = LPC.respawnPosition;
+                }
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(75)) {
+                if (Bridge.global.confirm("You have activated the save data \"Factory Reset\" function.\nPress OK to continue.")) {
+                    Bridge.global.localStorage.clear();
+                    BNTest.App.initSaveData();
+                }
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(74)) {
+                BNTest.App.storage.MaxLevel = 50;
+                BNTest.App.storage.Mon = 10000;
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(72)) {
+                this.guiVisible = !this.guiVisible;
+                //App.guiCanvas.Style.Visibility = (App.guiCanvas.Style.Visibility == Visibility.Visible) ? Visibility.Hidden : Visibility.Visible;
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(86)) {
+                this.showVertCounter = !this.showVertCounter;
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(76)) {
+                var wav = Bridge.global.prompt("Enter a wave", System.String.concat("", this.wave));
+                var i = { v : 0 };
+                System.Int32.tryParse(wav, i);
+                if (i.v > 0) {
+                    this.wave = (i.v - 1) | 0;
+                    this.skippedWave = true;
+                    this.clearEntities();
                     this.nextWave();
                 }
             }
@@ -3900,6 +4530,7 @@
         drawScene: function (elapsedTime) {
             //Global.SetTimeout(drawScene, 15);
             var self = this;
+            this.updateAudio();
             //var callback = self["drawScene"];
             //var callback = Script.Write<object>("doDrawScene");
             //Action<double> callback = drawScene;
@@ -3931,14 +4562,14 @@
             if (this.world != null) {
 
                 if (this.cameracontrols) {
-                    if (BNTest.KeyboardManager.get_this().pressedMouseButtons.contains(0)) {
+                    if (BNTest.KeyboardManager.get_this().pressedMouseButtons.contains(2)) {
                         this.cameraDist *= 1.01;
                     }
                     if (BNTest.KeyboardManager.get_this().pressedMouseButtons.contains(1)) {
                         //mesh.Rotation.Z += 2;
                         this.camera.rotation.z += 2;
                     }
-                    if (BNTest.KeyboardManager.get_this().pressedMouseButtons.contains(2)) {
+                    if (BNTest.KeyboardManager.get_this().pressedMouseButtons.contains(0)) {
                         this.cameraDist *= 0.99;
                     }
                     if (BNTest.KeyboardManager.get_this().mouseDelta !== 0) {
@@ -4063,7 +4694,19 @@
                     } else {
                         this.gl.uniform1f(this.darknessLevelUniform, 1);
                     }
-                    this.gl.uniform3f(this.lightPosUniform, 0, 0, (this.cameraDist / 2) - 50);
+                    //double[][][][] D = new double[0][][][];
+
+                    //double[] DP = D.As<double[]>();
+                    /* double[] DP = new double[0];
+                        DP.Push(0, 0, (cameraDist / 2) - 50, defaultAmbientLightLevel * currentlightlevel);
+                        DP.Push(400, 0, (cameraDist / 2) - 50, defaultAmbientLightLevel * currentlightlevel);
+
+                        var lights = gl.GetUniformLocation(shaderProgram, "lights");
+                        //gl.Uniform4fv(lights, new Float32Array(DP).As<double[][][][]>());
+                        gl.Uniform4fv(lights, DP.As<double[][][][]>());*/
+
+                    //gl.Uniform3f(lightPosUniform, 0, 0, (cameraDist / 2) - 50);
+                    this.gl.uniform3f(this.lightPosUniform, 0, 0, (this.cameraDist / 2));
                     this.gl.uniform1f(this.ambientLightLevel, this.defaultAmbientLightLevel * this.currentlightlevel);
                     this.lightLevel = 1;
                     this.gl.uniform1f(this.gl.getUniformLocation(this.shaderProgram, "uFogDensity"), fog);
@@ -4089,7 +4732,6 @@
             }
 
 
-            this.mvTranslate([this.cubeXOffset, this.cubeYOffset, this.cubeZOffset]);
 
             // Draw the cube by binding the array buffer to the cube's vertices
             // array, setting attributes, and pushing it to GL.
@@ -4163,11 +4805,11 @@
                 this.world.prepareRender();
                 this.camera.render();
             }
-            var testest = new BNTest.WGMatrix();
-            testest.mvTranslate([100, 200, 300]);
-            testest.mvScale(new BNTest.GLVec3.ctor(10, 10, 10));
-            var test2 = new BNTest.WGMatrix();
-            test2.setPositionThenScale(new BNTest.GLVec3.ctor(100, 200, 300), new BNTest.GLVec3.ctor(10, 10, 10));
+            /* var testest = new WGMatrix();
+                testest.mvTranslate(new double[] { 100, 200, 300 });
+                testest.mvScale(new GLVec3(10, 10, 10));
+                var test2 = new WGMatrix();
+                test2.SetPositionThenScale(new GLVec3(100, 200, 300), new GLVec3(10, 10, 10));*/
             /* if (entities != null)
                 {
                     int i = 0;
@@ -4268,6 +4910,10 @@
             this.boss = null;
         },
         doTitle: function () {
+            var A = System.Int32.parse(BNTest.App.storage.MaxLevel);
+            //ShopButton.Visible = A > 0;
+            this.CS.initMenu();
+
             this.titleRunning = true;
             this.paused = false;
             this.world.remove(this.localplayer.character);
@@ -4290,8 +4936,105 @@
             }
             this.playMusic("titlescreen", 0.6);
         },
-        updateGui: function () {
+        updateRadar: function () {
+            var rg = this.radar.getGraphics();
+            var rsz = this.radar.spriteBuffer.width;
+            var hrsz = (Bridge.Int.div(rsz, 2)) | 0;
 
+            rg.clearRect(0, 0, rsz, rsz);
+            rg.globalAlpha = 0.6;
+            rg.beginPath();
+            rg.arc(hrsz, hrsz, hrsz, 0, 2 * Math.PI, false);
+            rg.fillStyle = "#005500";
+            rg.fill();
+            rg.lineWidth = 3;
+            rg.strokeStyle = "#002200";
+            rg.stroke();
+            rg.globalAlpha = 1;
+            var i = 0;
+            var LE = this.world.entities;
+            var ln = LE.getCount();
+            var P = this.localplayer.character.getPosition().toVector2();
+            //var scale = 0.08f;
+            var scale = 0.1;
+            var Y = this.localplayer.character.gety();
+            var team = this.localplayer.character.team;
+
+            while (i < ln) {
+                var E = LE.getItem(i);
+                var D = E;
+                var color = "#00FF00";
+                var ok = false;
+                var sz = 5;
+                var MY = 50;
+                if (D.me) {
+                    ok = true;
+                    if (!Bridge.referenceEquals(D.team, team)) {
+                        color = "#FF0000";
+                        if (Bridge.referenceEquals(D, this.boss)) {
+                            sz = (sz + 2) | 0;
+                            //color = "#FF6600";
+                            color = "#FF6633";
+                        }
+                    }
+                }
+                var A = E.getAttacker;
+                if (A) {
+                    A = E.getAttacker();
+                    if (A && A.me) {
+                        ok = true;
+                        sz = 3;
+                        MY = 8;
+                        if (!Bridge.referenceEquals(A.team, team)) {
+                            color = "#FF0000";
+                        }
+                    }
+                } else if (E.value || E.healing) {
+                    ok = true;
+                    color = "#FFFF00";
+                } else if (E.defaultMaxHP) {
+                    ok = true;
+                    color = "#00FFFF";
+                    sz = 9;
+                }
+
+                if (ok) {
+                    if (E.model != null && (E.model.alpha < 0.15 || !E.model.getVisible())) {
+                        //don't show invisible units.
+                        ok = false;
+                    }
+                    if (Math.abs(E.getPosition().y - Y) > MY) {
+                        ok = false;
+                    }
+                    if (Bridge.referenceEquals(E, this.localplayer.character)) {
+                        color = "#FFFFFF";
+                        ok = true;
+                        sz = (sz + 2) | 0;
+                    }
+                    if (ok) {
+                        var V = BNTest.Vector2.op_Subtraction(E.getPosition().toVector2(), P);
+                        V.x *= scale;
+                        V.y *= scale;
+                        rg.fillStyle = color;
+                        var L = V.getLength();
+                        if (L > hrsz) {
+                            V = V.normalize(hrsz);
+                            L = hrsz;
+                        }
+                        if (L <= hrsz) {
+                            var hsz = (sz >> 1);
+                            rg.fillRect((V.x + hrsz - hsz), (V.y + hrsz - hsz), sz, sz);
+                        }
+                    }
+                }
+                i = (i + 1) | 0;
+            }
+        },
+        updateGui: function () {
+            //if ((frame & 1)<=0)
+            if ((this.frame % 2) > 0 && !this.titlescreen) {
+                return;
+            }
 
             var tt = Bridge.Int.clip32(this.totaltime * 0.001);
             var max = this.wavetime * 60;
@@ -4325,6 +5068,10 @@
             tim = Math.max(0, tim);
             var s = tim % 60;
             var m = (((Bridge.Int.div(tim, 60)) | 0)) % 60;
+            var wv = System.String.concat(System.String.concat(System.String.concat("", ((((((Bridge.Int.div((((this.wave - 1) | 0)), 8)) | 0)) + 1) | 0))), "-"), (((((((this.wave - 1) | 0)) % 8) + 1) | 0)));
+            if (this.wave === 9) {
+                wv = "⑨";
+            }
             var time = System.String.concat(System.String.concat(System.String.alignString((System.String.concat("", m)), 2, 48), ":"), System.String.alignString((System.String.concat("", s)), 2, 48));
             if (tim < 11) {
                 time = System.String.concat("", s);
@@ -4334,7 +5081,12 @@
 
                 if (BNTest.AnimationLoader.get_this().isIdle()) {
                     if (!this.gameover) {
-                        time = "Press Enter to start";
+                        //time = "Press Enter to start";
+                        if (this.CS.charCount > 1) {
+                            time = "Choose a character";
+                        } else {
+                            time = "Game is ready";
+                        }
                     } else {
                         if (tt < 20) {
                             if (this.localplayer.character.getCoins() <= 0) {
@@ -4345,7 +5097,12 @@
                                 time = "Game ended";
                             }
                         } else {
-                            time = "Press Enter to restart";
+                            //time = "Press Enter to restart";
+                            if (this.CS.charCount > 1) {
+                                time = "Choose a character";
+                            } else {
+                                time = "Game is ready";
+                            }
                         }
                     }
                 } else {
@@ -4359,6 +5116,7 @@
             //var time = "5:00";
             var gui = BNTest.App.gui;
             gui.clearRect(0, 0, 1024, 1024);
+            this.CS.visible = this.titlescreen;
             if (this.titlescreen) {
                 gui.fillStyle = "#220077";
                 gui.globalAlpha = 0.5;
@@ -4376,16 +5134,33 @@
                     this.loadProgress = Math.min(this.loadProgress, this.maxLoadQueue, 1);
                     this.drawGauge(gui, new BNTest.Vector2(350, 42), new BNTest.Vector2(320, 24), 2, this.loadProgress, "#00DD00");
                 }
-            } else if (this.currentlightlevel < 1) {
-                gui.fillStyle = "#000000";
-                //gui.GlobalAlpha = ((currentlightlevel)*0.5).As<float>();
-                gui.globalAlpha = ((1 - this.currentlightlevel));
-                gui.fillRect(0, 0, 1024, 1024);
-                gui.globalAlpha = 1.0;
+                //StartButton.locked = !AnimationLoader._this.IsIdle();
+                if (!BNTest.AnimationLoader.get_this().isIdle()) {
+                    this.startButton.lock();
+                } else {
+                    this.startButton.unlock();
+                }
+
+                if (!this.shop.visible) {
+                    //CS.Update();
+                    this.CS.draw(gui);
+
+                    this.startButton.draw(gui);
+                    this.shopButton.draw(gui);
+                }
             }
+            /* else if (currentlightlevel<1)
+                {
+                    gui.FillStyle = "#000000";
+                    //gui.GlobalAlpha = ((currentlightlevel)*0.5).As<float>();
+                    //gui.GlobalAlpha = ((1-currentlightlevel)).As<float>();
+                    gui.GlobalAlpha = (MathHelper.Clamp(1 - (currentlightlevel*3))).As<float>();
+                    gui.FillRect(0, 0, 1024, 1024);
+                    gui.GlobalAlpha = 1f;
+                }*/
 
             gui.lineWidth = 3.0;
-            if (this.started) {
+            if (this.started && this.guiVisible) {
                 //DrawGauge(gui, new Vector2(800, 2), new Vector2(220, 32), 3, (float)Math.Max(0, localplayer.Character.HP / 100.0), "#00DD00");
                 this.drawGauge(gui, new BNTest.Vector2(2, 2), new BNTest.Vector2(220, 32), 3, Math.max(0, this.localplayer.character.getHP() / 100.0), "#00DD00");
                 if (this.boss != null) {
@@ -4393,105 +5168,68 @@
                     this.drawGauge(gui, new BNTest.Vector2(350, 42), new BNTest.Vector2(320, 24), 2, Math.max(0, this.boss.getHP() / 100.0), "#00DD00");
                 }
                 if (!this.ended && this.radar.visible) {
-                    var rg = this.radar.getGraphics();
-                    var rsz = this.radar.spriteBuffer.width;
-                    var hrsz = (Bridge.Int.div(rsz, 2)) | 0;
-
-                    rg.clearRect(0, 0, rsz, rsz);
-                    rg.globalAlpha = 0.6;
-                    rg.beginPath();
-                    rg.arc(hrsz, hrsz, hrsz, 0, 2 * Math.PI, false);
-                    rg.fillStyle = "#005500";
-                    rg.fill();
-                    rg.lineWidth = 3;
-                    rg.strokeStyle = "#002200";
-                    rg.stroke();
-                    rg.globalAlpha = 1;
-                    var i = 0;
-                    var LE = this.world.entities;
-                    var ln = LE.getCount();
-                    var P = this.localplayer.character.getPosition().toVector2();
-                    //var scale = 0.08f;
-                    var scale = 0.1;
-                    var Y = this.localplayer.character.gety();
-                    var team = this.localplayer.character.team;
-
-                    while (i < ln) {
-                        var E = LE.getItem(i);
-                        var D = E;
-                        var color = "#00FF00";
-                        var ok = false;
-                        var sz = 5;
-                        var MY = 50;
-                        if (D.me) {
-                            ok = true;
-                            if (!Bridge.referenceEquals(D.team, team)) {
-                                color = "#FF0000";
-                                if (Bridge.referenceEquals(D, this.boss)) {
-                                    sz = (sz + 2) | 0;
-                                    //color = "#FF6600";
-                                    color = "#FF6633";
-                                }
-                            }
-                        }
-                        var A = E.getAttacker;
-                        if (A) {
-                            A = E.getAttacker();
-                            if (A && A.me) {
-                                ok = true;
-                                sz = 3;
-                                MY = 8;
-                                if (!Bridge.referenceEquals(A.team, team)) {
-                                    color = "#FF0000";
-                                }
-                            }
-                        } else if (E.value || E.healing) {
-                            ok = true;
-                            color = "#FFFF00";
-                        } else if (E.defaultMaxHP) {
-                            ok = true;
-                            color = "#00FFFF";
-                            sz = 9;
-                        }
-
-                        if (ok) {
-                            if (E.model != null && (E.model.alpha < 0.15 || !E.model.getVisible())) {
-                                //don't show invisible units.
-                                ok = false;
-                            }
-                            if (Math.abs(E.getPosition().y - Y) > MY) {
-                                ok = false;
-                            }
-                            if (Bridge.referenceEquals(E, this.localplayer.character)) {
-                                color = "#FFFFFF";
-                                ok = true;
-                                sz = (sz + 2) | 0;
-                            }
-                            if (ok) {
-                                var V = BNTest.Vector2.op_Subtraction(E.getPosition().toVector2(), P);
-                                V.x *= scale;
-                                V.y *= scale;
-                                rg.fillStyle = color;
-                                var L = V.getLength();
-                                if (L > hrsz) {
-                                    V = V.normalize(hrsz);
-                                    L = hrsz;
-                                }
-                                if (L <= hrsz) {
-                                    var hsz = (sz >> 1);
-                                    rg.fillRect((V.x + hrsz - hsz), (V.y + hrsz - hsz), sz, sz);
-                                }
-                            }
-                        }
-                        i = (i + 1) | 0;
-                    }
-                    //gui.GlobalAlpha = 0.75f;
+                    this.updateRadar();
                     gui.globalAlpha = 0.9;
-                    //Radar.Position = new Vector2(1019 - rsz, 4);
                     var off = 40;
-                    this.radar.position = new BNTest.Vector2((1023 - (off / BNTest.App.targetAspect)) - rsz, off);
+                    this.radar.position = new BNTest.Vector2((1023 - (off / BNTest.App.targetAspect)) - this.radar.spriteBuffer.width, off);
                     this.radar.draw(gui);
                     gui.globalAlpha = 1;
+                }
+                var combo = this.localplayer.character.combo;
+                if (combo > 1) {
+                    this.CTS.alpha += 0.125;
+                    this.CTS.setText(System.String.concat("Combo:", combo));
+                    this.CTS.visible = true;
+                    if (false) {
+                        var TMat = new BNTest.WGMatrix();
+                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f13);
+
+                        var Mat = new BNTest.WGMatrix();
+                        /* Mat.Mat4MultMatrix(DB.model.Transformation);
+                            Mat.Mat4MultMatrix(world.Model.Transformation);
+                            Mat.Mat4MultMatrix(camera.Transformation);
+                            TMat.mvScale(new GLVec3(1, -1, 1));
+                            Mat.Mat4MultMatrix(TMat);
+                            TMat.Clear();
+                            Mat.Mat4MultMatrix(TMat);
+                            TMat.Clear();
+                            TMat.mvTranslate(new double[] { -0.0, 0.0, -cameraDist });
+                            Mat.Mat4MultMatrix(perspectiveMatrix);*/
+                        TMat.mvTranslate([0.0, 0.0, -this.cameraDist]);
+                        Mat.mat4MultMatrix(TMat);
+                        TMat.clear();
+                        TMat.mvScale(new BNTest.GLVec3.ctor(1, -1, 1));
+                        Mat.mat4MultMatrix(TMat);
+                        TMat.clear();
+                        Mat.mat4MultMatrix(this.camera.transformation);
+                        Mat.mat4MultMatrix(this.world.model.transformation);
+
+
+
+                        //Mat.Mat4MultMatrix(DB.model.Transformation);
+
+                        //var V = GLVec3.Transform(DB.Position,matrix,true);
+                        var M4 = new BNTest.WGMatrix();
+                        /* M4.CopyFrom(perspectiveMatrix);
+                            WGMatrix.Mat4MultMatrix(Mat.mvMatrix, M4.mvMatrix);*/
+                        var V = BNTest.GLVec3.transform(DB.getPosition(), Mat, false);
+                        this.CTS.position.x = (((Bridge.Int.div(BNTest.App.canvas.width, 2)) | 0)) - (((Bridge.Int.div(this.CTS.spriteBuffer.width, 2)) | 0));
+                        this.CTS.position.y = ((Bridge.Int.div(BNTest.App.canvas.height, 2)) | 0) - (this.CTS.spriteBuffer.height);
+                        this.CTS.position.y -= 20;
+                        this.CTS.position.x += V.x;
+                        this.CTS.position.y += V.z;
+
+                        //CTS.Position
+                    }
+                }
+                if (this.CTS.visible) {
+                    if (combo <= 1) {
+                        this.CTS.alpha -= 0.17;
+                        if (this.CTS.alpha <= 0) {
+                            this.CTS.visible = false;
+                        }
+                    }
+                    this.CTS.draw(gui);
                 }
             }
             this.TS.setTextColor("#FFFFFF");
@@ -4508,18 +5246,24 @@
                     T = "".PadRight(pad, ' ') + time;
                 }*/
             var T = System.String.concat(System.String.alignString((""), -pad, 32), time);
-            if (this.started) {
-                T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), "Coins:"), this.localplayer.character.getCoins()), "\nLives:"), Math.max(this.localplayer.lives, 0)), " Wave:"), this.wave);
-                if (BNTest.App.DEBUG) {
+            if (this.started && this.guiVisible) {
+
+                //T = T + "\n" + "Coins:" + localplayer.Character.Coins + "\nLives:" + Math.Max(localplayer.lives, 0) + " Wave:" + wave;
+                T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), "Coins:"), this.localplayer.character.getCoins()), "\nLives:"), Math.max(this.localplayer.lives, 0)), " Wave:"), wv);
+                if (BNTest.App.DEBUG && this.showVertCounter) {
                     var R = this.world.model.countElements();
                     //T = T + "\n" + R[1] + " Verticies in " + R[0] + " Meshes.";
                     T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), this.intToDigits(R[1])), " Verticies in "), this.intToDigits(R[0])), " Meshes.");
                 }
             }
-            this.TS.setText(T);
+            {
+                this.TS.setText(T);
+            }
             //TS.Position = new Vector2(2, 2);
             this.TS.position = new BNTest.Vector2(2, -4);
-            this.TS.draw(gui);
+            if (this.guiVisible) {
+                this.TS.draw(gui);
+            }
 
 
             var C = "#FFFFFF";
@@ -4572,7 +5316,8 @@
                 TY = (TY + 25) | 0;
                 SB = 8;
             } else if (this.waveDelay > 0) {
-                T = System.String.concat("Wave ", this.wave);
+                //T = "Wave " + wave;
+                T = System.String.concat("Wave ", wv);
                 fs = (120 - Bridge.Int.clip32(this.waveDelay * 0.35)) | 0;
                 //LTS.Alpha = (WaveDelay * 0.004f);
                 this.LTS.alpha = (this.waveDelay * 0.005);
@@ -4580,7 +5325,7 @@
                     fs = 1;
                 }
             }
-            if (!Bridge.referenceEquals(T, "")) {
+            if (!Bridge.referenceEquals(T, "") && this.guiVisible) {
                 this.LTS.setShadowOffset(new BNTest.Vector2(3, 3));
                 this.LTS.setShadowBlur(SB);
                 this.LTS.setShadowColor(SC);
@@ -4591,7 +5336,9 @@
                 this.LTS.draw(gui);
             }
 
-
+            if (this.shop.visible) {
+                this.shop.draw(gui);
+            }
         },
         intToDigits: function (N) {
             var ret = System.String.concat("", N);
@@ -4608,6 +5355,9 @@
             return new BNTest.GLColor();
         },
         playSoundEffect: function (position, sound) {
+            if (this.serverMode) {
+                return;
+            }
             var vol = 1.0;
             /* float min = 640;
                 float maxLength = 320;*/
@@ -4934,7 +5684,9 @@
             return shader;
         },
         loadIdentity: function () {
-            this.mvMatrix = Matrix.I(4);
+            this.mvMatrix = this.matrix.mvMatrix;
+            //this.mvMatrix = Script.Write<object>("Matrix.I(4);");
+            this.matrix.loadIdentity();
             this.matrix.mvMatrix = this.mvMatrix;
 
             this.matrix.mvMatrixStack = System.Array.init(0, null);
@@ -4954,9 +5706,23 @@
         },
         flushMatrix: function () {
             if (this.matrixNeedsFlush) {
+                var premult = false;
                 this.matrixNeedsFlush = false;
+                if (premult) {
+
+                    this.temp.copyFrom$1(this.perspectiveMatrix);
+                    //matrix.CleanW();
+                    //WGMatrix.MultMatrix(temp.mvMatrix, mvMatrix, 4);
+                    /* object mo = Script.Write<object>("this.perspectiveMatrix.x(this.mvMatrix);");
+                        temp.mvMatrix = mo;*/
+                    BNTest.WGMatrix.mat4MultMatrix(this.temp.mvMatrix, this.mvMatrix);
+                    //WGMatrix.oldMultMatrix(temp.mvMatrix, mvMatrix);
+                    this.FA = new Float32Array(BNTest.WGMatrix.T4);
+                } else {
+                    this.flatten$1(this.mvMatrix, this.FA);
+                }
                 //setMatrixUniforms();
-                this.flatten$1(this.mvMatrix, this.FA);
+
                 /* var flat = tflat;
                     flatten(mvMatrix,flat);
                     var F = flat.As<float[]>();
@@ -5110,6 +5876,41 @@
         },
         f2: function (E) {
             return !(Bridge.is(E, BNTest.RisingPlatform));
+        },
+        f3: function () {
+            return true;
+        },
+        f4: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 9;
+        },
+        f5: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 2;
+        },
+        f6: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 18;
+        },
+        f7: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 14;
+        },
+        f8: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 8;
+        },
+        f9: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 16;
+        },
+        f10: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 24;
+        },
+        f11: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 32;
+        },
+        f12: function () {
+            this.CS.initMenu();
+            this.shop.initMenu();
+            this.shop.visible = true;
+        },
+        f13: function (D) {
+            return Bridge.is(D, BNTest.DonationBox);
         }
     });
 
@@ -5117,12 +5918,14 @@
         statics: {
             getOne: function () {
                 return new BNTest.GLVec3.ctor(1, 1, 1);
+                //return Get(1, 1, 1);
             },
             mean: function (L) {
                 if (L === void 0) { L = []; }
                 var V = new BNTest.GLVec3.ctor();
                 var i = 0;
-                while (i < L.length) {
+                var ln = L.length;
+                while (i < ln) {
                     var V2 = L[i];
                     V.x += V2.x;
                     V.y += V2.y;
@@ -5135,32 +5938,19 @@
                 return V;
             },
             lerp: function (V1, V2, D) {
-                return new BNTest.GLVec3.ctor(BNTest.MathHelper.lerp(V1.x, V2.x, D), BNTest.MathHelper.lerp(V1.y, V2.y, D), BNTest.MathHelper.lerp(V1.z, V2.z, D));
+                //return new GLVec3(MathHelper.Lerp(V1.X, V2.X, D), MathHelper.Lerp(V1.Y, V2.Y, D), MathHelper.Lerp(V1.Z, V2.Z, D));
+                var ret = new BNTest.GLVec3.ctor();
+                BNTest.GLVec3.lerp$1(V1, V2, D, ret);
+                return ret;
+            },
+            lerp$1: function (V1, V2, D, OUT) {
+                OUT.x = BNTest.MathHelper.lerp(V1.x, V2.x, D);
+                OUT.y = BNTest.MathHelper.lerp(V1.y, V2.y, D);
+                OUT.z = BNTest.MathHelper.lerp(V1.z, V2.z, D);
             },
             transform: function (V, M, inv) {
                 if (inv === void 0) { inv = false; }
                 return BNTest.GLVec3.transformB(V.toVec3(), M.mvMatrix, inv);
-
-                /* WGMatrix W = new WGMatrix();
-                W.SetTranslation(V);
-                W.multMatrix(M.mvMatrix);
-                //return new GLVec3();
-                return W.GetTranslation();*/
-
-
-
-                //var T = new double[] { V.X,V.Y,V.Z};
-                //var NV = Vec3.Create();
-                /* var NV = V.ToVec3();
-                //Vec3.Normalize(T, NV.As<double[][][]>());
-
-                //var ret = Vec3.Create();
-                var ret = new GLVec3().ToVec3();
-                Vec3.TransformMat4(ret.As<double[][][]>(), NV.As<double[][][]>(), (double[])M.mvMatrix);
-                double[] RR = new double[4];
-                Mat4.GetTranslation(RR, (double[])M.mvMatrix);
-                return new GLVec3(RR[0], RR[1], RR[2]);*/
-                //return new GLVec3(ret[0][0], ret[1][1], ret[2][2]);
             },
             transformB: function (a, m, inv) {
                 if (inv === void 0) { inv = false; }
@@ -5174,16 +5964,6 @@
                 } else {
                     m = BNTest.WGMatrix.flatten(m);
                 }
-                /* m = Script.Write<double[]>("[]");
-                me.ForEach<double[]>(D => D.ForEach<double>(L => m.Push(L)));*/
-
-
-                /* double x = a[0], y = a[1], z = a[2],
-                    w = m[3] * x + m[7] * y + m[11] * z + m[15];
-                w = 1;
-        ret[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
-        ret[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
-        ret[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;*/
 
                 var x = a[0], y = a[1], z = a[2];
                 ret[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]);
@@ -5246,6 +6026,7 @@
                 var Y = V1.y + ((V2.y - V1.y) * 0.5);
                 var Z = V1.z + ((V2.z - V1.z) * 0.5);
                 return new BNTest.GLVec3.ctor(X, Y, Z);
+                //return Get(X, Y, Z);
             },
             getCenter$1: function (V1, V2, OUT) {
                 //return V1 + ((V2 - V1) * 0.5);
@@ -5257,31 +6038,36 @@
                 OUT.z = Z;
             },
             op_Addition$1: function (V1, Vec2) {
-                /* var V2 = new GLVec3(Vec2.X, 0, Vec2.Y);
-                return new GLVec3(V1.X + V2.X, V1.Y + V2.Y, V1.Z + V2.Z);*/
                 return new BNTest.GLVec3.ctor(V1.x + Vec2.x, V1.y, V1.z + Vec2.y);
+                //return Get(V1.X + Vec2.X, V1.Y, V1.Z + Vec2.Y);
             },
             op_Addition: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z);
+                //return Get(V1.X + V2.X, V1.Y + V2.Y, V1.Z + V2.Z);
             },
             op_Subtraction: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z);
+                //return Get(V1.X - V2.X, V1.Y - V2.Y, V1.Z - V2.Z);
             },
             op_UnaryNegation: function (V) {
                 return new BNTest.GLVec3.ctor(-V.x, -V.y, -V.z);
-                //return new GLVec3(V1.X - V2.X, V1.Y - V2.Y, V1.Z - V2.Z);
+                //return Get(-V.X, -V.Y, -V.Z);
             },
             op_Multiply: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z);
+                //return Get(V1.X * V2.X, V1.Y * V2.Y, V1.Z * V2.Z);
             },
             op_Multiply$1: function (V1, scale) {
                 return new BNTest.GLVec3.ctor(V1.x * scale, V1.y * scale, V1.z * scale);
+                //return Get(V1.X * scale, V1.Y * scale, V1.Z * scale);
             },
             op_Division: function (V1, V2) {
                 return new BNTest.GLVec3.ctor(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z);
+                //return Get(V1.X / V2.X, V1.Y / V2.Y, V1.Z / V2.Z);
             },
             op_Division$1: function (V1, scale) {
                 return new BNTest.GLVec3.ctor(V1.x / scale, V1.y / scale, V1.z / scale);
+                //return Get(V1.X / scale, V1.Y / scale, V1.Z / scale);
             },
             op_LessThan: function (V1, V2) {
                 return (V1.x < V2.x && V1.y < V2.y && V1.z < V2.z);
@@ -5316,7 +6102,7 @@
             this.z = Z;
         },
         getLength: function () {
-            return Math.sqrt((this.x * this.x) + (this.y * this.y) + (this.z * this.z));
+            return (Math.sqrt((this.x * this.x) + (this.y * this.y) + (this.z * this.z)));
         },
         /**
          * Returns a rough estimate of the vector's length.
@@ -5362,6 +6148,19 @@
         getRoughLength: function () {
             return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
         },
+        copyFrom: function (V) {
+            this.x = V.x;
+            this.y = V.y;
+            this.z = V.z;
+        },
+        set: function (X, Y, Z) {
+            if (X === void 0) { X = 0.0; }
+            if (Y === void 0) { Y = 0.0; }
+            if (Z === void 0) { Z = 0.0; }
+            this.x = X;
+            this.y = Y;
+            this.z = Z;
+        },
         syncCopy: function (V, dimension) {
             if (dimension === void 0) { dimension = 0; }
             var X = this.x;
@@ -5375,6 +6174,12 @@
                 Z = V.z;
             }
             return new BNTest.GLVec3.ctor(X, Y, Z);
+        },
+        distance: function (V) {
+            var X = this.x - V.x;
+            var Y = this.y - V.y;
+            var Z = this.z - V.z;
+            return Math.sqrt((X * X) + (Y * Y) + (Z * Z));
         },
         roughDistance: function (V) {
             return Math.abs(this.x - V.x) + Math.abs(this.y - V.y) + Math.abs(this.z - V.z);
@@ -5415,6 +6220,7 @@
         },
         clone: function () {
             return new BNTest.GLVec3.ctor(this.x, this.y, this.z);
+            //return Get(X, Y, Z);
         },
         toString: function () {
             return System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat("X:", System.Double.format(this.x, 'G')), " Y:"), System.Double.format(this.y, 'G')), " Z:"), System.Double.format(this.z, 'G'));
@@ -5433,10 +6239,79 @@
             }
             return ret;
         },
+        min$1: function (VX, VY, VZ) {
+            this.x = Math.min(this.x, VX);
+            this.y = Math.min(this.y, VY);
+            this.z = Math.min(this.z, VZ);
+        },
+        min: function (V) {
+            this.x = Math.min(this.x, V.x);
+            this.y = Math.min(this.y, V.y);
+            this.z = Math.min(this.z, V.z);
+        },
+        max$1: function (VX, VY, VZ) {
+            this.x = Math.max(this.x, VX);
+            this.y = Math.max(this.y, VY);
+            this.z = Math.max(this.z, VZ);
+        },
+        max: function (V) {
+            this.x = Math.max(this.x, V.x);
+            this.y = Math.max(this.y, V.y);
+            this.z = Math.max(this.z, V.z);
+        },
+        floor: function () {
+            this.x = Math.floor(this.x);
+            this.y = Math.floor(this.y);
+            this.z = Math.floor(this.z);
+        },
+        round: function () {
+            this.x = Bridge.Math.round(this.x, 0, 6);
+            this.y = Bridge.Math.round(this.y, 0, 6);
+            this.z = Bridge.Math.round(this.z, 0, 6);
+        },
+        ceiling: function () {
+            this.x = Math.ceil(this.x);
+            this.y = Math.ceil(this.y);
+            this.z = Math.ceil(this.z);
+        },
         add: function (position) {
             this.x += position.x;
             this.y += position.y;
             this.z += position.z;
+        },
+        add$1: function (X, Y, Z) {
+            if (Y === void 0) { Y = 0.0; }
+            if (Z === void 0) { Z = 0.0; }
+            this.x += X;
+            this.y += Y;
+            this.z += Z;
+        },
+        subtract: function (position) {
+            this.x -= position.x;
+            this.y -= position.y;
+            this.z -= position.z;
+        },
+        multiply: function (position) {
+            this.x *= position.x;
+            this.y *= position.y;
+            this.z *= position.z;
+        },
+        multiply$1: function (X, Y, Z) {
+            if (Y === void 0) { Y = 0.0; }
+            if (Z === void 0) { Z = 0.0; }
+            this.x *= X;
+            this.y *= Y;
+            this.z *= Z;
+        },
+        divide: function (position) {
+            this.x /= position.x;
+            this.y /= position.y;
+            this.z /= position.z;
+        },
+        xZAngle: function () {
+            var angle = (Math.atan2(this.z, this.x));
+            return angle;
+            //return MathHelper.WrapRadians(MathHelper.GetAngle(new Vector2(), this));
         }
     });
 
@@ -5660,18 +6535,71 @@
                     i = (i + 1) | 0;
                 }
             },
-            indexOf: function (T, list, Value) {
-                var i = 0;
+            clear$1: function (T, list) {
+                var i = list.length;
+                while (Bridge.identity(i, (i = (i - 1) | 0)) > 0) {
+                    list.pop();
+                }
+            },
+            clear: function (G) {
+                var C = G.canvas;
+                G.clearRect(0, 0, C.width, C.height);
+            },
+            replaceAll: function (T, list, Source, Destination) {
+                var i = -1;
+                i = BNTest.HelperExtensions.indexOf(T, list, Source, ((i + 1) | 0), 3);
+                var ln = Source.length;
+                while (i >= 0) {
+                    var j = 0;
+
+                    while (j < ln) {
+                        list[((i + j) | 0)] = Destination[j];
+                        j = (j + 1) | 0;
+                    }
+                    i = BNTest.HelperExtensions.indexOf(T, list, Source, ((i + 1) | 0), 3);
+                }
+            },
+            indexOf: function (T, list, Value, index, structureSize) {
+                if (index === void 0) { index = 0; }
+                if (structureSize === void 0) { structureSize = 1; }
+                var i = index;
                 var ln = list.length;
+                var vln = Value.length;
+                var O = Value[0];
+                var A;
+                var B;
                 while (i < ln && i >= 0) {
-                    i = list.indexOf(Value[0]);
+                    /* var c = i+1;
+                    i = -1;
+                    B = Value[0];
+                    while (c < list.Length && i==-1)
+                    {
+                        A = list[c];
+                        if (A == B)
+                        {
+                            i = c;
+                        }
+                        c++;
+                    }
+                    if (i == -1)
+                    {
+                        return -1;
+                    }*/
+                    i = list.indexOf(O, ((i + 1) | 0));
+                    while (i >= 0 && i % structureSize > 0) {
+                        i = list.indexOf(O, ((i + 1) | 0));
+                    }
+                    if (i === -1) {
+                        return -1;
+                    }
                     var k = 1;
-                    var l = i;
+                    var l = (i + 1) | 0;
+
                     if (i < ln && i >= 0) {
                         var ok = true;
-                        while (ok && k < Value.length) {
-                            var A = list[l];
-                            var B = Value[k];
+                        while (ok && k < vln) {
+                            A = list[l];
+                            B = Value[k];
                             if (!Bridge.referenceEquals(A, B)) {
                                 ok = false;
                             }
@@ -5684,6 +6612,44 @@
                     }
                 }
                 return -1;
+            },
+            identical: function (T, list, list2) {
+                if (Bridge.referenceEquals(list, list2)) {
+                    return true;
+                }
+                if (list == null || list2 == null) {
+                    return false;
+                }
+                var ln = list.length;
+                if (ln === list2.length) {
+                    var i = 0;
+
+                    while (i < ln) {
+                        var A = list[i];
+                        var B = list2[i];
+                        if (!Bridge.referenceEquals(A, B)) {
+                            return false;
+                        }
+                        i = (i + 1) | 0;
+                    }
+                    return true;
+                }
+                return false;
+            },
+            reverseOrderWithStructure: function (T, list, size) {
+                //T[] ret = new T[0];
+                var ret = new (System.Collections.Generic.List$1(T))();
+                var i = 0;
+                var ln = list.length;
+                while (i < ln) {
+                    var j = 0;
+                    while (j < size) {
+                        //ret.Push(list[j]);
+                        ret.insert(0, list[(((((size - 1) | 0)) - j) | 0)]);
+                        j = (j + 1) | 0;
+                    }
+                    i = (i + size) | 0;
+                }
             }
         }
     });
@@ -6190,8 +7156,12 @@
             radiansToDegrees: function (radians) {
                 return radians * 57.29578;
             },
-            getAngle: function (a, b) {
+            getAngle$1: function (a, b) {
                 var angle = (Math.atan2(b.y - a.y, b.x - a.x));
+                return angle;
+            },
+            getAngle: function (a) {
+                var angle = (Math.atan2(a.y, a.x));
                 return angle;
             },
             roughDistanceBetweenPoints: function (a, b) {
@@ -6264,7 +7234,29 @@
     Bridge.define("BNTest.Mesh", {
         statics: {
             texture: true,
+            lastDrawn: null,
             allowInterpolation: true,
+            enabled: true,
+            /**
+             * set this to true, if you need proper textures on voxelmaps.
+             *
+             * @static
+             * @public
+             * @memberof BNTest.Mesh
+             * @default false
+             * @type boolean
+             */
+            correctTextures: false,
+            /**
+             * setting this to true, replaces all cube/voxel colors, with color coded sides.
+             *
+             * @static
+             * @public
+             * @memberof BNTest.Mesh
+             * @default false
+             * @type boolean
+             */
+            cullTest: false,
             config: {
                 properties: {
                     vertexPositionAttribute: 0,
@@ -6281,6 +7273,78 @@
                 console.log("position:"+vertexPositionAttribute);
                 console.log("color:" + vertexColorAttribute);
             },
+            smoothen: function (ToMorph, strength) {
+                if (strength === void 0) { strength = 0.35; }
+                var range = 3.0;
+                var mrange = 0.0005;
+                var list = System.Array.init(0, null);
+                var i = 0;
+                //var L = GetVerticies();
+                var L = ToMorph;
+                var ln = L.length;
+
+                while (i < ln) {
+                    var V = L[i];
+                    var k = 0;
+                    var R = System.Array.init(0, null);
+                    while (k < ln) {
+                        var NV = L[k];
+                        var rl = NV.roughDistance(V);
+                        //if (!NV.Equals(V) && (NV - V).RoughLength < range)
+                        if (rl > mrange && rl < range) {
+                            R.push(NV);
+                        }
+                        k = (k + 1) | 0;
+                    }
+                    R.push(V);
+                    var EV = BNTest.GLVec3.mean(R);
+                    BNTest.GLVec3.lerp$1(V, BNTest.GLVec3.mean(R), strength, EV);
+                    list.push(EV);
+                    i = (i + 1) | 0;
+                }
+                return list;
+                //SetVerticies(list);
+            },
+            smoothenB: function (ToMorph, strength) {
+                if (strength === void 0) { strength = 0.35; }
+                var range = 3.0;
+                var mrange = 0.0005;
+                var list = System.Array.init(0, null);
+                var i = 0;
+                var L = ToMorph;
+                var ln = L.length;
+
+                while (i < ln) {
+                    var V = L[i];
+                    var k = 0;
+                    //GLVec3[] R = new GLVec3[0];
+                    var R = System.Array.init(0, 0);
+                    while (k < ln) {
+                        var NV = L[k];
+                        var rl = NV.roughDistance(V);
+                        if (rl > mrange && rl < range) {
+                            //R.Push(NV);
+                            R.push(NV.getLength());
+                        }
+                        k = (k + 1) | 0;
+                    }
+                    //R.Push(V);
+                    var VL = V.getLength();
+                    R.push(VL);
+
+
+                    var ND = BNTest.MathHelper.lerp(VL, BNTest.MathHelper.mean(R), strength);
+                    var EV = V.normalize(ND);
+
+                    //GLVec3 EV = GLVec3.Mean(R);
+                    //GLVec3.Lerp(V, GLVec3.Mean(R), strength, EV);
+
+                    list.push(EV);
+                    i = (i + 1) | 0;
+                }
+                return list;
+                //SetVerticies(list);
+            },
             pushColor: function (array, C) {
                 BNTest.Mesh.pushValue(array, [C.r, C.g, C.b, C.a]);
             },
@@ -6288,7 +7352,8 @@
                 if (values === void 0) { values = []; }
                 var i = 0;
                 var v = 0;
-                while (i < values.length) {
+                var ln = values.length;
+                while (i < ln) {
                     v = values[i];
                     array.push(v);
                     i = (i + 1) | 0;
@@ -6299,21 +7364,25 @@
         cubeVerticesColorBuffer: null,
         cubeVerticesIndexBuffer: null,
         cubeVerticesTextureCoordBuffer: null,
+        textureActive: false,
         verticies: null,
         colors: null,
         textureCoords: null,
         indices: null,
         needsUpdate: true,
         hasBuffer: false,
+        clonedBuffer: false,
         offset: null,
         rotation: null,
         scale: null,
         min: null,
         max: null,
+        doNotUnload: false,
         transformation: null,
         transformed: false,
         QV3: 0,
         qV3Set: false,
+        TGV: null,
         config: {
             properties: {
                 gl: null,
@@ -6329,6 +7398,7 @@
                 this.scale = new BNTest.GLVec3.ctor(1, 1, 1);
                 this.min = new BNTest.GLVec3.ctor(System.Double.max, System.Double.max, System.Double.max);
                 this.max = new BNTest.GLVec3.ctor(System.Double.min, System.Double.min, System.Double.min);
+                this.TGV = System.Array.init(8, null);
             }
         },
         ctor: function (GD) {
@@ -6409,26 +7479,33 @@
             }
             if (this.cubeVerticesBuffer != null) {
                 var G = this.getgl();
+                if (!Bridge.referenceEquals(BNTest.Mesh.lastDrawn, this)) {
+                    // Draw the cube by binding the array buffer to the cube's vertices
+                    // array, setting attributes, and pushing it to GL.
+                    var GL_Float = G.FLOAT;
 
-                // Draw the cube by binding the array buffer to the cube's vertices
-                // array, setting attributes, and pushing it to GL.
+                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
+                    G.vertexAttribPointer(BNTest.Mesh.getvertexPositionAttribute(), 3, GL_Float, false, 0, 0);
 
-                G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
-                G.vertexAttribPointer(BNTest.Mesh.getvertexPositionAttribute(), 3, G.FLOAT, false, 0, 0);
+                    // Set the colors attribute for the vertices.
 
-                // Set the colors attribute for the vertices.
+                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
+                    G.vertexAttribPointer(BNTest.Mesh.getvertexColorAttribute(), 4, GL_Float, false, 0, 0);
 
-                G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
-                G.vertexAttribPointer(BNTest.Mesh.getvertexColorAttribute(), 4, G.FLOAT, false, 0, 0);
+                    if (BNTest.Mesh.texture && this.textureActive) {
+                        G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
+                        G.vertexAttribPointer(BNTest.Mesh.getvertexTextureCoord(), 2, GL_Float, false, 0, 0);
+                    }
 
-                if (BNTest.Mesh.texture) {
-                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
-                    G.vertexAttribPointer(BNTest.Mesh.getvertexTextureCoord(), 2, G.FLOAT, false, 0, 0);
+                    // Draw the cube.
+
+                    G.bindBuffer(G.ELEMENT_ARRAY_BUFFER, this.cubeVerticesIndexBuffer);
+                    BNTest.Mesh.lastDrawn = this;
                 }
-
-                // Draw the cube.
-
-                G.bindBuffer(G.ELEMENT_ARRAY_BUFFER, this.cubeVerticesIndexBuffer);
+                /* else
+                    {
+                        Helper.Log("skipping WEBGL bindings!");
+                    }*/
                 this.draw();
             }
         },
@@ -6452,6 +7529,32 @@
             this.needsUpdate = true;
             //Helper.AddMultiple<double>(N, NewColor, Colors.Length);
         },
+        randomShift: function (rate) {
+            var i = 0;
+            var r2 = rate * 2;
+            var V = System.Array.init(0, 0);
+            var V2 = System.Array.init(0, 0);
+            var ln = this.verticies.length;
+            while (i < ln) {
+                //if (Math.Random() < 0.01)
+                //if (i == 3)
+                {
+                    V[0] = this.verticies[i];
+                    V[1] = this.verticies[((i + 1) | 0)];
+                    V[2] = this.verticies[((i + 2) | 0)];
+
+                    V2[0] = V[0] + (-rate + (r2 * Math.random()));
+                    V2[1] = V[1] + (-rate + (r2 * Math.random()));
+                    V2[2] = V[2] + (-rate + (r2 * Math.random()));
+
+                    BNTest.HelperExtensions.replaceAll(System.Double, this.verticies, V, V2);
+                }
+                //Verticies[i] += (-rate + (r2 * Math.Random()));
+                i = (i + 3) | 0;
+                //i += 3;
+            }
+            this.needsUpdate = true;
+        },
         combine: function (M, respectOffsets) {
             if (respectOffsets === void 0) { respectOffsets = false; }
             if (M.indices.length > 0) {
@@ -6465,7 +7568,7 @@
                 var offset = (Bridge.Int.div(this.verticies.length, 3)) | 0;
                 var i = 0;
                 if (!respectOffsets) {
-                    this.updateMinMax$2(M.verticies);
+                    this.updateMinMax$3(M.verticies);
                     BNTest.HelperExtensions.pushRange(System.Double, this.verticies, M.verticies);
                 } else {
                     var P = BNTest.GLVec3.op_Subtraction(M.offset, this.offset);
@@ -6501,38 +7604,18 @@
 
             if (this.transformed) {
                 this.transformation.clear();
-                //Transformation = new WGMatrix();
                 var M = this.transformation;
                 var scaled = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1);
                 var offseted = this.offset.getRoughLength() !== 0;
                 if (scaled) {
                     if (offseted) {
-                        //M.mvTranslate(new double[] { Offset.X, Offset.Y, Offset.Z });
                         M.setPositionThenScale(this.offset, this.scale);
                     } else {
                         M.mvScale(this.scale);
                     }
-                    //M.SetScale(Scale);
                 }
 
-                /* if (Offset.RoughLength != 0)
-                    {
-                        M.mvTranslate(new double[] { Offset.X, Offset.Y, Offset.Z });
-                    }
-                    if (!(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1))
-                    {
-                        M.mvScale(Scale);
-                    }*/
                 if (this.rotation.getRoughLength() !== 0) {
-                    /* M.mvRotate(Rotation.Y, new double[] { 0,-1,0});
-                        M.mvRotate(Rotation.X, new double[] { -1, 0, 0 });
-                        M.mvRotate(Rotation.Z, new double[] { 0, 0, -1 });*/
-                    /* if (Rotation.Y != 0)
-                            M.mvRotate(Rotation.Y, new double[] { 0, -1, 0 });
-                        if (Rotation.X != 0)
-                            M.mvRotate(Rotation.X, new double[] { -1, 0, 0 });
-                        if (Rotation.Z != 0)
-                            M.mvRotate(Rotation.Z, new double[] { 0, 0, -1 });*/
                     if (this.rotation.y !== 0) {
                         M.rotateY(this.rotation.y * 0.01745329251);
                     }
@@ -6561,61 +7644,48 @@
             if (this.transformed) {
                 this.updateTranformation();
                 this.getGD().mvPushMatrix();
-                //GD.matrix.mvPushMatrix();
                 this.getGD().multMatrix(this.transformation.mvMatrix, true);
             }
             //var G = gl;
             this.getGD().flushMatrix();
-            this.drawElements();
-            //G.DrawElements(G.TRIANGLES, Indices.Length, G.UNSIGNED_SHORT, 0);
+            if (BNTest.Mesh.enabled) {
+                this.drawElements();
+            }
             if (this.transformed) {
-                //GD.matrix.mvPopMatrix();
                 this.getGD().mvPopMatrix();
             }
-            /* return;
-            
-                int l = Indices.Length;
-                var i = 0;
-                var sz = 6;
-                while (i < l)
-                {
-                    G.DrawElements(G.TRIANGLES, sz, G.UNSIGNED_SHORT, i);
-                    i += sz;
-                }*/
         },
         update: function () {
             if (!this.needsUpdate) {
                 return;
             }
-            if (this.hasBuffer) {
-                this.clearBuffers();
+            if (BNTest.Mesh.enabled) {
+                var G = this.getgl();
+                if (!this.hasBuffer || this.clonedBuffer) {
+                    this.cubeVerticesBuffer = G.createBuffer();
+                    this.cubeVerticesColorBuffer = G.createBuffer();
+                    this.cubeVerticesIndexBuffer = G.createBuffer();
+                    this.cubeVerticesTextureCoordBuffer = G.createBuffer();
+                    this.hasBuffer = true;
+                    this.clonedBuffer = false;
+                }
+
+                G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
+                G.bufferData(G.ARRAY_BUFFER, new Float32Array(this.verticies), G.STATIC_DRAW);
+
+
+                G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
+                G.bufferData(G.ARRAY_BUFFER, new Float32Array(this.colors), G.STATIC_DRAW);
+
+                G.bindBuffer(G.ELEMENT_ARRAY_BUFFER, this.cubeVerticesIndexBuffer);
+                G.bufferData(G.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), G.STATIC_DRAW);
+
+                //if (texture)
+                {
+                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
+                    G.bufferData(G.ARRAY_BUFFER, new Float32Array(this.textureCoords), G.STATIC_DRAW);
+                }
             }
-
-            var G = this.getgl();
-
-            this.cubeVerticesBuffer = G.createBuffer();
-            G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
-            G.bufferData(G.ARRAY_BUFFER, new Float32Array(this.verticies), G.STATIC_DRAW);
-
-            var colors = this.colors;
-            //var generatedColors = Script.Write<double[][]>("[]");
-
-            var generatedColors = colors;
-            this.cubeVerticesColorBuffer = G.createBuffer();
-            G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
-            G.bufferData(G.ARRAY_BUFFER, new Float32Array(generatedColors), G.STATIC_DRAW);
-
-            this.cubeVerticesIndexBuffer = G.createBuffer();
-            G.bindBuffer(G.ELEMENT_ARRAY_BUFFER, this.cubeVerticesIndexBuffer);
-            G.bufferData(G.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), G.STATIC_DRAW);
-
-            //if (texture)
-            {
-                this.cubeVerticesTextureCoordBuffer = G.createBuffer();
-                G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
-                G.bufferData(G.ARRAY_BUFFER, new Float32Array(this.textureCoords), G.STATIC_DRAW);
-            }
-
             this.needsUpdate = false;
         },
         getVerticies: function () {
@@ -6641,31 +7711,39 @@
                 this.verticies.push(V[i].z);
                 i = (i + 1) | 0;
             }
+            this.needsUpdate = true;
+        },
+        getIndicies: function () {
+            var ret = System.Array.init(0, null);
+            var k = 0;
+            while (k < this.indices.length) {
+                var i = (this.indices[k] * 3) | 0;
+                var X = this.verticies[i];
+                i = (i + 1) | 0;
+                var Y = this.verticies[i];
+                i = (i + 1) | 0;
+                var Z = this.verticies[i];
+                i = (i + 1) | 0;
+                ret.push(new BNTest.GLVec3.ctor(X, Y, Z));
+            }
+            return ret;
+        },
+        smoothen$1: function (iterations, strength) {
+            if (strength === void 0) { strength = 0.35; }
+            var L = this.getVerticies();
+            while (iterations > 0) {
+                iterations = (iterations - 1) | 0;
+                L = BNTest.Mesh.smoothen(L, strength);
+            }
+            this.setVerticies(L);
         },
         smoothen: function (strength) {
             if (strength === void 0) { strength = 0.35; }
-            var range = 3.0;
-            var list = System.Array.init(0, null);
-            var i = 0;
-            var L = this.getVerticies();
-            while (i < L.length) {
-                var V = L[i];
-                //var R = L.Where(NV => !NV.Equals(V) && (NV - V).Length < range).ToArray();
-                var k = 0;
-                var R = System.Array.init(0, null);
-                while (k < L.length) {
-                    var NV = L[k];
-                    if (!NV.equals(V) && (BNTest.GLVec3.op_Subtraction(NV, V)).getRoughLength() < range) {
-                        R.push(NV);
-                    }
-                    k = (k + 1) | 0;
-                }
-                //var R = L.Where(NV => !NV.Equals(V) && (NV - V).RoughLength < range).ToArray();
-                R.push(V);
-                list.push(BNTest.GLVec3.lerp(V, BNTest.GLVec3.mean(R), strength));
-                i = (i + 1) | 0;
-            }
-            this.setVerticies(list);
+            this.setVerticies(BNTest.Mesh.smoothen(this.getVerticies(), strength));
+        },
+        smoothenB: function (strength) {
+            if (strength === void 0) { strength = 0.35; }
+            this.setVerticies(BNTest.Mesh.smoothenB(this.getVerticies(), strength));
         },
         applyPalette: function (palette) {
             var Keys = System.Linq.Enumerable.from(palette.getKeys()).toList(BNTest.GLColor);
@@ -6721,60 +7799,8 @@
                 i = (i + 4) | 0;
                 LC = C;
             }
+            this.needsUpdate = true;
 
-            /* int X = 0;
-                int Y = 0;
-                int Z = 0;
-                var MX = Map.GetLength(0);
-                var MY = Map.GetLength(1);
-                var MZ = Map.GetLength(2);
-                GLColor key = null;
-                int i = 0;
-                int ln = Keys.Count;
-                while (X < MX)
-                {
-                    while (Y < MY)
-                    {
-                        while (Z < MZ)
-                        {
-                            var C = Map[X, Y, Z];
-                            if (C != null && C.A > 0)
-                            {
-
-                                //var ind = Keys.IndexOf(C);
-                                ///Keys.ForEach(K => { if (K.Similar(C)){ key = K; } });
-                                key = null;
-                                i = 0;
-                                while (i < ln)
-                                {
-                                    var t = Keys[i];
-                                    if (t.Similar(C))
-                                    {
-                                        key = t;
-                                        i = ln;
-                                    }
-                                    i++;
-                                }
-                                //GLColor key = (Keys.First(C2 => C2.Equals(C) ));
-
-                                if (key != null)
-                                {
-                                    int ind = Keys.IndexOf(key);
-                                    if (ind >= 0)
-                                    {
-                                        Map[X, Y, Z] = Vals[ind];
-                                    }
-                                }
-                            }
-                            Z++;
-                        }
-                        Z = 0;
-                        Y++;
-                    }
-                    Y = 0;
-                    Z = 0;
-                    X++;
-                }*/
         },
         /**
          * 
@@ -6805,7 +7831,7 @@
                 //M.TextureCoords = TextureCoords.ToArray();
                 M.textureCoords = System.Array.init(0, 0);
                 BNTest.HelperExtensions.pushRange(System.Double, M.textureCoords, this.textureCoords);
-                M.needsUpdate = true;
+                //M.needsUpdate = true;
 
                 M.min = this.min.clone();
                 M.max = this.max.clone();
@@ -6813,6 +7839,15 @@
                 M.offset = this.offset.clone();
                 M.rotation = this.rotation.clone();
                 M.scale = this.scale.clone();
+
+
+                M.cubeVerticesBuffer = this.cubeVerticesBuffer;
+                M.cubeVerticesColorBuffer = this.cubeVerticesColorBuffer;
+                M.cubeVerticesIndexBuffer = this.cubeVerticesIndexBuffer;
+                M.cubeVerticesTextureCoordBuffer = this.cubeVerticesTextureCoordBuffer;
+                M.hasBuffer = this.hasBuffer;
+                M.clonedBuffer = true;
+                M.doNotUnload = this.doNotUnload;
             } else {
                 M.verticies = this.verticies;
                 M.colors = this.colors;
@@ -6827,6 +7862,8 @@
                     M.cubeVerticesColorBuffer = this.cubeVerticesColorBuffer;
                     M.cubeVerticesIndexBuffer = this.cubeVerticesIndexBuffer;
                     M.cubeVerticesTextureCoordBuffer = this.cubeVerticesTextureCoordBuffer;
+                    M.hasBuffer = this.hasBuffer;
+                    M.clonedBuffer = true;
                 }
 
                 M.min = this.min;
@@ -6842,14 +7879,14 @@
             return M;
         },
         unloadBuffers: function () {
-            if (!this.hasBuffer) {
+            if (!this.hasBuffer || this.clonedBuffer || this.doNotUnload) {
                 return;
             }
             this.clearBuffers();
             this.needsUpdate = true;
         },
         clearBuffers: function () {
-            if (!this.hasBuffer) {
+            if (!this.hasBuffer || this.clonedBuffer || this.doNotUnload) {
                 return;
             }
             this.getgl().deleteBuffer(this.cubeVerticesBuffer);
@@ -6859,6 +7896,7 @@
             {
                 this.getgl().deleteBuffer(this.cubeVerticesTextureCoordBuffer);
             }
+            console.log("Cleared mesh buffer.");
             this.hasBuffer = false;
         },
         addTextureRect: function (times) {
@@ -6885,11 +7923,25 @@
             }
             var V = BNTest.GLVec3.op_Addition(SV, new BNTest.GLVec3.ctor());
             var VB = new BNTest.GLVec3.ctor(1, 1, 1);
+            var VB2 = new BNTest.GLVec3.ctor(1, 1, 2);
+            var CV = new BNTest.GLVec3.ctor();
             var MX = System.Array.getLength(Map, 0);
             var MY = System.Array.getLength(Map, 1);
             var MZ = System.Array.getLength(Map, 2);
             this.qV3Set = true;
             this.QV3 = (Bridge.Int.div(this.verticies.length, 3)) | 0;
+            var M = Map;
+            //var zind = Script.Write<int>("System.Array.toIndex(M, [0,0,1])");
+            var zind = 1;
+            var ind = 0;
+            /* bool[] interpolation = new bool[8];
+                bool[] sides = new bool[6];
+                bool[] interpolation2 = new bool[8];
+                bool[] sides2 = new bool[6];*/
+            var sides = null;
+            var sides2 = null;
+            var interpolation = null;
+            var interpolation2 = null;
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
@@ -6897,21 +7949,49 @@
                             V.Y = Y;
                             V.Z = Z;*/
                         //GLColor C = VM.GetVoxel(X, Y, Z);
-                        var C = Map.get([X, Y, Z]);
+                        //GLColor C = Map[X, Y, Z];
+                        var C = M[ind];
                         if (VM.valid(C)) {
                             if (!toplayeronly) {
-                                var interpolation = null;
+
                                 if (interpolate) {
-                                    interpolation = VM.getValidQuadrants(X, Y, Z);
+                                    interpolation = VM.getValidQuadrants(X, Y, Z, interpolation);
                                 }
-                                var sides = VM.getInvisibleSides(X, Y, Z);
-                                this.addCube2(V, BNTest.GLVec3.op_Addition(V, VB), C, sides, interpolation);
+                                sides = VM.getInvisibleSides(X, Y, Z, sides);
+                                if (BNTest.Mesh.correctTextures || ((Z + 1) | 0) >= MZ || true) {
+                                    CV.copyFrom(V);
+                                    CV.add(VB);
+                                    this.addCube2(V, CV, C, sides, interpolation);
+                                } else {
+                                    if (interpolate) {
+                                        interpolation2 = VM.getValidQuadrants(X, Y, ((Z + 1) | 0), interpolation2);
+                                    }
+                                    sides2 = VM.getInvisibleSides(X, Y, ((Z + 1) | 0), sides2);
+                                    if (BNTest.HelperExtensions.identical(Boolean, interpolation, interpolation2) && BNTest.HelperExtensions.identical(Boolean, sides, sides2) && Bridge.referenceEquals(C, M[((ind + 1) | 0)])) {
+                                        CV.copyFrom(V);
+                                        CV.add(VB2);
+                                        this.addCube2(V, CV, C, sides, interpolation);
+                                        V.z += 1;
+                                        Z = (Z + 1) | 0;
+                                        ind = (ind + 1) | 0;
+                                        //ind += zind;
+                                    } else {
+                                        CV.copyFrom(V);
+                                        CV.add(VB);
+                                        this.addCube2(V, CV, C, sides, interpolation);
+                                    }
+                                }
                             } else {
-                                this.addRectangle(V, BNTest.GLVec3.op_Addition(V, new BNTest.GLVec3.ctor(1, 0, 1)), C);
+                                CV.copyFrom(V);
+                                CV.add$1(1, 0, 1);
+                                this.addRectangle(V, CV, C);
+                                //AddRectangle(V, V + new GLVec3(1,0,1), C);
                             }
                         }
                         V.z += 1;
                         Z = (Z + 1) | 0;
+                        //ind += zind;
+                        ind = (ind + 1) | 0;
                     }
                     V.z = SV.z;
                     V.y += 1;
@@ -6926,6 +8006,11 @@
                 X = (X + 1) | 0;
             }
             this.qV3Set = false;
+            /* CV.Release();
+                V.Release();
+                VB.Release();
+                VB2.Release();
+                SV.Release();*/
         },
         addVert: function (V, C) {
             BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
@@ -6934,7 +8019,18 @@
             this.needsUpdate = true;
         },
         addCube1: function (Min, Max, C) {
-            var GV = System.Array.init(8, null);
+            //GLVec3[] GV = new GLVec3[8];
+            var GV = this.TGV;
+            /* GV[0] = new GLVec3(Min.X, Min.Y, Min.Z);
+                GV[1] = new GLVec3(Max.X,Min.Y,Min.Z);
+                GV[2] = new GLVec3(Min.X, Max.Y, Min.Z);
+                GV[3] = new GLVec3(Max.X, Max.Y, Min.Z);
+
+
+                GV[4] = new GLVec3(Min.X, Min.Y, Max.Z);
+                GV[5] = new GLVec3(Max.X, Min.Y, Max.Z);
+                GV[6] = new GLVec3(Min.X, Max.Y, Max.Z);
+                GV[7] = new GLVec3(Max.X, Max.Y, Max.Z);*/
             GV[0] = new BNTest.GLVec3.ctor(Min.x, Min.y, Min.z);
             GV[1] = new BNTest.GLVec3.ctor(Max.x, Min.y, Min.z);
             GV[2] = new BNTest.GLVec3.ctor(Min.x, Max.y, Min.z);
@@ -6963,45 +8059,208 @@
             C = BNTest.GLColor.random();
             //
             this.addRectangle$1(GV[2], GV[3], GV[6], GV[7], C);
+
+            /* GV[0].Release();
+                GV[1].Release();
+                GV[2].Release();
+                GV[3].Release();
+                GV[4].Release();
+                GV[5].Release();
+                GV[6].Release();
+                GV[7].Release();*/
+        },
+        /**
+         * beware:Colors, Textures and culling becomes inverted, this needs fixing.
+         *
+         * @instance
+         * @public
+         * @this BNTest.Mesh
+         * @memberof BNTest.Mesh
+         * @return  {void}
+         */
+        reverseVerticeOrder: function () {
+            var ln = (Bridge.Int.div(this.verticies.length, 3)) | 0;
+            var ind = System.Array.init(0, 0);
+            var i = 0;
+            while (i < this.indices.length) {
+                ind.push((((((ln - 1) | 0)) - this.indices[i]) | 0));
+                i = (i + 1) | 0;
+            }
+            //Indices.Reverse();
+            this.indices = ind;
+            BNTest.HelperExtensions.reverseOrderWithStructure(System.Double, this.verticies, 3);
+            //Verticies.Reverse();
+            //Colors.Reverse();
+            BNTest.HelperExtensions.reverseOrderWithStructure(System.Double, this.colors, 4);
+            //TextureCoords.Reverse();
+            BNTest.HelperExtensions.reverseOrderWithStructure(System.Double, this.textureCoords, 2);
+            this.needsUpdate = true;
         },
         addCube2: function (Min, Max, C, invisible, interpolation) {
             if (interpolation === void 0) { interpolation = null; }
             if (invisible == null) {
                 invisible = System.Array.init(6, false);
             }
-            var GV = System.Array.init(8, null);
-            GV[0] = new BNTest.GLVec3.ctor(Min.x, Min.y, Min.z);
-            GV[1] = new BNTest.GLVec3.ctor(Max.x, Min.y, Min.z);
-            GV[2] = new BNTest.GLVec3.ctor(Min.x, Max.y, Min.z);
-            GV[3] = new BNTest.GLVec3.ctor(Max.x, Max.y, Min.z);
+            //GLVec3[] GV = new GLVec3[8];
+            var GV = this.TGV;
+            if (GV[0] == null) {
+                GV[0] = new BNTest.GLVec3.ctor();
+                GV[1] = new BNTest.GLVec3.ctor();
+                GV[2] = new BNTest.GLVec3.ctor();
+                GV[3] = new BNTest.GLVec3.ctor();
+
+                GV[4] = new BNTest.GLVec3.ctor();
+                GV[5] = new BNTest.GLVec3.ctor();
+                GV[6] = new BNTest.GLVec3.ctor();
+                GV[7] = new BNTest.GLVec3.ctor();
+            }
+            GV[0].set(Min.x, Min.y, Min.z);
+            GV[1].set(Max.x, Min.y, Min.z);
+            GV[2].set(Min.x, Max.y, Min.z);
+            GV[3].set(Max.x, Max.y, Min.z);
 
 
-            GV[4] = new BNTest.GLVec3.ctor(Min.x, Min.y, Max.z);
-            GV[5] = new BNTest.GLVec3.ctor(Max.x, Min.y, Max.z);
-            GV[6] = new BNTest.GLVec3.ctor(Min.x, Max.y, Max.z);
-            GV[7] = new BNTest.GLVec3.ctor(Max.x, Max.y, Max.z);
+            GV[4].set(Min.x, Min.y, Max.z);
+            GV[5].set(Max.x, Min.y, Max.z);
+            GV[6].set(Min.x, Max.y, Max.z);
+            GV[7].set(Max.x, Max.y, Max.z);
             var temp = new BNTest.GLVec3.ctor();
             var swap;
-
+            var i = 0;
+            var total = 0;
+            i = 0;
+            while (i < 6) {
+                if (!invisible[i]) {
+                    total = (total + 1) | 0;
+                }
+                i = (i + 1) | 0;
+            }
             if (interpolation != null) {
                 //if true, ends are round shaped, if false tips are pointy.
                 var quarter = true;
+                /* bool eighth = false;
+                    bool half = true;*/
                 //GLVec3 center = Min + ((Max - Min) * 0.5);
                 var center = BNTest.GLVec3.getCenter(Min, Max);
-                var i = 0;
+                i = 0;
                 var GVL = GV.length;
+
                 while (i < GVL) {
                     if (!interpolation[i]) {
                         if (quarter) {
-                            //GV[i] = GLVec3.GetCenter(GV[i],center);
+                            //GV[i] = new GLVec3Center(GV[i],center);
                             swap = GV[i];
                             BNTest.GLVec3.getCenter$1(swap, center, temp);
+                            //if (eighth)
+                            //{
+                            //GLVec3.GetCenter(temp, center, temp);
+                            //}
+                            //else if (half)
+                            //{
+                            //GLVec3.GetCenter(temp, swap, temp);
+                            //}
                             GV[i] = temp;
                             temp = swap;
-                        } else {
+                        } else if (total < 4) {
                             GV[i] = center;
                         }
                     }
+                    /* else if (total==2)
+                        {
+                            bool CX = false;
+                            bool CY = false;
+                            bool CZ = false;
+                            //if (i == 0 || i == 1 || i==2 || i==3)
+                            if (i == 0 || i == 1 || i == 0+4 || i == 1+4)
+                            {
+                                //top
+                                if (!invisible[4])
+                                {
+                                    if (((i == 0 || i == 1) && !invisible[2]) || ((i == 0 + 4 || i == 1 + 4) && !invisible[3]))
+                                    {
+                                        //CY
+                                        CX = true;
+                                    }
+                                }
+                            }
+                            if (i == 2 || i == 3 || i == 2 + 4 || i == 3 + 4)
+                            {
+                                //bottom
+                                if (!invisible[5])
+                                {
+                                    //CY = true;
+                                    if (((i == 2 || i == 3) && !invisible[2]) || ((i == 2 + 4 || i == 3 + 4) && !invisible[3]))
+                                    {
+                                        CX = true;
+                                    }
+                                }
+                            }
+
+                            if (i == 0 || i == 2 || i == 0 + 4 || i == 2 + 4)
+                            {
+                                //left
+                                if (!invisible[2])
+                                {
+                                    if (((i == 0 || i == 2) && !invisible[0]) || ((i == 0 + 4 || i == 2 + 4) && !invisible[1]))
+                                    {
+                                        //CX
+                                        CZ = true;
+                                    }
+                                }
+                            }
+                            if (i == 1 || i == 3 || i == 1 + 4 || i == 3 + 4)
+                            {
+                                //right
+                                if (!invisible[3])
+                                {
+                                    if (((i == 1 || i == 3) && !invisible[0]) || ((i == 1 + 4 || i == 3 + 4) && !invisible[1]))
+                                    {
+                                        CZ = true;
+                                    }
+                                }
+                            }
+
+                            if (i == 0 || i == 1 || i == 2 || i == 3)
+                            {
+                                //front
+                                if (!invisible[0])
+                                {
+                                    if (((i == 0 || i == 1) && !invisible[4]) || ((i == 2 || i == 3) && !invisible[5]))
+                                    {
+                                        //CZ
+                                        CY = true;
+                                    }
+                                }
+                            }
+
+                            if (i == 0+4 || i == 1+4 || i == 2+4 || i == 3+4)
+                            {
+                                //back
+                                if (!invisible[1])
+                                {
+                                    if (((i == 0+4 || i == 1+4) && !invisible[4]) || ((i == 2+4 || i == 3+4) && !invisible[5]))
+                                    {
+                                        CY = true;
+                                    }
+                                }
+                            }
+
+                            if (CX)
+                            {
+                                GV[i].X += center.X;
+                                GV[i].X *= 0.5;
+                            }
+                            if (CY)
+                            {
+                                GV[i].Y += center.Y;
+                                GV[i].Y *= 0.5;
+                            }
+                            if (CZ)
+                            {
+                                GV[i].Z += center.Z;
+                                GV[i].Z *= 0.5;
+                            }
+                        }*/
                     i = (i + 1) | 0;
                 }
             }
@@ -7009,34 +8268,130 @@
                 this.QV3 = (Bridge.Int.div(this.verticies.length, 3)) | 0;
             }
 
-            //C = new GLColor(0, 1, 0);
-            //top
-            if (!invisible[0]) {
-                this.quickAddRectangle(GV[0], GV[1], GV[2], GV[3], C, true);
-            }
-            //bottom
-            if (!invisible[1]) {
-                this.quickAddRectangle(GV[4], GV[5], GV[6], GV[7], C);
-            }
+            if (BNTest.Mesh.cullTest) {
+                C = new BNTest.GLColor(0, 1, 0);
+                //top
+                if (!invisible[0]) {
+                    this.quickAddRectangle(GV[0], GV[1], GV[2], GV[3], C, true);
+                }
+                //bottom
+                if (!invisible[1]) {
+                    this.quickAddRectangle(GV[4], GV[5], GV[6], GV[7], C);
+                }
 
-            //C = new GLColor(0, 0, 1);
-            //left
-            if (!invisible[2]) {
-                this.quickAddRectangle(GV[0], GV[2], GV[4], GV[6], C, true);
-            }
-            //bottom
-            if (!invisible[3]) {
-                this.quickAddRectangle(GV[1], GV[3], GV[5], GV[7], C);
-            }
+                C = new BNTest.GLColor(0, 0, 1);
+                //left
+                if (!invisible[2]) {
+                    this.quickAddRectangle(GV[0], GV[2], GV[4], GV[6], C, true);
+                }
+                //bottom
+                if (!invisible[3]) {
+                    this.quickAddRectangle(GV[1], GV[3], GV[5], GV[7], C);
+                }
 
-            //C = new GLColor(1, 0, 0);
-            //
-            if (!invisible[5]) {
-                this.quickAddRectangle(GV[2], GV[3], GV[6], GV[7], C, true);
-            }
-            //
-            if (!invisible[4]) {
-                this.quickAddRectangle(GV[0], GV[1], GV[4], GV[5], C);
+                C = new BNTest.GLColor(1, 0, 0);
+                //
+                if (!invisible[5]) {
+                    this.quickAddRectangle(GV[2], GV[3], GV[6], GV[7], C, true);
+                }
+                //
+                if (!invisible[4]) {
+                    this.quickAddRectangle(GV[0], GV[1], GV[4], GV[5], C);
+                }
+            } else if (total <= 1 || BNTest.Mesh.correctTextures || true) {
+                //C = new GLColor(0, 1, 0);
+                //top
+                if (!invisible[0]) {
+                    this.quickAddRectangle(GV[0], GV[1], GV[2], GV[3], C, true);
+                }
+                //bottom
+                if (!invisible[1]) {
+                    this.quickAddRectangle(GV[4], GV[5], GV[6], GV[7], C);
+                }
+
+                //C = new GLColor(0, 0, 1);
+                //left
+                if (!invisible[2]) {
+                    this.quickAddRectangle(GV[0], GV[2], GV[4], GV[6], C, true);
+                }
+                //bottom
+                if (!invisible[3]) {
+                    this.quickAddRectangle(GV[1], GV[3], GV[5], GV[7], C);
+                }
+
+                //C = new GLColor(1, 0, 0);
+                //
+                if (!invisible[5]) {
+                    this.quickAddRectangle(GV[2], GV[3], GV[6], GV[7], C, true);
+                }
+                //
+                if (!invisible[4]) {
+                    this.quickAddRectangle(GV[0], GV[1], GV[4], GV[5], C);
+                }
+            } else {
+                //this seems to break certain things, eg;yinyangorbs.(it may have something to do with mesh smoothing)
+
+                var V = GV[0];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[1];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[2];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[3];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+
+                BNTest.Mesh.pushValue(this.textureCoords, [0, 0, 1, 0, 0, 1, 1, 1]);
+
+                V = GV[4];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[5];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[6];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+                V = GV[7];
+                BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
+                BNTest.Mesh.pushColor(this.colors, C);
+
+                BNTest.Mesh.pushValue(this.textureCoords, [0, 0, 1, 0, 0, 1, 1, 1]);
+
+                var ind = this.QV3;
+
+                if (!invisible[0]) {
+                    this.quickAddRectangle$1(((ind + 0) | 0), ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 3) | 0), C, true);
+                }
+                //bottom
+                if (!invisible[1]) {
+                    this.quickAddRectangle$1(((ind + 4) | 0), ((ind + 5) | 0), ((ind + 6) | 0), ((ind + 7) | 0), C);
+                }
+
+                //C = new GLColor(0, 0, 1);
+                //left
+                if (!invisible[2]) {
+                    this.quickAddRectangle$1(((ind + 0) | 0), ((ind + 2) | 0), ((((ind + 0) | 0) + 4) | 0), ((((ind + 2) | 0) + 4) | 0), C, true);
+                }
+                //bottom
+                if (!invisible[3]) {
+                    this.quickAddRectangle$1(((ind + 1) | 0), ((ind + 3) | 0), ((((ind + 1) | 0) + 4) | 0), ((((ind + 3) | 0) + 4) | 0), C);
+                }
+
+                //C = new GLColor(1, 0, 0);
+                //
+                if (!invisible[5]) {
+                    this.quickAddRectangle$1(((ind + 2) | 0), ((ind + 3) | 0), ((((ind + 2) | 0) + 4) | 0), ((((ind + 3) | 0) + 4) | 0), C, true);
+                }
+                //
+                if (!invisible[4]) {
+                    this.quickAddRectangle$1(((ind + 0) | 0), ((ind + 1) | 0), ((((ind + 0) | 0) + 4) | 0), ((((ind + 1) | 0) + 4) | 0), C);
+                }
+
+                this.QV3 = (this.QV3 + 8) | 0;
             }
 
         },
@@ -7100,18 +8455,37 @@
                 i = (i + 1) | 0;
             }
         },
-        updateMinMax$2: function (V) {
+        updateMinMax$3: function (V) {
             if (V === void 0) { V = []; }
             var i = 0;
-            while (i < V.length) {
+            var ln = V.length;
+            while (i < ln) {
+                //var N = new GLVec3(V[i], V[i + 1], V[i + 2]);
                 var N = new BNTest.GLVec3.ctor(V[i], V[((i + 1) | 0)], V[((i + 2) | 0)]);
                 this.updateMinMax(N);
+                /* N.Release();*/
                 i = (i + 3) | 0;
             }
         },
         updateMinMax: function (V) {
-            this.min = BNTest.GLVec3.min(this.min, V);
-            this.max = BNTest.GLVec3.max(this.max, V);
+            /* Min = GLVec3.Min(Min, V);
+                Max = GLVec3.Max(Max, V);*/
+            this.min.min(V);
+            this.max.max(V);
+        },
+        updateMinMax$2: function (X, Y, Z) {
+            /* Min = GLVec3.Min(Min, V);
+                Max = GLVec3.Max(Max, V);*/
+            this.min.min$1(X, Y, Z);
+            this.max.max$1(X, Y, Z);
+        },
+        quickAddRectangle$1: function (V1, V2, V3, V4, C, inv) {
+            if (inv === void 0) { inv = false; }
+            if (!inv) {
+                BNTest.Mesh.pushValue(this.indices, [V1, V2, V3, V3, V2, V4]);
+            } else {
+                BNTest.Mesh.pushValue(this.indices, [V3, V2, V1, V4, V2, V3]);
+            }
         },
         quickAddRectangle: function (V1, V2, V3, V4, C, inv) {
             if (inv === void 0) { inv = false; }
@@ -7134,15 +8508,6 @@
 
             this.updateMinMax$1([V1, V2, V3, V4]);
 
-
-
-            /* pushValue(Indices, ind, ind + 1, ind + 2
-                    , ind + 3, ind + 1, ind + 2);*/
-            /* pushValue(Indices, ind, ind + 1, ind + 2
-                , ind + 1, ind + 2, ind + 3);*/
-            //pushValue(Indices, ind + 1, ind + 3, ind + 2);
-            /* pushValue(Indices, ind, ind + 1, ind + 2
-                , ind + 1, ind + 2, ind + 3);*/
             if (!inv) {
                 BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 2) | 0), ((ind + 1) | 0), ((ind + 3) | 0)]);
             } else {
@@ -7156,6 +8521,269 @@
             }
             this.QV3 = (this.QV3 + 4) | 0;
             this.needsUpdate = true;
+        }
+    });
+
+    Bridge.define("BNTest.MeshUtils", {
+        statics: {
+            laplacianFilter: function (sv, t) {
+                var wv = System.Array.init(sv.length, null);
+                var adjacentVertices = System.Array.init(0, null);
+
+                var dx = 0.0;
+                var dy = 0.0;
+                var dz = 0.0;
+                var svln = sv.length;
+
+                for (var vi = 0; vi < svln; vi = (vi + 1) | 0) {
+                    // Find the sv neighboring vertices
+                    adjacentVertices = BNTest.MeshUtils.findAdjacentNeighbors(sv, t, sv[vi]);
+                    var ln = adjacentVertices.length;
+
+                    if (ln !== 0) {
+                        dx = 0.0;
+                        dy = 0.0;
+                        dz = 0.0;
+
+                        //Debug.Log("Vertex Index Length = "+vertexIndexes.Length);
+                        // Add the vertices and divide by the number of vertices
+                        for (var j = 0; j < ln; j = (j + 1) | 0) {
+                            var avj = adjacentVertices[j];
+                            dx += avj.x;
+                            dy += avj.y;
+                            dz += avj.z;
+                        }
+                        wv[vi] = new BNTest.GLVec3.ctor();
+
+                        wv[vi].x = dx / ln;
+                        wv[vi].y = dy / ln;
+                        wv[vi].z = dz / ln;
+                    }
+                }
+
+                return wv;
+            },
+            hcFilter: function (sv, pv, t, alpha, beta) {
+                var wv = System.Array.init(sv.length, null);
+                var bv = System.Array.init(sv.length, null);
+
+
+
+                // Perform Laplacian Smooth
+                wv = BNTest.MeshUtils.laplacianFilter(sv, t);
+
+                // Compute Differences
+                for (var i = 0; i < wv.length; i = (i + 1) | 0) {
+                    var bvi = new BNTest.GLVec3.ctor();
+                    bv[i] = bvi;
+                    var wvi = wv[i];
+                    var svi = sv[i];
+                    if (alpha > 0) {
+                        bvi.x = wvi.x - (alpha * svi.x + (1 - alpha) * svi.x);
+                        bvi.y = wvi.y - (alpha * svi.y + (1 - alpha) * svi.y);
+                        bvi.z = wvi.z - (alpha * svi.z + (1 - alpha) * svi.z);
+                    } else {
+                        bvi.x = wvi.x - (svi.x);
+                        bvi.y = wvi.y - (svi.y);
+                        bvi.z = wvi.z - (svi.z);
+                    }
+                }
+
+                var adjacentIndexes = new (System.Collections.Generic.List$1(System.Int32))();
+
+                var dx = 0.0;
+                var dy = 0.0;
+                var dz = 0.0;
+                var ln = bv.length;
+
+                for (var j = 0; j < ln; j = (j + 1) | 0) {
+                    adjacentIndexes.clear();
+
+                    // Find the bv neighboring vertices
+                    adjacentIndexes = BNTest.MeshUtils.findAdjacentNeighborIndexes(sv, t, sv[j]);
+
+                    dx = 0.0;
+                    dy = 0.0;
+                    dz = 0.0;
+
+                    for (var k = 0; k < adjacentIndexes.getCount(); k = (k + 1) | 0) {
+                        var bvak = bv[adjacentIndexes.getItem(k)];
+                        dx += bvak.x;
+                        dy += bvak.y;
+                        dz += bvak.z;
+
+                    }
+                    var wvj = wv[j];
+                    var bvj = bv[j];
+                    var betac = ((1 - beta) / adjacentIndexes.getCount());
+
+                    wvj.x -= beta * bvj.x + betac * dx;
+                    wvj.y -= beta * bvj.y + betac * dy;
+                    wvj.z -= beta * bvj.z + betac * dz;
+                }
+
+                return wv;
+            },
+            findAdjacentNeighbors: function (v, t, vertex) {
+                var adjacentV = System.Array.init(0, null);
+                var facemarker = new (System.Collections.Generic.List$1(System.Int32))();
+                var facecount = 0;
+
+                // Find matching vertices
+                for (var i = 0; i < v.length; i = (i + 1) | 0) {
+                    var vi = v[i];
+                    if (BNTest.MeshUtils.approximately$1(vertex.x, vi.x) && BNTest.MeshUtils.approximately$1(vertex.y, vi.y) && BNTest.MeshUtils.approximately$1(vertex.z, vi.z)) {
+                        var v1 = 0;
+                        var v2 = 0;
+                        var marker = false;
+
+                        // Find vertex indices from the triangle array
+                        for (var k = 0; k < t.length; k = (k + 3) | 0) {
+                            if (facemarker.contains(k) === false) {
+                                v1 = 0;
+                                v2 = 0;
+                                marker = false;
+
+                                if (i === t[k]) {
+                                    v1 = t[((k + 1) | 0)];
+                                    v2 = t[((k + 2) | 0)];
+                                    marker = true;
+                                }
+
+                                if (i === t[((k + 1) | 0)]) {
+                                    v1 = t[k];
+                                    v2 = t[((k + 2) | 0)];
+                                    marker = true;
+                                }
+
+                                if (i === t[((k + 2) | 0)]) {
+                                    v1 = t[k];
+                                    v2 = t[((k + 1) | 0)];
+                                    marker = true;
+                                }
+
+                                facecount = (facecount + 1) | 0;
+                                if (marker) {
+                                    // Once face has been used mark it so it does not get used again
+                                    facemarker.add(k);
+
+                                    // Add non duplicate vertices to the list
+                                    if (BNTest.MeshUtils.isVertexExist(adjacentV, v[v1]) === false) {
+                                        adjacentV.push(v[v1]);
+                                        //Debug.Log("Adjacent vertex index = " + v1);
+                                    }
+
+                                    if (BNTest.MeshUtils.isVertexExist(adjacentV, v[v2]) === false) {
+                                        adjacentV.push(v[v2]);
+                                        //Debug.Log("Adjacent vertex index = " + v2);
+                                    }
+                                    marker = false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Debug.Log("Faces Found = " + facecount);
+
+                return adjacentV;
+            },
+            findAdjacentNeighborIndexes: function (v, t, vertex) {
+                var adjacentIndexes = new (System.Collections.Generic.List$1(System.Int32))();
+                var adjacentV = System.Array.init(0, null);
+                var facemarker = new (System.Collections.Generic.List$1(System.Int32))();
+                var facecount = 0;
+
+                // Find matching vertices
+                for (var i = 0; i < v.length; i = (i + 1) | 0) {
+                    if (BNTest.MeshUtils.approximately(vertex, v[i])) {
+                        var v1 = 0;
+                        var v2 = 0;
+                        var marker = false;
+                        var ln = t.length;
+
+                        // Find vertex indices from the triangle array
+                        for (var k = 0; k < ln; k = (k + 3) | 0) {
+                            if (facemarker.contains(k) === false) {
+                                v1 = 0;
+                                v2 = 0;
+                                marker = false;
+
+                                if (i === t[k]) {
+                                    v1 = t[((k + 1) | 0)];
+                                    v2 = t[((k + 2) | 0)];
+                                    marker = true;
+                                }
+
+                                if (i === t[((k + 1) | 0)]) {
+                                    v1 = t[k];
+                                    v2 = t[((k + 2) | 0)];
+                                    marker = true;
+                                }
+
+                                if (i === t[((k + 2) | 0)]) {
+                                    v1 = t[k];
+                                    v2 = t[((k + 1) | 0)];
+                                    marker = true;
+                                }
+
+                                facecount = (facecount + 1) | 0;
+                                if (marker) {
+                                    // Once face has been used mark it so it does not get used again
+                                    facemarker.add(k);
+
+                                    // Add non duplicate vertices to the list
+                                    if (BNTest.MeshUtils.isVertexExist(adjacentV, v[v1]) === false) {
+                                        adjacentV.push(v[v1]);
+                                        adjacentIndexes.add(v1);
+                                        //Debug.Log("Adjacent vertex index = " + v1);
+                                    }
+
+                                    if (BNTest.MeshUtils.isVertexExist(adjacentV, v[v2]) === false) {
+                                        adjacentV.push(v[v2]);
+                                        adjacentIndexes.add(v2);
+                                        //Debug.Log("Adjacent vertex index = " + v2);
+                                    }
+                                    marker = false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Debug.Log("Faces Found = " + facecount);
+
+                return adjacentIndexes;
+            },
+            isVertexExist: function (adjacentV, v) {
+                var marker = false;
+                var i = 0;
+                while (i < adjacentV.length) {
+
+                    var vec = adjacentV[i];
+                    //if (Approximately(vec.X, v.X) && Approximately(vec.Y, v.Y) && Approximately(vec.Z, v.Z))
+                    if (BNTest.MeshUtils.approximately(vec, v)) {
+                        marker = true;
+                        break;
+                    }
+                    i = (i + 1) | 0;
+                }
+
+                /* foreach (GLVec3 vec in adjacentV)
+                    if (Approximately(vec.X, v.X) && Approximately(vec.Y, v.Y) && Approximately(vec.Z, v.Z))
+                    {
+                        marker = true;
+                        break;
+                    }*/
+
+                return marker;
+            },
+            approximately$1: function (x, x2) {
+                return Math.abs(x - x2) < 0.0005;
+            },
+            approximately: function (v, v2) {
+                return Math.abs(v.x - v2.x) < 0.0005 && Math.abs(v.y - v2.y) < 0.0005 && Math.abs(v.z - v2.z) < 0.0005;
+            }
         }
     });
 
@@ -7184,6 +8812,7 @@
         bleedThrough: false,
         znearRate: -1,
         drawOrder: 0,
+        drawn: false,
         config: {
             properties: {
                 gl: null,
@@ -7224,19 +8853,30 @@
                 var Mmx = BNTest.GLVec3.transform(this.meshes.getItem(i).max, T);
                 var tmp = new BNTest.BoundingBox.$ctor1(this.meshes.getItem(i).min, this.meshes.getItem(i).max);
                 //Helper.Log("mesh=>" + tmp.ToString());
-                Min = BNTest.GLVec3.min(Min, Mmn);
-                Max = BNTest.GLVec3.max(Max, Mmx);
+                /* Min = GLVec3.Min(Min, Mmn);
+                    Max = GLVec3.Max(Max, Mmx);*/
+                Min.min(Mmn);
+                Max.max(Mmx);
+                /* Mmn.Release();
+                    Mmx.Release();*/
                 i = (i + 1) | 0;
             }
             i = 0;
             ln = this.children.getCount();
             while (i < ln) {
                 var B = this.children.getItem(i).getBoundingBox();
-                Min = BNTest.GLVec3.min(Min, B.min);
-                Max = BNTest.GLVec3.max(Max, B.max);
+                //Min = GLVec3.Min(Min, B.Min);
+                //Max = GLVec3.Max(Max, B.Max);
+                Min.min(B.min);
+                Max.max(B.max);
                 i = (i + 1) | 0;
             }
-            var ret = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Addition(Min, this.offset), BNTest.GLVec3.op_Addition(Max, this.offset));
+            //var ret = new BoundingBox(Min + Offset, Max + Offset);
+            Min.add(this.offset);
+            Max.add(this.offset);
+            var ret = new BNTest.BoundingBox.$ctor1(Min, Max);
+            /* Min.Release();
+                Max.Release();*/
             //Helper.Log("Final=>" + ret.ToString());
             return ret;
         },
@@ -7316,13 +8956,33 @@
             ret.copyFrom(this);
             return ret;
         },
-        countElements: function () {
+        getMeshes: function (OUT) {
+            if (OUT === void 0) { OUT = null; }
+            if (OUT == null) {
+                OUT = System.Array.init(0, null);
+            }
+            BNTest.HelperExtensions.pushRange(BNTest.Mesh, OUT, this.meshes.items);
+            var i = 0;
+            var ln = this.children.getCount();
+            while (i < ln) {
+                this.children.getItem(i).getMeshes(OUT);
+                i = (i + 1) | 0;
+            }
+            return OUT;
+        },
+        countElements: function (OUT) {
+            if (OUT === void 0) { OUT = null; }
             //0=total meshes
             //1=total vertexes
-            var ret = System.Array.init(0, 0);
-            ret[0] = 0;
-            ret[1] = 0;
-            if (!this.getVisible() || (!this.inView && !this.forceRender)) {
+            var ret = OUT;
+            if (ret == null) {
+                ret = System.Array.init(0, 0);
+                ret[0] = 0;
+                ret[1] = 0;
+            }
+
+            //if (!Visible || (!InView && !ForceRender))
+            if (!this.drawn) {
                 return ret;
             }
             var i = 0;
@@ -7337,9 +8997,9 @@
             ln = this.children.getCount();
             while (i < ln) {
                 var C = this.children.getItem(i);
-                var R = C.countElements();
-                ret[0] = (ret[0] + R[0]) | 0;
-                ret[1] = (ret[1] + R[1]) | 0;
+                var R = C.countElements(ret);
+                /* ret[0] += R[0];
+                    ret[1] += R[1];*/
                 i = (i + 1) | 0;
             }
             return ret;
@@ -7359,10 +9019,19 @@
             this.alpha = M.alpha;
             this.scale = M.scale;
         },
-        smoothen: function () {
+        smoothen: function (strength) {
+            if (strength === void 0) { strength = 1.0; }
+            if (!this.getGD().smooth) {
+                return;
+            }
             var i = 0;
             while (i < this.meshes.getCount()) {
-                this.meshes.getItem(i).smoothen();
+                //meshes[i].SmoothenB(0.3); meshes[i].Smoothen(0.125);
+                //meshes[i].SmoothenB(0.45); meshes[i].Smoothen(0.188);
+                this.meshes.getItem(i).smoothenB(0.5 * strength);
+                this.meshes.getItem(i).smoothen(0.21 * strength);
+                //meshes[i].SmoothenB(0.6); meshes[i].Smoothen(0.25);
+                //meshes[i].Smoothen();
                 i = (i + 1) | 0;
             }
             i = 0;
@@ -7371,7 +9040,21 @@
                 i = (i + 1) | 0;
             }
         },
+        update: function () {
+            var i = 0;
+            var ln = this.meshes.getCount();
+            while (i < ln) {
+                this.meshes.getItem(i).update();
+                i = (i + 1) | 0;
+            }
+            ln = this.children.getCount();
+            while (i < ln) {
+                this.children.getItem(i).update();
+                i = (i + 1) | 0;
+            }
+        },
         render: function () {
+            this.drawn = false;
             this.updateTransform();
             if (!this.getVisible() || (!this.inView && !this.forceRender)) {
                 return;
@@ -7435,6 +9118,7 @@
                 //GD.matrix.mvPopMatrix();
                 this.getGD().mvPopMatrix();
             }
+            this.drawn = true;
         }
     });
 
@@ -7486,10 +9170,27 @@
         set: function (modelName, mesh) {
             var M = new BNTest.Model(mesh.getGD());
             M.meshes.add(mesh.clone());
-            this.data.set(modelName, M);
+            //data[modelName] = M;
+            this.set$1(modelName, M);
         },
         set$1: function (modelName, model) {
-            this.data.set(modelName, model.clone());
+            model.update();
+            var NM = model.clone();
+            this.data.set(modelName, NM);
+            //swap the clone properties, so the main backup is the one to have buffer clearing permissions.
+            BNTest.HelperExtensions.forEach(BNTest.Mesh, NM.getMeshes(), $_.BNTest.ModelCache.f1);
+            BNTest.HelperExtensions.forEach(BNTest.Mesh, model.getMeshes(), $_.BNTest.ModelCache.f2);
+        }
+    });
+
+    Bridge.ns("BNTest.ModelCache", $_);
+
+    Bridge.apply($_.BNTest.ModelCache, {
+        f1: function (msh) {
+            msh.clonedBuffer = false;
+        },
+        f2: function (msh) {
+            msh.clonedBuffer = true;
         }
     });
 
@@ -8223,44 +9924,6 @@
         }
     });
 
-    Bridge.define("BNTest.Sprite", {
-        position: null,
-        spriteBuffer: null,
-        visible: true,
-        spriteGraphics: null,
-        ctor: function () {
-            this.$initialize();
-            this.spriteBuffer = document.createElement('canvas');
-            this.spriteGraphics = this.spriteBuffer.getContext("2d");
-            this.position = new BNTest.Vector2();
-        },
-        getSize: function () {
-            return new BNTest.Vector2(this.spriteBuffer.width, this.spriteBuffer.height);
-        },
-        setSize: function (value) {
-            if (BNTest.Vector2.op_Equality(value, null)) {
-                value = new BNTest.Vector2();
-            }
-            this.spriteBuffer.width = Bridge.Int.clip32(value.x);
-            this.spriteBuffer.height = Bridge.Int.clip32(value.y);
-        },
-        getGraphics: function () {
-            return this.spriteGraphics;
-        },
-        onFrame: function () {
-
-        },
-        draw: function (g) {
-            if (!this.visible) {
-                return;
-            }
-            g.drawImage(this.spriteBuffer, this.position.x, this.position.y);
-        },
-        getBounds: function () {
-            return new BNTest.Rectangle(this.position.x, this.position.y, this.spriteBuffer.width, this.spriteBuffer.height);
-        }
-    });
-
     Bridge.define("BNTest.TextureLoader", {
         statics: {
             createTexture: function (gl, img) {
@@ -8435,6 +10098,10 @@
         getRoughLength: function () {
             return (Math.abs(this.x) + Math.abs(this.y));
         },
+        multiply: function (f) {
+            this.x *= f;
+            this.y *= f;
+        },
         roughNormalize: function (length) {
             if (length === void 0) { length = 1.0; }
             var D = this.getLength() / length;
@@ -8480,7 +10147,8 @@
             return Bridge.equals(this, o);
         },
         toAngle: function () {
-            return BNTest.MathHelper.wrapRadians(BNTest.MathHelper.getAngle(new BNTest.Vector2(), this));
+            return BNTest.MathHelper.wrapRadians(BNTest.MathHelper.getAngle(this));
+            //return MathHelper.WrapRadians(MathHelper.GetAngle(new Vector2(), this));
         },
         clone: function () {
             return new BNTest.Vector2(this.x, this.y);
@@ -8651,6 +10319,7 @@
             }
         },
         map: null,
+        growVA: null,
         ctor: function () {
             this.$initialize();
 
@@ -8683,16 +10352,21 @@
             if (transparent === void 0) { transparent = true; }
             if (bottomsolid === void 0) { bottomsolid = false; }
             if (winter === void 0) { winter = false; }
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
             var X = 0;
             var Y = 0;
             var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
+            var VA = new BNTest.VoxelMapAccessor(this);
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
                         //GLColor C = GLColor.Random();
                         var C = null;
                         if (!winter) {
-                            C = BNTest.GLColor.randomB(0, 0.6, 0.1, 0.3, 0.9, 0.4);
+                            //C = GLColor.RandomB(0, 0.6, 0.1, 0.3, 0.9, 0.4);
+                            C = BNTest.GLColor.randomB(0, 0.54, 0.09, 0.27, 0.81, 0.36);
                         } else {
                             C = BNTest.GLColor.randomB(0.77, 0.82, 0.87, 0.87, 0.92, 1.0);
                         }
@@ -8703,15 +10377,20 @@
                             //C.A = Math.Random();
                             C.a = 0.5;
                         }
-                        this.map.set([X, Y, Z], C);
+                        //Map[X, Y, Z] = C;
+                        VA.setcurrentVoxel(C);
                         Z = (Z + 1) | 0;
+                        VA.incrZ();
                     }
                     Z = 0;
+                    VA.setZ(0);
                     Y = (Y + 1) | 0;
+                    VA.incrY();
                 }
                 Y = 0;
-                Z = 0;
+                VA.setY(0);
                 X = (X + 1) | 0;
+                VA.incrX();
             }
         },
         setColor: function (color, visibleOnly) {
@@ -8803,25 +10482,34 @@
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
             var m2 = strength + strength;
+            var M = this.map;
+            var VA = new BNTest.VoxelMapAccessor(this);
 
 
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
-                        var C = this.map.get([X, Y, Z]);
+                        //var C = Map[X, Y, Z];
+                        //var C = M[ind];
+                        var C = VA.getcurrentVoxel();
                         if (this.valid(C) && ((X & 1) > 0 || (Z & 1) > 0 || (verticalStride > 0 && ((((((Y + X) | 0) + Z) | 0)) % verticalStride === 0))) && (coverage >= 1 || Math.random() > coverage)) {
                             C = BNTest.GLColor.op_Multiply(C, (1 - strength));
-                            this.map.set([X, Y, Z], C);
+                            //Map[X, Y, Z] = C;
+                            VA.setcurrentVoxel(C);
                         }
                         Z = (Z + 1) | 0;
+                        VA.incrZ();
                         //Z++;
                     }
                     Z = 0;
+                    VA.setZ(0);
                     Y = (Y + 1) | 0;
+                    VA.incrY();
                 }
                 Y = 0;
-                Z = 0;
+                VA.setY(0);
                 X = (X + 1) | 0;
+                VA.incrX();
                 //X++;
             }
             //Map = N;
@@ -8829,30 +10517,47 @@
         addNoise: function (strength, coverage) {
             if (coverage === void 0) { coverage = 1.0; }
             //GLColor[,,] N = new GLColor[Map.GetLength(0), Map.GetLength(1), Map.GetLength(2)];
-            var X = 0;
-            var Y = 0;
-            var Z = 0;
             var m2 = strength + strength;
-            var MX = System.Array.getLength(this.map, 0);
-            var MY = System.Array.getLength(this.map, 1);
-            var MZ = System.Array.getLength(this.map, 2);
-            while (X < MX) {
-                while (Y < MY) {
-                    while (Z < MZ) {
-                        var C = this.map.get([X, Y, Z]);
-                        if (this.valid(C) && (coverage >= 1 || Math.random() > coverage)) {
-                            C = BNTest.GLColor.op_Addition(C, new BNTest.GLColor(-strength + (m2 * Math.random()), -strength + (m2 * Math.random()), -strength + (m2 * Math.random())));
-                            this.map.set([X, Y, Z], C);
-                        }
-                        Z = (Z + 1) | 0;
-                    }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                var C = M[i];
+                if (this.valid(C) && (coverage >= 1 || Math.random() > coverage)) {
+                    C = BNTest.GLColor.op_Addition(C, new BNTest.GLColor(-strength + (m2 * Math.random()), -strength + (m2 * Math.random()), -strength + (m2 * Math.random())));
+                    M[i] = C;
                 }
-                Y = 0;
-                Z = 0;
-                X = (X + 1) | 0;
+                i = (i + 1) | 0;
             }
+            /* int X = 0;
+                int Y = 0;
+                int Z = 0;
+                var m2 = strength + strength;
+                var MX = Map.GetLength(0);
+                var MY = Map.GetLength(1);
+                var MZ = Map.GetLength(2);
+                while (X < MX)
+                {
+                    while (Y < MY)
+                    {
+                        while (Z < MZ)
+                        {
+                            var C = Map[X, Y, Z];
+                            if (Valid(C) && (coverage>=1 || Math.Random()>coverage))
+                            {
+                                C = C + new GLColor(-strength + (m2 * Math.Random()), -strength + (m2 * Math.Random()), -strength + (m2 * Math.Random()));
+                                ///N[X, Y, Z] = C;
+                                Map[X, Y, Z] = C;
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }*/
             //Map = N;
         },
         drawGrowLine: function (start, end, color, Depth, chance, corners) {
@@ -8884,10 +10589,18 @@
         },
         entropy: function (noise, holes) {
             var n2 = noise + noise;
+            var X = 0;
+            var Y = 0;
+            var Z = 0;
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
 
             var i = 0;
             var ln = this.map.length;
             var M = this.map;
+            var NC = null;
+            var trans = new BNTest.GLColor(0, 0, 0, 0);
             while (i < ln) {
                 /* if (Valid(M[i]))
                     {
@@ -8895,13 +10608,40 @@
                         i++;
                     }*/
                 var C = M[i];
-                if (Math.random() < holes) {
-                    M[i] = null;
-                } else if (this.valid(C)) {
-                    C = BNTest.GLColor.op_Addition(C, new BNTest.GLColor(-noise + (n2 * Math.random()), -noise + (n2 * Math.random()), -noise + (n2 * Math.random())));
-                    M[i] = C;
+                //checks if the current voxel is on the outside.(inner holes exposes a bunch of faces, so we keep that from happening.)
+                if (X === 0 || Y === 0 || Z === 0 || X >= ((MX - 1) | 0) || Y >= ((MY - 1) | 0) || Z >= ((MZ - 1) | 0)) {
+                    if (holes > 0 && Math.random() < holes) {
+                        /* if (C != null)
+                            {
+                                C.A = 0;
+                            }
+                            else
+                            {
+                                M[i] = new GLColor(0, 0, 0, 0);
+                            }*/
+                        //M[i] = null;
+                        M[i] = trans;
+                    } else if (this.valid(C)) {
+                        NC = new BNTest.GLColor(C.r, C.g, C.b, C.a);
+                        NC.add$1(-noise + (n2 * Math.random()), -noise + (n2 * Math.random()), -noise + (n2 * Math.random()));
+                        M[i] = NC;
+                        /* C.R += -noise + (n2 * Math.Random());
+                            C.G += -noise + (n2 * Math.Random());
+                            C.B += -noise + (n2 * Math.Random());*/
+                        /* C = C + new GLColor(-noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()));
+                            M[i] = C;*/
+                    }
                 }
                 i = (i + 1) | 0;
+                Z = (Z + 1) | 0;
+                if (Z >= MZ) {
+                    Z = (Z - MZ) | 0;
+                    Y = (Y + 1) | 0;
+                    if (Y >= MY) {
+                        Y = (Y - MY) | 0;
+                        X = (X + 1) | 0;
+                    }
+                }
             }
 
             /* int X = 0;
@@ -8934,25 +10674,39 @@
                 }*/
         },
         addHoles: function (chance) {
-            var X = 0;
-            var Y = 0;
-            var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
-                        var C = this.map.get([X, Y, Z]);
-                        if (Math.random() < chance) {
-                            this.map.set([X, Y, Z], null);
-                        }
-                        Z = (Z + 1) | 0;
-                    }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                var C = M[i];
+                if (Math.random() < chance) {
+                    M[i] = null;
                 }
-                Y = 0;
-                Z = 0;
-                X = (X + 1) | 0;
+                i = (i + 1) | 0;
             }
+            /* int X = 0;
+                int Y = 0;
+                int Z = 0;
+                while (X < Map.GetLength(0))
+                {
+                    while (Y < Map.GetLength(1))
+                    {
+                        while (Z < Map.GetLength(2))
+                        {
+                            var C = Map[X, Y, Z];
+                            if (Math.Random()<chance)
+                            {
+                                Map[X, Y, Z] = null;
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }*/
         },
         drawMessyGrowLine: function (start, generalDestination, maxSegmentLength, momentum, color, Depth, chance, corners) {
             if (chance === void 0) { chance = 1.0; }
@@ -9043,15 +10797,23 @@
             if (!this.inBounds(X, Y, Z)) {
                 return;
             }
-            this.setVoxel$1(X, Y, Z, color);
+            if (first) {
+                this.growVA = new BNTest.VoxelMapAccessor(this);
+            }
+            this.growVA.setX(X);
+            this.growVA.setY(Y);
+            this.growVA.setZ(Z);
+            this.growVA.setcurrentVoxel(color);
+            //SetVoxel(X, Y, Z, color);
             Depth = (Depth - 1) | 0;
             if ((first || (chance >= 1 || Math.random() < chance)) && Depth > 0) {
                 this.grow(((X - 1) | 0), Y, Z, color, Depth, chance, false, corners);
-                this.grow(X, ((Y - 1) | 0), Z, color, Depth, chance, false, corners);
-                this.grow(X, Y, ((Z - 1) | 0), color, Depth, chance, false, corners);
-
                 this.grow(((X + 1) | 0), Y, Z, color, Depth, chance, false, corners);
+
+                this.grow(X, ((Y - 1) | 0), Z, color, Depth, chance, false, corners);
                 this.grow(X, ((Y + 1) | 0), Z, color, Depth, chance, false, corners);
+
+                this.grow(X, Y, ((Z - 1) | 0), color, Depth, chance, false, corners);
                 this.grow(X, Y, ((Z + 1) | 0), color, Depth, chance, false, corners);
 
                 if (corners) {
@@ -9093,34 +10855,44 @@
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
             var N = System.Array.create(null, null, MX, MY, MZ);
+            var NN = N;
             var X = 0;
             var Y = 0;
             var Z = 0;
 
-
+            var VA = new BNTest.VoxelMapAccessor(this);
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
-                        var CT = this.map.get([X, Y, Z]);
+                        //var CT = Map[X, Y, Z];
+                        var CT = VA.getcurrentVoxel();
                         if (!this.valid(CT)) {
-                            var adj = this.adjacentVoxels(X, Y, Z);
+                            //var adj = AdjacentVoxels(X, Y, Z);
+                            var adj = VA.adjacentVoxels();
                             if (adj >= min && adj <= max && (chance >= 1 || Math.random() > chance)) {
                                 var col = C;
                                 if (C == null) {
-                                    col = this.findAdjacentVoxel(X, Y, Z);
+                                    //col = FindAdjacentVoxel(X, Y, Z);
+                                    col = VA.findAdjacentVoxel();
                                 }
                                 CT = col;
                             }
                         }
-                        N.set([X, Y, Z], CT);
+                        NN[VA.index] = CT;
+                        //N[X, Y, Z] = CT;
                         Z = (Z + 1) | 0;
+                        VA.incrZ();
                     }
                     Z = 0;
+                    VA.setZ(0);
                     Y = (Y + 1) | 0;
+                    VA.incrY();
                 }
                 Y = 0;
                 Z = 0;
+                VA.setY(0);
                 X = (X + 1) | 0;
+                VA.incrX();
             }
             this.map = N;
         },
@@ -9241,17 +11013,30 @@
             var R = 0;
             var G = 0;
             var B = 0;
+            var VA = new BNTest.VoxelMapAccessor(this);
+            VA.setZ(z);
             while (Y < H) {
                 while (X < W) {
                     R = P[Bridge.identity(i, (i = (i + 1) | 0))] / 255.0;
                     G = P[Bridge.identity(i, (i = (i + 1) | 0))] / 255.0;
                     B = P[Bridge.identity(i, (i = (i + 1) | 0))] / 255.0;
                     A = P[Bridge.identity(i, (i = (i + 1) | 0))] / 255.0;
-                    this.map.set([X, Y, z], new BNTest.GLColor(R, G, B, A));
+                    //Map[X, Y, z] = new GLColor(R, G, B, A);
+                    var C = new BNTest.GLColor(R, G, B, A);
+                    VA.setcurrentVoxel(C);
                     X = (X + 1) | 0;
+                    //VA.X = X;
+                    if (X < W) {
+                        VA.incrX();
+                    }
                 }
                 X = 0;
+                VA.setX(X);
                 Y = (Y + 1) | 0;
+                //VA.Y = Y;
+                if (Y < H) {
+                    VA.incrY();
+                }
             }
         },
         valid: function (C) {
@@ -9263,8 +11048,12 @@
             }
             return C != null && C.a >= 1;
         },
-        getInvisibleSides: function (X, Y, Z) {
-            var ret = System.Array.init(6, false);
+        getInvisibleSides: function (X, Y, Z, OUT) {
+            if (OUT === void 0) { OUT = null; }
+            var ret = OUT;
+            if (ret == null) {
+                ret = System.Array.init(6, false);
+            }
             ret[0] = this.opaque(this.getVoxel(X, Y, ((Z - 1) | 0)));
             ret[1] = this.opaque(this.getVoxel(X, Y, ((Z + 1) | 0)));
             ret[2] = this.opaque(this.getVoxel(((X - 1) | 0), Y, Z));
@@ -9369,48 +11158,83 @@
                 }*/
         },
         swapYZ: function () {
-            var N = System.Array.create(null, null, System.Array.getLength(this.map, 0), System.Array.getLength(this.map, 2), System.Array.getLength(this.map, 1));
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
+            var N = System.Array.create(null, null, MX, MZ, MY);
             var X = 0;
             var Y = 0;
             var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
-                        N.set([X, Z, Y], this.map.get([X, Y, Z]));
+            var i = 0;
+            var M = this.map;
+            var tmp = new BNTest.VoxelMap.ctor();
+            tmp.map = N;
+            var VA = new BNTest.VoxelMapAccessor(tmp);
+            while (X < MX) {
+                while (Y < MY) {
+                    while (Z < MZ) {
+                        //N[X, Z, Y] = Map[X, Y, Z];
+                        //N[X, Z, Y] = M[i++];
+                        VA.setcurrentVoxel(M[Bridge.identity(i, (i = (i + 1) | 0))]);
                         Z = (Z + 1) | 0;
+                        VA.incrY();
                     }
                     Z = 0;
+                    VA.setY(0);
                     Y = (Y + 1) | 0;
+                    VA.incrZ();
                 }
                 Y = 0;
+                VA.setZ(0);
                 X = (X + 1) | 0;
+                VA.incrX();
             }
             this.map = N;
         },
         getPalette: function () {
-            var ret = new (System.Collections.Generic.List$1(BNTest.GLColor))();
-            var X = 0;
-            var Y = 0;
-            var Z = 0;
-            while (X < System.Array.getLength(this.map, 0)) {
-                while (Y < System.Array.getLength(this.map, 1)) {
-                    while (Z < System.Array.getLength(this.map, 2)) {
-                        var C = this.map.get([X, Y, Z]);
-                        if (C != null) {
-                            if (!ret.contains(C)) {
-                                ret.add(C);
-                            }
-                        }
-                        Z = (Z + 1) | 0;
+            //List<GLColor> ret = new List<GLColor>();
+            var ret = System.Array.init(0, null);
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                var C = M[i];
+                if (C != null) {
+                    if (!System.Array.contains(ret, C, BNTest.GLColor)) {
+                        ret.push(C);
                     }
-                    Z = 0;
-                    Y = (Y + 1) | 0;
                 }
-                Y = 0;
-                Z = 0;
-                X = (X + 1) | 0;
+                i = (i + 1) | 0;
             }
-            return ret.toArray();
+            return ret;
+            /* int X = 0;
+                int Y = 0;
+                int Z = 0;
+                while (X < Map.GetLength(0))
+                {
+                    while (Y < Map.GetLength(1))
+                    {
+                        while (Z < Map.GetLength(2))
+                        {
+                            var C = Map[X, Y, Z];
+                            if (C != null)
+                            {
+                                if (!ret.Contains(C))
+                                {
+                                    //ret.Add(C);
+                                    ret.Push(C);
+                                }
+                            }
+                            Z++;
+                        }
+                        Z = 0;
+                        Y++;
+                    }
+                    Y = 0;
+                    Z = 0;
+                    X++;
+                }
+                return ret.ToArray();*/
         },
         resize: function (NewDimensions) {
             var NX = NewDimensions[0];
@@ -9454,6 +11278,9 @@
             this.fill$2(Bridge.Int.clip32(box.min.x), Bridge.Int.clip32(box.min.y), Bridge.Int.clip32(box.min.z), Bridge.Int.clip32(sz.x), Bridge.Int.clip32(sz.y), Bridge.Int.clip32(sz.z), C);
         },
         fill$1: function (box, ColorSetter) {
+            /* VoxelMapAccessor VA = new VoxelMapAccessor(this);
+                VA.Iterate(ColorSetter, box);
+                return;*/
             var sz = box.getSize();
             this.fill$3(Bridge.Int.clip32(box.min.x), Bridge.Int.clip32(box.min.y), Bridge.Int.clip32(box.min.z), Bridge.Int.clip32(sz.x), Bridge.Int.clip32(sz.y), Bridge.Int.clip32(sz.z), ColorSetter);
         },
@@ -9478,25 +11305,36 @@
             }
         },
         fill$3: function (X, Y, Z, Width, Height, Depth, ColorSetter) {
-            var SX = X;
-            var SY = Y;
-            var SZ = Z;
-            var X2 = (SX + Width) | 0;
-            var Y2 = (SY + Height) | 0;
-            var Z2 = (SZ + Depth) | 0;
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
+
+            var SX = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(X, 0, MX));
+            var SY = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(Y, 0, MY));
+            var SZ = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(Z, 0, MZ));
+            var X2 = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(((SX + Width) | 0), 0, MX));
+            var Y2 = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(((SY + Height) | 0), 0, MY));
+            var Z2 = Bridge.Int.clip32(BNTest.MathHelper.clamp$1(((SZ + Depth) | 0), 0, MZ));
+            var VA = new BNTest.VoxelMapAccessor(this);
             while (X < X2) {
                 while (Y < Y2) {
                     while (Z < Z2) {
                         var C = new BNTest.GLColor(1, 1, 1);
                         ColorSetter(C);
-                        this.setVoxel$1(X, Y, Z, C);
+                        //SetVoxel(X, Y, Z, C);
+                        VA.setcurrentVoxel(C);
                         Z = (Z + 1) | 0;
+                        VA.incrZ();
                     }
                     Z = SZ;
+                    VA.setZ(Z);
                     Y = (Y + 1) | 0;
+                    VA.incrY();
                 }
                 Y = SY;
+                VA.setY(Y);
                 X = (X + 1) | 0;
+                VA.incrX();
             }
         },
         setVoxel: function (V, C) {
@@ -9513,20 +11351,40 @@
             }
             return false;
         },
-        combine: function (VM, XOffset, YOffset, ZOffset) {
+        crop$1: function (B) {
+            //GLColor[,,] N = new GLColor[B.max]
+        },
+        crop: function (X, Y, Z, MaxX, MaxY, MaxZ) {
+            var N = System.Array.create(null, null, ((MaxX - X) | 0), ((MaxY - Y) | 0), ((MaxZ - Z) | 0));
+            var VM = new BNTest.VoxelMap.ctor();
+            VM.map = N;
+            VM.combine(this, X, Y, Z, false);
+
+            return VM;
+        },
+        combine: function (VM, XOffset, YOffset, ZOffset, autoresize) {
             if (XOffset === void 0) { XOffset = 0; }
             if (YOffset === void 0) { YOffset = 0; }
             if (ZOffset === void 0) { ZOffset = 0; }
+            if (autoresize === void 0) { autoresize = true; }
+            var directcopy = true;
             if (!BNTest.VoxelMap.sameSize(this, VM)) {
-                var ND = BNTest.VoxelMap.getMaxSize(this, VM);
-                this.resize(ND);
-                VM.resize(ND);
+                if (autoresize) {
+                    var ND = BNTest.VoxelMap.getMaxSize(this, VM);
+                    this.resize(ND);
+                    VM.resize(ND);
+                } else {
+                    directcopy = false;
+                }
             }
-            if (XOffset === 0 && YOffset === 0 && ZOffset === 0) {
-                var i = 0;
+            var M = this.map;
+            var RVM = VM.map;
+            var i = 0;
+            if (XOffset === 0 && YOffset === 0 && ZOffset === 0 && directcopy) {
+
                 var ln = this.map.length;
-                var M = this.map;
-                var RVM = VM.map;
+                //var M = Map.As<GLColor[]>();
+
                 while (i < ln) {
                     var OV = M[i];
                     //var V = VM.Map[X, Y, Z];
@@ -9546,18 +11404,29 @@
             var MX = System.Array.getLength(this.map, 0);
             var MY = System.Array.getLength(this.map, 1);
             var MZ = System.Array.getLength(this.map, 2);
-
+            i = 0;
+            var Zind = System.Array.toIndex(M, [0,0,1]);
             while (X < MX) {
                 while (Y < MY) {
+                    var ind = System.Array.toIndex(M, [XX,YY,ZZ]);
                     while (Z < MZ) {
 
+                        var XX = (X + XOffset) | 0;
+                        var YY = (Y + YOffset) | 0;
+                        var ZZ = (Z + ZOffset) | 0;
+                        if (XX >= 0 && YY >= 0 && ZZ >= 0 && XX < MX && YY < MY && ZZ < MZ) {
+                            var OV1 = M[ind];
+                            //var OV = GetVoxel(X + XOffset, Y + XOffset, Z + ZOffset);
 
-                        var OV1 = this.getVoxel(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0));
-                        //var V = VM.Map[X, Y, Z];
-                        var V1 = VM.getVoxel(X, Y, Z);
-                        if (OV1 == null || (V1 != null && V1.a >= OV1.a)) {
-                            this.setVoxel$1(((X + XOffset) | 0), ((Y + XOffset) | 0), ((Z + ZOffset) | 0), V1);
+                            //var V = VM.Map[X, Y, Z];
+                            var V1 = RVM[i];
+                            if (OV1 == null || (V1 != null && V1.a >= OV1.a)) {
+                                //SetVoxel(X + XOffset, Y + XOffset, Z + ZOffset, V);
+                                M[ind] = V1;
+                            }
                         }
+                        ind = (ind + Zind) | 0;
+                        i = (i + 1) | 0;
                         Z = (Z + 1) | 0;
                     }
                     Z = 0;
@@ -9568,8 +11437,14 @@
                 X = (X + 1) | 0;
             }
         },
-        getValidQuadrants: function (X, Y, Z) {
-            var ret = System.Array.init(8, false);
+        getValidQuadrants: function (X, Y, Z, OUT) {
+            var $t, $t1, $t2, $t3, $t4, $t5;
+            if (OUT === void 0) { OUT = null; }
+            var ret = OUT;
+            if (ret == null) {
+                ret = System.Array.init(8, false);
+            }
+
             ret[0] = this.isValidQuadrants(X, Y, Z, false, false, false);
             ret[1] = this.isValidQuadrants(X, Y, Z, true, false, false);
             ret[2] = this.isValidQuadrants(X, Y, Z, false, true, false);
@@ -9582,7 +11457,7 @@
 
             if (!System.Array.contains(ret, true, Boolean)) {
                 //if the voxel is completely isolated, make it a full cube.
-                ret = [true, true, true, true, true, true, true, true];
+                ret[0] = ($t = ($t1 = ($t2 = ($t3 = ($t4 = ($t5 = (ret[7] = false, false), ret[6] = $t5, $t5), ret[5] = $t4, $t4), ret[4] = $t3, $t3), ret[3] = $t2, $t2), ret[2] = $t1, $t1), ret[1] = $t, $t);
             }
             return ret;
         },
@@ -9626,6 +11501,448 @@
         }
     });
 
+    Bridge.define("BNTest.VoxelMapAccessor", {
+        rawMap: null,
+        map: null,
+        VM: null,
+        index: 0,
+        xind: 0,
+        yind: 0,
+        zind: 0,
+        xpos: 0,
+        ypos: 0,
+        zpos: 0,
+        MX: 0,
+        MY: 0,
+        MZ: 0,
+        ctor: function (Map) {
+            this.$initialize();
+            this.VM = Map;
+            this.map = this.VM.map;
+            this.rawMap = this.map;
+
+            var M = this.VM.map;
+
+
+            this.MX = System.Array.getLength(this.map, 0);
+            this.MY = System.Array.getLength(this.map, 1);
+            this.MZ = System.Array.getLength(this.map, 2);
+
+            this.zind = 1;
+            this.yind = this.MZ;
+            this.xind = (this.yind * this.MY) | 0;
+
+
+        },
+        getX: function () {
+            return this.xpos;
+        },
+        setX: function (value) {
+            if (value >= 0 && value < this.MX && this.xpos !== value) {
+                var NV = (value - this.xpos) | 0;
+                this.xpos = value;
+                this.index = (this.index + (((NV * this.xind) | 0))) | 0;
+            }
+        },
+        getY: function () {
+            return this.ypos;
+        },
+        setY: function (value) {
+            if (value >= 0 && value < this.MY && this.ypos !== value) {
+                var NV = (value - this.ypos) | 0;
+                this.ypos = value;
+                this.index = (this.index + (((NV * this.yind) | 0))) | 0;
+            }
+        },
+        getZ: function () {
+            return this.zpos;
+        },
+        setZ: function (value) {
+            if (value >= 0 && value < this.MZ && this.zpos !== value) {
+                var NV = (value - this.zpos) | 0;
+                this.zpos = value;
+                //Index += NV * Zind;
+                this.index = (this.index + NV) | 0;
+            }
+        },
+        getcurrentVoxel: function () {
+            return this.rawMap[this.index];
+        },
+        setcurrentVoxel: function (value) {
+            this.rawMap[this.index] = value;
+        },
+        getNeighbor: function (X, Y, Z) {
+            //if (VM.InBounds(Xpos+X,Ypos+Y,Zpos+Z))
+            if (BNTest.MathHelper.within(((this.xpos + X) | 0), 0, this.MX) && BNTest.MathHelper.within(((this.ypos + Y) | 0), 0, this.MY) && BNTest.MathHelper.within(((this.zpos + Z) | 0), 0, this.MZ)) {
+                var ind = this.index;
+                if (X === -1) {
+                    ind = (ind - this.xind) | 0;
+                }
+                if (X === 1) {
+                    ind = (ind + this.xind) | 0;
+                }
+
+                if (Y === -1) {
+                    ind = (ind - this.yind) | 0;
+                }
+                if (Y === 1) {
+                    ind = (ind + this.yind) | 0;
+                }
+                ind = (ind + Z) | 0;
+                return this.rawMap[ind];
+            }
+            return null;
+        },
+        valid: function (C) {
+            return C != null && C.a > 0;
+        },
+        adjacentVoxels: function () {
+            var i = 0;
+            var C = this.getNeighbor(-1, 0, 0);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            C = this.getNeighbor(1, 0, 0);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            //
+            C = this.getNeighbor(0, -1, 0);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            C = this.getNeighbor(0, 1, 0);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            //
+            C = this.getNeighbor(0, 0, -1);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            C = this.getNeighbor(0, 0, 1);
+            if (this.valid(C)) {
+                i = (i + 1) | 0;
+            }
+            return i;
+        },
+        findAdjacentVoxel: function () {
+            var C = this.getNeighbor(-1, 0, 0);
+            if (this.valid(C)) {
+                return C;
+            }
+            C = this.getNeighbor(1, 0, 0);
+            if (this.valid(C)) {
+                return C;
+            }
+            //
+            C = this.getNeighbor(0, -1, 0);
+            if (this.valid(C)) {
+                return C;
+            }
+            C = this.getNeighbor(0, 1, 0);
+            if (this.valid(C)) {
+                return C;
+            }
+            //
+            C = this.getNeighbor(0, 0, -1);
+            if (this.valid(C)) {
+                return C;
+            }
+            C = this.getNeighbor(0, 0, 1);
+            if (this.valid(C)) {
+                return C;
+            }
+            return null;
+        },
+        incrX: function () {
+            if (((this.xpos + 1) | 0) < this.MX) {
+                this.xpos = (this.xpos + 1) | 0;
+                this.index = (this.index + this.xind) | 0;
+            }
+        },
+        incrY: function () {
+            if (((this.ypos + 1) | 0) < this.MY) {
+                this.ypos = (this.ypos + 1) | 0;
+                this.index = (this.index + this.yind) | 0;
+            }
+        },
+        incrZ: function () {
+            if (((this.zpos + 1) | 0) < this.MZ) {
+                this.zpos = (this.zpos + 1) | 0;
+                this.index = (this.index + this.zind) | 0;
+            }
+        },
+        decrX: function () {
+            if (this.xpos > 0) {
+                this.xpos = (this.xpos - 1) | 0;
+                this.index = (this.index - this.xind) | 0;
+            }
+        },
+        decrY: function () {
+            if (this.ypos > 0) {
+                this.ypos = (this.ypos - 1) | 0;
+                this.index = (this.index - this.yind) | 0;
+            }
+        },
+        decrZ: function () {
+            if (this.zpos > 0) {
+                this.zpos = (this.zpos - 1) | 0;
+                this.index = (this.index - this.zind) | 0;
+            }
+        },
+        hasNext: function () {
+            return (((this.index + 1) | 0) < this.rawMap.length);
+        },
+        next: function () {
+            this.zpos = (this.zpos + 1) | 0;
+            this.index = (this.index + this.zind) | 0;
+            if (this.zpos >= this.MZ) {
+                this.zpos = (this.zpos - this.MZ) | 0;
+                this.index = (this.index - (((this.MZ * this.zind) | 0))) | 0;
+
+                this.ypos = (this.ypos + 1) | 0;
+                this.index = (this.index + this.yind) | 0;
+                if (this.ypos >= this.MY) {
+                    this.ypos = (this.ypos - this.MY) | 0;
+                    this.index = (this.index - (((this.MY * this.yind) | 0))) | 0;
+
+                    this.xind = (this.xind + 1) | 0;
+                    this.index = (this.index + this.xind) | 0;
+                }
+            }
+            if (this.index >= 0 && this.index < this.rawMap.length) {
+                return this.getcurrentVoxel();
+            }
+            return null;
+        },
+        iterate: function (action, Area) {
+            this.iterate$2(action, Area);
+        },
+        iterate$2: function (action, Area) {
+            var M = this.rawMap;
+
+            Area.min = BNTest.GLVec3.max(Area.min, new BNTest.GLVec3.ctor());
+            Area.max = BNTest.GLVec3.min(Area.max, this.VM.getSizeAsBoundingBox().max);
+
+            var Min = Area.min;
+            var Max = Area.max;
+            var SX = Bridge.Int.clip32(Min.x);
+            var SY = Bridge.Int.clip32(Min.y);
+            var SZ = Bridge.Int.clip32(Min.z);
+            var X = SX;
+            var Y = SY;
+            var Z = SZ;
+
+            var i = 0;
+
+            i = (X * this.xind) | 0;
+            i = (i + (((Y * this.yind) | 0))) | 0;
+            i = (i + Z) | 0;
+            var ln = M.length;
+            while (X < Max.x) {
+                while (Y < Max.y) {
+                    while (Z < Max.z) {
+                        if (i >= 0 && i < ln) {
+                            var C = M[i];
+                            if (C == null) {
+                                C = new BNTest.GLColor(0, 0, 0, 0);
+                            } else {
+                                C = C.clone();
+                            }
+                            action(C, X, Y, Z);
+                            M[i] = C;
+                        }
+                        Z = (Z + 1) | 0;
+                        i = (i + 1) | 0;
+                    }
+                    i = (i - (((Z - SZ) | 0))) | 0;
+                    Z = SZ;
+                    Y = (Y + 1) | 0;
+                    i = (i + this.yind) | 0;
+                }
+                i = (i - ((((((Y - SY) | 0)) * this.yind) | 0))) | 0;
+                Y = SY;
+                X = (X + 1) | 0;
+                i = (i + this.xind) | 0;
+            }
+        },
+        /**
+         * Iterates through the entire voxelmap, each voxels iterated through is set to what the action changes the color's ARGB values to.
+         *
+         * @instance
+         * @public
+         * @this BNTest.VoxelMapAccessor
+         * @memberof BNTest.VoxelMapAccessor
+         * @param   {System.Action}    action    (Color,X,Y,Z)
+         * @return  {void}
+         */
+        iterate$1: function (action) {
+            var X = 0;
+            var Y = 0;
+            var Z = 0;
+            var i = 0;
+            var M = this.rawMap;
+            var ln = M.length;
+            while (i < ln) {
+                var C = M[i];
+                if (C == null) {
+                    C = new BNTest.GLColor(0, 0, 0, 0);
+                } else {
+                    C = C.clone();
+                }
+                action(C, X, Y, Z);
+                M[i] = C;
+                i = (i + 1) | 0;
+                Z = (Z + 1) | 0;
+                if (Z >= this.MZ) {
+                    Z = (Z - this.MZ) | 0;
+                    Y = (Y + 1) | 0;
+                    if (Y >= this.MY) {
+                        Y = (Y - this.MY) | 0;
+                        X = (X + 1) | 0;
+                    }
+                }
+            }
+        }
+    });
+
+    Bridge.define("BNTest.VoxelMapAsset", {
+        statics: {
+            fromImages: function (animation) {
+                return new BNTest.VoxelMapAsset(BNTest.VoxelMap.fromImages$1(animation));
+            },
+            fromImages$2: function (animation, Pallette) {
+                return new BNTest.VoxelMapAsset(BNTest.VoxelMap.fromImages$1(animation), Pallette);
+            },
+            fromImages$1: function (animation, Pallette) {
+                var ret = new BNTest.VoxelMapAsset(BNTest.VoxelMap.fromImages$1(animation));
+                var i = 0;
+                while (i < Pallette.length) {
+                    ret.setItem(i, Pallette[i]);
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            },
+            combine: function (Assets) {
+                var i = 0;
+                var ret = null;
+                while (i < Assets.length) {
+                    var A = Assets[i];
+                    var VM = A.map;
+                    if (A.pallette != null) {
+                        VM.applyPalette(A.pallette);
+                    }
+                    if (ret == null) {
+                        ret = VM;
+                    } else {
+                        ret.combine(VM);
+                    }
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            }
+        },
+        map: null,
+        pallette: null,
+        _Colors: null,
+        ctor: function (Map, Pallette) {
+            if (Pallette === void 0) { Pallette = null; }
+
+            this.$initialize();
+            this.map = Map;
+            if (Pallette == null) {
+                Pallette = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+            }
+            this.pallette = Pallette;
+        },
+        getColors: function () {
+            if (this._Colors == null) {
+                this._Colors = this.map.getPalette();
+            }
+            return this._Colors;
+        },
+        /**
+         * GET:Returns a color from the source pallette.
+         SET:Sets the destination pallete, for the specific index from the source.
+         *
+         * @instance
+         * @public
+         * @memberof BNTest.VoxelMapAsset
+         * @param   {number}            Color
+         * @return  {BNTest.GLColor}
+         */
+        setItem: function (Color, value) {
+            this.setColor(Color, value);
+        },
+        setColor: function (Color, value) {
+            this.pallette.set(this.getColors()[Color], value);
+        }
+    });
+
+    Bridge.define("BNTest.VoxelMapAssetEntry", {
+        statics: {
+            combine: function (entries) {
+                var VMA = System.Array.init(0, null);
+                var i = 0;
+                while (i < entries.length) {
+                    VMA.push(BNTest.VoxelMapAsset.fromImages$1(entries[i].animation, entries[i].pallete));
+                    i = (i + 1) | 0;
+                }
+                return BNTest.VoxelMapAsset.combine(VMA);
+            },
+            fromArray$2: function (animations, Pallettes) {
+                if (Pallettes === void 0) { Pallettes = null; }
+                var ret = System.Array.init(0, null);
+                var i = 0;
+                while (i < animations.length) {
+                    var R = new BNTest.VoxelMapAssetEntry(animations[i]);
+                    if (Pallettes != null && i < Pallettes.length) {
+                        R.pallete = Pallettes[i];
+                    }
+                    ret.push(R);
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            },
+            fromArray$1: function (animations) {
+                if (animations === void 0) { animations = []; }
+                var ret = System.Array.init(0, null);
+                var i = 0;
+                while (i < animations.length) {
+                    var R = new BNTest.VoxelMapAssetEntry(animations[i]);
+                    ret.push(R);
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            },
+            fromArray: function (Pallette, animations) {
+                if (animations === void 0) { animations = []; }
+                var ret = System.Array.init(0, null);
+                var i = 0;
+                while (i < animations.length) {
+                    var R = new BNTest.VoxelMapAssetEntry(animations[i]);
+                    R.pallete = Pallette;
+                    ret.push(R);
+                    i = (i + 1) | 0;
+                }
+                return ret;
+            }
+        },
+        animation: null,
+        pallete: null,
+        ctor: function (animation, Pallete) {
+            if (Pallete === void 0) { Pallete = null; }
+
+            this.$initialize();
+            this.animation = animation;
+            if (Pallete == null) {
+                Pallete = System.Array.init(0, null);
+            }
+            this.pallete = Pallete;
+        }
+    });
+
     Bridge.define("BNTest.WGMatrix", {
         statics: {
             tmatrix: null,
@@ -9635,11 +11952,13 @@
             T1: null,
             T2: null,
             T3: null,
+            T4: null,
             config: {
                 init: function () {
                     this.T1 = System.Array.init(16, 0);
                     this.T2 = System.Array.init(16, 0);
                     this.T3 = System.Array.init(16, 0);
+                    this.T4 = System.Array.init(16, 0);
                 }
             },
             init: function () {
@@ -9790,9 +12109,13 @@
                 //prepare for mat4 usage
                 BNTest.WGMatrix.flatten$1(matrix1, BNTest.WGMatrix.T1);
                 BNTest.WGMatrix.flatten$1(matrix2, BNTest.WGMatrix.T2);
-                mat4.multiply(BNTest.WGMatrix.T3, BNTest.WGMatrix.T1, BNTest.WGMatrix.T2);
+                var a = BNTest.WGMatrix.T1;
+                var b = BNTest.WGMatrix.T2;
+                var c = BNTest.WGMatrix.T4;
+                mat4mult(c,a,b);
+                //Mat4.Multiply(T3, T1, T2);
                 //migrate the new data into the matrix.
-                BNTest.WGMatrix.deflat(BNTest.WGMatrix.T3, matrix1.elements);
+                BNTest.WGMatrix.deflat(BNTest.WGMatrix.T4, matrix1.elements);
             },
             deflat: function (M, destination) {
                 var D = destination[0];
@@ -9819,13 +12142,18 @@
                 D[2] = M[14];
                 D[3] = M[15];
             },
-            multMatrix: function (matrix1, matrix2) {
+            multMatrix: function (matrix1, matrix2, l) {
+                if (l === void 0) { l = 3; }
                 var a = matrix1.elements;
                 BNTest.WGMatrix.copyFromInverted(matrix2.elements, BNTest.WGMatrix.tbmatrix);
                 var b = BNTest.WGMatrix.tbmatrix;
                 var c = BNTest.WGMatrix.tmatrix;
-                //var l = 4;
-                var l = 3;
+                //var l = 3;
+                /* var l = 3;
+                if (mat4)
+                {
+                    l = 4;
+                }*/
                 //4 is required when a perspective is active within the matrix.
                 //var l = 4;
                 //double cij = 0;
@@ -9909,7 +12237,9 @@
         },
         ctor: function () {
             this.$initialize();
-            this.mvMatrix = Matrix.I(4);
+            //this.mvMatrix = Script.Write<object>("Matrix.I(4);");
+            this.mvMatrix = {  };
+            this.newIdentity();
         },
         loadIdentity: function () {
             //this.mvMatrix = Script.Write<object>("Matrix.I(4);");
@@ -9978,6 +12308,20 @@
         },
         copyFrom$1: function (source) {
             BNTest.WGMatrix.copyFrom(source, this.mvMatrix);
+        },
+        cleanW: function () {
+            var $t;
+            var a = this.mvMatrix.elements;
+            var b = a[3];
+            /* a[0][3] = a[1][3] = a[2][3] = */
+            b[0] = ($t = (b[2] = 0, 0), b[1] = $t, $t);
+            b[3] = 1;
+        },
+        mat4MultMatrix: function (matrix) {
+            BNTest.WGMatrix.mat4MultMatrix(this.mvMatrix, matrix.mvMatrix);
+        },
+        mat4MultMatrix$1: function (matrix) {
+            BNTest.WGMatrix.mat4MultMatrix(this.mvMatrix, matrix);
         },
         mvTranslate: function (v) {
             /* var m = Script.Write<object>("Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4()");
@@ -10262,9 +12606,11 @@
         platforms: null,
         octree: null,
         cam: null,
+        TE: null,
         config: {
             init: function () {
                 this.cam = new BNTest.GLVec3.ctor();
+                this.TE = System.Array.init(0, null);
             }
         },
         ctor: function (Game) {
@@ -10274,7 +12620,7 @@
             this.entities = new (System.Collections.Generic.List$1(BNTest.Entity))();
             this.platforms = new (System.Collections.Generic.List$1(BNTest.Entity))();
 
-            this.octree = new BNTest.Octree(50, 4);
+            this.octree = new BNTest.Octree(300, 4);
         },
         getOffset: function () {
             return this.model.offset;
@@ -10316,8 +12662,8 @@
         },
         remove$1: function (M) {
             if (M != null && this.model.children.contains(M)) {
-                M.unloadBuffers();
                 this.model.children.remove(M);
+                M.unloadBuffers();
             }
         },
         update: function () {
@@ -10339,6 +12685,23 @@
             }
             this.updateCollisions();
         },
+        findAnyCollision: function (box, exclusion) {
+            if (exclusion === void 0) { exclusion = null; }
+            var none = true;
+            var ret = [];
+            var Ent = this.entities.items;
+            var i = 0;
+            var ln = Ent.length;
+            while (i < ln) {
+                var E = Ent[i];
+                var EL = E.lastBB;
+                if (E != exclusion && EL != null && !EL.getEmpty() && EL.intersection$2(box)) {
+                    ret.push(E);
+                }
+                i = (i + 1) | 0;
+            }
+            return ret;
+        },
         findObstructionCollision: function (box, exclusion) {
             if (exclusion === void 0) { exclusion = null; }
             var none = true;
@@ -10348,7 +12711,8 @@
             var ln = Ent.length;
             while (i < ln) {
                 var E = Ent[i];
-                if ((E.solid || E.obstruction) && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.intersection$2(box)) {
+                var EB = E.lastBB;
+                if ((E.solid || E.obstruction) && E != exclusion && EB != null && !EB.getEmpty() && EB.intersection$2(box)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
@@ -10363,9 +12727,11 @@
             var Ent = this.entities.items;
             var i = 0;
             var ln = Ent.length;
+            var E;
             while (i < ln) {
-                var E = Ent[i];
-                if ((E.solid || E.obstruction) && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.contains(Position)) {
+                E = Ent[i];
+                var EB = E.lastBB;
+                if ((E.solid || E.obstruction) && E != exclusion && EB != null && !EB.getEmpty() && EB.contains(Position)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
@@ -10379,9 +12745,11 @@
             var Ent = this.platforms.items;
             var i = 0;
             var ln = Ent.length;
+            var E;
             while (i < ln) {
-                var E = Ent[i];
-                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.intersection$2(box)) {
+                E = Ent[i];
+                var EB = E.lastBB;
+                if (E.solid && E != exclusion && E.lastBB != null && !EB.getEmpty() && EB.intersection$2(box)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
@@ -10397,40 +12765,55 @@
             var ln = Ent.length;
             while (i < ln) {
                 var E = Ent[i];
-                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.contains(Position)) {
+                var EB = E.lastBB;
+                if (E.solid && E != exclusion && EB != null && !EB.getEmpty() && EB.contains(Position)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
             }
             return ret;
         },
-        findSolidCollision: function (box, exclusion) {
+        findSolidCollision: function (box, exclusion, OUT) {
             if (exclusion === void 0) { exclusion = null; }
+            if (OUT === void 0) { OUT = null; }
             var none = true;
-            var ret = [];
+            var ret = OUT != null ? OUT : this.TE;
+            if (Bridge.referenceEquals(ret, this.TE)) {
+                BNTest.HelperExtensions.clear$1(BNTest.Entity, this.TE);
+            }
+            //Entity[] ret = Script.Write<Entity[]>("[]");
             var Ent = this.entities.items;
             var i = 0;
             var ln = Ent.length;
+            var EL;
             while (i < ln) {
                 var E = Ent[i];
-                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.intersection$2(box)) {
+                EL = E.lastBB;
+                if (E.solid && E != exclusion && EL != null && !EL.getEmpty() && EL.intersection$2(box)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
             }
             return ret;
         },
-        findSolidCollision$2: function (Position, exclusion) {
+        findSolidCollision$2: function (Position, exclusion, OUT) {
             if (exclusion === void 0) { exclusion = null; }
+            if (OUT === void 0) { OUT = null; }
+            var ret = OUT != null ? OUT : this.TE;
+            if (Bridge.referenceEquals(ret, this.TE)) {
+                BNTest.HelperExtensions.clear$1(BNTest.Entity, this.TE);
+            }
             //return Entities.Where(E => E.Solid && E != exclusion && E.LastBB != null && E.LastBB.Size.RoughLength>0 && E.LastBB.Contains(Position)).ToList();
             var none = true;
-            var ret = [];
+            //Entity[] ret = Script.Write<Entity[]>("[]");
             var Ent = this.entities.items;
             var i = 0;
             var ln = Ent.length;
+            var EL;
             while (i < ln) {
                 var E = Ent[i];
-                if (E.solid && E != exclusion && E.lastBB != null && !E.lastBB.getEmpty() && E.lastBB.contains(Position)) {
+                EL = E.lastBB;
+                if (E.solid && E != exclusion && EL != null && !EL.getEmpty() && EL.contains(Position)) {
                     ret.push(E);
                 }
                 i = (i + 1) | 0;
@@ -10447,7 +12830,21 @@
             this.updateAttackCollisions();
         },
         prepareRender: function () {
-            this.model.children.sort($_.BNTest.World.f1);
+            BNTest.Mesh.lastDrawn = null;
+            if ((this.game.frame & 1) > 0) {
+                this.model.children.sort($_.BNTest.World.f1);
+            }
+            /* Model.children.Sort((M1, M2) => 
+                    {
+                        int i = M1.DrawOrder.CompareTo(M2.DrawOrder);
+                        if (i==0)
+                        {
+                            //i=M1.Offset.Z.CompareTo(M2.Offset.Z);
+                            i = M1.Offset.RoughDistance(Cam).CompareTo(M2.Offset.RoughDistance(Cam));
+                        }
+                        return i;
+                    }
+                );*/
         },
         updateAttackCollisions: function () {
             //List<Entity> LC = entities.(E => E is IHarmfulEntity);
@@ -10457,8 +12854,11 @@
             var LHE = System.Array.init(0, null);
             var LC = System.Array.init(0, null);
             var ln = this.entities.getCount();
+            var ret = [];
+            var Ent = this.entities.items;
             while (i < ln) {
-                var E = this.entities.getItem(i);
+                //var E = Entities[i];
+                var E = Ent[i];
                 //if (E.As<ICombatant>().TargetPriority.As<bool>())
                 if (E.getTargetPriority) {
                     LC.push(E);
@@ -10562,6 +12962,11 @@
                         N.requestMoveTo(V, 0.42, true);
                         ok = true;
                     }
+                    /* else
+                        {
+                            V.Release();
+                        }
+                        Nrelative.Release();*/
                 }
             }
             BNTest.EntityBehavior.prototype.update.call(this);
@@ -10621,7 +13026,8 @@
                         }
                     }
                     //_platformer.Speed += V.Normalize(6);
-                    this._platformer.speed = BNTest.GLVec3.op_Addition$1(this._platformer.speed, V.normalize(8));
+                    //_platformer.Speed += V.Normalize(8);
+                    this._platformer.speed = BNTest.GLVec3.op_Addition$1(this._platformer.speed, V.normalize(9));
                     //_platformer.Speed.Y = -1.8;
                     this._platformer.speed.y = -2.0;
                     this._platformer.playSound("zoom");
@@ -10675,16 +13081,16 @@
     Bridge.define("BNTest.BasicSword", {
         inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
         _ammo: 0,
-        _maxAmmo: 3,
+        _maxAmmo: 1,
         _shotDelay: 0,
-        _maxShotDelay: 2,
+        _maxShotDelay: 1,
         _angle: 0,
         bulletSpeed: 0,
+        bulletLifeSpan: 6,
         bulletGraphic: null,
-        active: false,
         speed: null,
         forcedAngle: 0,
-        minCoolDown: 18,
+        minCoolDown: 22,
         config: {
             alias: [
             "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
@@ -10715,8 +13121,6 @@
         },
         update: function () {
             if (this._ammo > 0) {
-                if (this.active) {
-                }
                 this._shotDelay = (this._shotDelay - 1) | 0;
                 if (this._shotDelay <= 0) {
                     this._shotDelay = this._maxShotDelay;
@@ -10737,18 +13141,13 @@
                         D.X = P.x;
                         D.Y = P.y;
                         D.Z = P.z;
-                        this.entity.forcedAngle = this._angle;
-                        this.entity.frictionActive = false;
-                        if (!this.active) {
+                        //if (!active)
+                        {
                             this.customEvent(D);
                         }
                     }
 
                 }
-            } else if (this.active) {
-                this.entity.forcedAngle = null;
-                this.entity.frictionActive = true;
-                this.active = false;
             }
             BNTest.EntityBehavior.prototype.update.call(this);
         },
@@ -10758,6 +13157,7 @@
 
             var P = new BNTest.Projectile(this.entity.world, this.entity);
             P.solid = false;
+            P.multiHit = true;
             var M = new BNTest.Model(this.entity.game);
             M.meshes.add(this.bulletGraphic);
             P.model = M;
@@ -10783,7 +13183,8 @@
 
             P.setScale(BNTest.GLVec3.createUniform(3.0));
 
-            var lifespan = (this._maxShotDelay * this._maxAmmo) | 0;
+            //var lifespan = _maxShotDelay * _maxAmmo;
+            var lifespan = this.bulletLifeSpan;
             lifespan = (lifespan + 3) | 0;
             //P.Solid = true;
             P.obstruction = true;
@@ -10794,7 +13195,6 @@
             P.addBehavior(new BNTest.LifeSpan(P, lifespan));
             this.entity.world.add(P);
 
-            this.active = true;
             this.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
             P.setPosition(BNTest.GLVec3.op_Addition(P.getPosition(), BNTest.GLVec3.op_Multiply$1(this.speed, 0.5)));
 
@@ -10805,10 +13205,313 @@
         }
     });
 
+    Bridge.define("BNTest.ButtonSprite", {
+        inherits: [BNTest.Sprite],
+        _buttonNeedsRerender: false,
+        _buttonBuffer: null,
+        _buttonGraphic: null,
+        data: null,
+        _contents: null,
+        _borderSize: 0,
+        _borderColor: null,
+        lockedClickSound: "hit",
+        clickSound: "select",
+        _buttonColor: null,
+        colorSchemes: null,
+        locked: false,
+        onClick: null,
+        lContentSize: null,
+        config: {
+            init: function () {
+                this.lContentSize = new BNTest.Vector2();
+            }
+        },
+        $ctor1: function (Text, FontSize, borderSize, borderColor, buttonColor, data) {
+            if (borderSize === void 0) { borderSize = 2; }
+            if (borderColor === void 0) { borderColor = "#00AA33"; }
+            if (buttonColor === void 0) { buttonColor = "#11CC55"; }
+            if (data === void 0) { data = null; }
+
+            this.$initialize();
+            BNTest.Sprite.ctor.call(this);
+            var T = new BNTest.TextSprite();
+            T.setText(Text);
+            T.setFontSize(FontSize);
+            var contents = T;
+
+
+            this.setContents(contents);
+            this.setBorderSize(borderSize);
+            this.setBorderColor(borderColor);
+            this.setButtonColor(buttonColor);
+
+            this._buttonBuffer = new BNTest.Sprite();
+            this._buttonBuffer.setSize(contents.getSize());
+            this._buttonGraphic = this._buttonBuffer.getGraphics();
+            this._buttonNeedsRerender = true;
+            this.colorSchemes = new (System.Collections.Generic.List$1(BNTest.ButtonSprite.ColorScheme))();
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme(borderColor, buttonColor));
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme("#FFFFFF", "#FF0000"));
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme("#777777", "#CCCCCC"));
+
+            this.data = data;
+            if (data == null && Bridge.hasValue(contents)) {
+                this.data = contents.getText();
+            }
+
+            this.draw(null);
+        },
+        ctor: function (contents, borderSize, borderColor, buttonColor, data) {
+            if (borderSize === void 0) { borderSize = 2; }
+            if (borderColor === void 0) { borderColor = "#00AA33"; }
+            if (buttonColor === void 0) { buttonColor = "#11CC55"; }
+            if (data === void 0) { data = null; }
+
+            this.$initialize();
+            BNTest.Sprite.ctor.call(this);
+            this.setContents(contents);
+            this.setBorderSize(borderSize);
+            this.setBorderColor(borderColor);
+            this.setButtonColor(buttonColor);
+
+            this._buttonBuffer = new BNTest.Sprite();
+            this._buttonBuffer.setSize(contents.getSize());
+            this._buttonGraphic = this._buttonBuffer.getGraphics();
+            this._buttonNeedsRerender = true;
+            this.colorSchemes = new (System.Collections.Generic.List$1(BNTest.ButtonSprite.ColorScheme))();
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme(borderColor, buttonColor));
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme("#FFFFFF", "#FF0000"));
+            this.colorSchemes.add(new BNTest.ButtonSprite.ColorScheme("#777777", "#CCCCCC"));
+
+            this.data = data;
+            if (data == null && Bridge.is(contents, BNTest.TextSprite)) {
+                this.data = Bridge.cast(contents, BNTest.TextSprite).getText();
+            }
+
+            this.draw(null);
+        },
+        getContents: function () {
+            return this._contents;
+        },
+        setContents: function (value) {
+            if (!Bridge.referenceEquals(this._contents, value)) {
+                this._contents = value;
+                this._buttonNeedsRerender = true;
+            }
+        },
+        getBorderSize: function () {
+            return this._borderSize;
+        },
+        setBorderSize: function (value) {
+            if (this._borderSize !== value) {
+                this._borderSize = value;
+                this._buttonNeedsRerender = true;
+            }
+        },
+        getBorderColor: function () {
+            return this._borderColor;
+        },
+        setBorderColor: function (value) {
+            if (!Bridge.referenceEquals(this._borderColor, value)) {
+                this._borderColor = value;
+                this._buttonNeedsRerender = true;
+            }
+        },
+        getButtonColor: function () {
+            return this._buttonColor;
+        },
+        setButtonColor: function (value) {
+            if (!Bridge.referenceEquals(this._buttonColor, value)) {
+                this._buttonColor = value;
+                this._buttonNeedsRerender = true;
+            }
+        },
+        setColorScheme: function (scheme) {
+            this.setBorderColor(scheme.borderColor);
+            this.setButtonColor(scheme.buttonColor);
+        },
+        setColorScheme$1: function (index) {
+            var C = this.colorSchemes.getItem(index);
+            this.setColorScheme(C);
+        },
+        drawButton: function () {
+            var g = this._buttonGraphic;
+            var sz = (this._borderSize + this._borderSize) | 0;
+            this._buttonBuffer.setSize(BNTest.Vector2.op_Addition(this.getContents().getSize(), new BNTest.Vector2(sz, sz)));
+            var size = this._buttonBuffer.getSize();
+
+            g.fillStyle = this._borderColor;
+            g.fillRect(0, 0, size.x, size.y);
+
+            g.fillStyle = this.getButtonColor();
+            g.fillRect(this._borderSize, this._borderSize, ((Bridge.Int.clip32(size.x) - sz) | 0), ((Bridge.Int.clip32(size.y) - sz) | 0));
+
+            var color = "rgba(255,255,255,0)";
+
+            var wht = "rgba(255,255,255,0.7)";
+
+
+            var grd = g.createLinearGradient(0, 0, 0, size.y);grd.addColorStop(0, color);grd.addColorStop(0.4, wht);grd.addColorStop(1, color);g.fillStyle = grd;
+            g.fillRect(0, 0, this._buttonBuffer.getSize().x, this._buttonBuffer.getSize().y);
+        },
+        lock: function (setcolorscheme) {
+            if (setcolorscheme === void 0) { setcolorscheme = true; }
+            if (this.locked) {
+                return;
+            }
+            this.locked = true;
+            if (setcolorscheme) {
+                this.setColorScheme$1(2);
+            }
+        },
+        unlock: function (setcolorscheme) {
+            if (setcolorscheme === void 0) { setcolorscheme = true; }
+            if (!this.locked) {
+                return;
+            }
+            this.locked = false;
+            if (setcolorscheme) {
+                this.setColorScheme$1(0);
+            }
+        },
+        checkClick: function (mousePosition) {
+            if (mousePosition === void 0) { mousePosition = null; }
+            if (BNTest.Vector2.op_Equality(mousePosition, null)) {
+                mousePosition = BNTest.KeyboardManager.get_this().cMouse;
+                var clicked = BNTest.KeyboardManager.get_this().tappedMouseButtons.contains(0);
+                if (!clicked) {
+                    return false;
+                }
+            }
+            if (this.visible && this.getBounds().containsPoint(mousePosition)) {
+                if (this.locked) {
+                    if (!Bridge.referenceEquals(this.lockedClickSound, "") && this.lockedClickSound != null) {
+                        BNTest.AudioManager.get_this().blast(System.String.concat(System.String.concat("SFX/", this.lockedClickSound), ".ogg"));
+                    }
+                    return false;
+                }
+
+                if (!Bridge.referenceEquals(this.clickSound, "") && this.clickSound != null) {
+                    //AudioManager._this.Get("SFX/" + ClickSound);
+                    BNTest.AudioManager.get_this().blast(System.String.concat(System.String.concat("SFX/", this.clickSound), ".ogg"));
+
+                }
+                var tmp = this.onClick;
+                if (tmp) {
+                    this.onClick();
+                }
+                return true;
+            }
+            return false;
+        },
+        draw: function (g) {
+            //if (_contents.Size != LContentSize)
+            if (this._contents.getSize().x !== this.lContentSize.x || this._contents.getSize().y !== this.lContentSize.y) {
+                this._buttonNeedsRerender = true;
+                this.lContentSize = this._contents.getSize().clone();
+            }
+            if (this._buttonNeedsRerender) {
+                this.drawButton();
+                this._buttonNeedsRerender = false;
+            }
+            this.setSize(this._buttonBuffer.getSize().clone());
+            //spriteGraphics.DrawImage(_bu)
+            this._buttonBuffer.draw(this.spriteGraphics);
+            this.getContents().position = new BNTest.Vector2(this._borderSize, this._borderSize);
+            this.getContents().draw(this.spriteGraphics);
+
+            if (g != null) {
+                BNTest.Sprite.prototype.draw.call(this, g);
+            }
+        }
+    });
+
+    Bridge.define("BNTest.CharacterSelect", {
+        inherits: [BNTest.Sprite],
+        characters: null,
+        menu: null,
+        charCount: 0,
+        ctor: function (Characters) {
+            this.$initialize();
+            BNTest.Sprite.ctor.call(this);
+            this.characters = Characters;
+            this.initMenu();
+            this.spriteBuffer.width = 1024;
+            this.spriteBuffer.height = Bridge.Int.clip32(1024 * BNTest.App.targetAspect);
+        },
+        initMenu: function () {
+            var S = "";
+            if (this.menu != null) {
+                S = this.menu.getSelectedText();
+            }
+            /* Menu = new ButtonMenu(0, 600, 50, true);
+                Menu.Position = new Vector2(150, 200);*/
+            this.charCount = 0;
+            this.menu = new BNTest.ButtonMenu(700, 450, 46, true);
+            this.menu.position = new BNTest.Vector2(30, 300);
+            var def = null;
+            var L = this.characters.getItems();
+            L = System.Linq.Enumerable.from(L).where($_.BNTest.CharacterSelect.f1).toList(BNTest.FeatureItem);
+            //var L = Characters.GetItems();
+            var i = 0;
+            while (i < L.getCount()) {
+                var A = L.getItem(i);
+                var B = this.menu.addButton(A.name);
+                if (def == null) {
+                    def = B;
+                }
+                this.charCount = (this.charCount + 1) | 0;
+                //ButtonSprite B = new ButtonSprite()
+                i = (i + 1) | 0;
+            }
+
+            //Menu.Finish(999999999);
+            this.menu.finish(Bridge.Int.clip32(Math.ceil(this.menu.getAllButtons().getCount() / 3.0)));
+            this.menu.select(def);
+            if (this.charCount === 1) {
+                def.visible = false;
+            }
+            if (!Bridge.referenceEquals(S, "") && S != null) {
+                this.menu.setSelectedText(S);
+            }
+        },
+        update: function () {
+            this.menu.update();
+        },
+        render: function () {
+            //spriteGraphics.ClearRect(0, 0, spriteBuffer.Width, spriteBuffer.Height);
+            BNTest.HelperExtensions.clear(this.spriteGraphics);
+            this.menu.draw(this.spriteGraphics);
+        },
+        draw: function (g) {
+            this.render();
+            BNTest.Sprite.prototype.draw.call(this, g);
+        }
+    });
+
+    Bridge.ns("BNTest.CharacterSelect", $_);
+
+    Bridge.apply($_.BNTest.CharacterSelect, {
+        f1: function (J) {
+            return J.getPurchased();
+        }
+    });
+
     Bridge.define("BNTest.Coin", {
         inherits: [BNTest.Entity],
         value: 10,
         pickupDelay: 0,
+        /**
+         * when false, the collision detection becomes throttled.
+         *
+         * @instance
+         * @private
+         * @memberof BNTest.Coin
+         * @default true
+         * @type boolean
+         */
+        falling: true,
+        frame: 0,
         ctor: function (world, lifespan) {
             if (lifespan === void 0) { lifespan = 900; }
 
@@ -10885,6 +13588,7 @@
                     //world.SendToBack(model);
                     this.model.drawOrder = -1;
 
+                    this.model.smoothen();
 
                     /* md = new Model(Game);
                     md.Depthfunc = Game.gl.GREATER;*/
@@ -10901,7 +13605,7 @@
         },
         setValue: function (Value) {
             if (Value < 10) {
-                this.setScale(BNTest.GLVec3.createUniform((Value * 0.1) * 0.5));
+                this.setScale(BNTest.GLVec3.createUniform((((((10 + Value) | 0)) * 0.5) * 0.1) * 0.5));
                 this.value = Value;
                 this.customBoundingBox = BNTest.BoundingBox.op_Multiply$1(this.customBoundingBox, this.model.scale.x);
                 return;
@@ -10928,7 +13632,8 @@
             var P = this.model.offset;
             this.model = this.model.clone();
             this.model.offset = P;
-            var M = this.model.children.getItem(2);
+            //Model M = model.children[2];
+            var M = this.model.children.getItem(1);
             //M.meshes[0] = M.meshes[0].Clone(false);
             M.meshes.getItem(0).replaceAllColors(color);
         },
@@ -10937,19 +13642,23 @@
             //model.Rotation.X = 45;
 
             BNTest.Entity.prototype.update.call(this);
-
+            this.frame = (this.frame + 1) | 0;
 
             var player = this.world.game.localplayer.character;
             var BS = this.lastBB.getSize();
             //Speed.Y = 0;
             this.speed = BNTest.GLVec3.op_Multiply$1(this.speed, 0.96);
 
-            if (this.world.findSolidCollision$2(BNTest.GLVec3.op_Addition(this.getPosition(), new BNTest.GLVec3.ctor(0, (BS.y) + 1, 0))).length > 0) {
+            //if ((falling || (frame & 3)==0) || world.FindSolidCollision(Position + new GLVec3(0,(BS.Y)+1,0)).Length>0)
+            //if ((!falling && (frame & 7) != 0) || world.FindSolidCollision(Position + new GLVec3(0, (BS.Y) + 1, 0)).Length > 0)
+            if ((!this.falling && (this.frame & 15) !== 0) || this.world.findSolidCollision$2(BNTest.GLVec3.op_Addition(this.getPosition(), new BNTest.GLVec3.ctor(0, (BS.y) + 1, 0))).length > 0) {
                 //Position.Y += 1;
+                this.falling = false;
                 this.speed.y = 0;
             } else {
-
-                this.speed.y += 0.05;
+                this.falling = true;
+                //Speed.Y += 0.05;
+                this.speed.y += 0.07;
             }
             if (this.pickupDelay > 0) {
                 this.pickupDelay = (this.pickupDelay - 1) | 0;
@@ -10965,7 +13674,7 @@
                     this.speed.z = S.z;
                 }
             }
-            if (this.pickupDelay <= 0 && BS.getRoughLength() > 0 && player.lastBB.getSize().getRoughLength() > 0 && player.lastBB.intersection$2(this.lastBB)) {
+            if (this.pickupDelay <= 0 && BS.getRoughLength() > 0 && player.lastBB.getRoughLength() > 0 && player.lastBB.intersection$2(this.lastBB)) {
                 var val = this.value;
                 /* if (model.Scale.X>1)
                     {
@@ -10999,6 +13708,7 @@
         defaultMaxHP: 40,
         maxHP: 0,
         HP: 0,
+        frame: 0,
         coinsToRelease: 0,
         ctor: function (world) {
             this.$initialize();
@@ -11042,18 +13752,24 @@
                 return;
             }
             var B = BNTest.BoundingBox.op_Multiply$1(this.lastBB, 1.5);
-            var L = this.world.findSolidCollision(B, this);
+
             var PC = this.game.localplayer.character;
             /* if (Scale.X >= 1)
                 {*/
-            var P = System.Linq.Enumerable.from(L).where($_.BNTest.DonationBox.f1).toArray();
-            if (P.length > 0) {
-                this.HP -= (0.5 + (P.length * 0.5));
-                //Helper.Log("enemy attacking, box HP:"+HP);
-                if (this.HP <= 0) {
-                    if (PC.getCoins() >= 10) {
-                        this.coinsToRelease = (this.coinsToRelease + 1) | 0;
-                        this.HP = this.maxHP;
+            this.frame = (this.frame + 1) | 0;
+            if ((this.frame & 1) > 0) {
+                var L = this.world.findSolidCollision(B, this);
+                var P = System.Linq.Enumerable.from(L).where($_.BNTest.DonationBox.f1).toArray();
+                var PL = P.length;
+                if (PL > 0) {
+                    //HP -= (0.5 + (P.Length * 0.5));
+                    this.HP -= ((((1 + (((PL * 1) | 0))) | 0))) | 0;
+                    //Helper.Log("enemy attacking, box HP:"+HP);
+                    if (this.HP <= 0) {
+                        if (PC.getCoins() >= 10) {
+                            this.coinsToRelease = (this.coinsToRelease + 1) | 0;
+                            this.HP = this.maxHP;
+                        }
                     }
                 }
             }
@@ -11117,6 +13833,7 @@
          * @type boolean
          */
         passive: false,
+        weapon: 5,
         ignore: null,
         retaliates: true,
         config: {
@@ -11175,7 +13892,7 @@
                 }
 
                 if (this.target != null) {
-                    controller[5] = true;
+                    controller[this.weapon] = true;
 
                     var Pos = this.target.getPosition().clone();
                     if (this.predict) {
@@ -11183,7 +13900,7 @@
                     }
                     N.requestMoveTo(Pos, 0.5);
                 } else {
-                    controller[5] = false;
+                    controller[this.weapon] = false;
                 }
                 //N.MoveTo = Target.Position.Clone();
 
@@ -11377,6 +14094,148 @@
         }
     });
 
+    Bridge.define("BNTest.FivePointShot", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 5.0,
+        bulletLifeSpan: 18,
+        bulletGraphic: null,
+        minCoolDown: 180,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 3.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        //float inaccuracy = 0.13f;
+                        var inaccuracy = 0;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+
+            /* var P = new Projectile(entity.world, entity);
+                P.Solid = false;
+                var M = new Model(entity.Game);
+                M.meshes.Add(BulletGraphic);
+                P.model = M;
+
+                P.touchDamage = 50f;*/
+            //var scale = 3.5;
+            var scale = 4.0;
+
+            var spd = new BNTest.Vector2(evt.SX, evt.SY);
+            var HSZ = BNTest.GLVec3.createUniform(10 * scale);
+            /* P.Speed = new GLVec3() + spd;*/
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            /* M.Rotation.Y = evt.A;
+
+            
+                M.CustomBoundingBox = new BoundingBox(HSZ * -1, HSZ);
+                P.CustomBoundingBox = M.CustomBoundingBox;
+
+                P.x = evt.X;
+                P.y = evt.Y + 2;
+                P.z = evt.Z;
+
+
+                P.AddBehavior(new LifeSpan(P, bulletLifeSpan));
+                entity.world.Add(P);*/
+            this.entity.invincibilityFrames = 75;
+            var i = 0;
+            var ang = 1.256;
+            while (i < 6.28) {
+                var P = new BNTest.Projectile(this.entity.world, this.entity);
+                P.solid = false;
+                P.multiHit = true;
+                P.obstruction = true;
+                P.ignoresTerrain = true;
+                P.knockbackPower = 8;
+                var M = new BNTest.Model(this.entity.game);
+                M.meshes.add(this.bulletGraphic);
+                P.model = M;
+
+                P.setScale(BNTest.GLVec3.createUniform(scale));
+
+                //P.touchDamage = 150f;
+                P.settouchDamage(130.0);
+
+                P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), spd.rotate(i));
+                //P.Speed = GLVec3.TransformB(spd,);
+                //P.AddBehavior(new LifeSpan(P, 60));
+
+                M.rotation.y = evt.A + BNTest.MathHelper.radiansToDegrees(i);
+
+                M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+                P.customBoundingBox = M.customBoundingBox;
+
+                P.setx(evt.X);
+                P.sety(evt.Y + 2);
+                P.setz(evt.Z);
+
+
+                P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+                this.entity.world.add(P);
+                i += ang;
+            }
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.Foliage", {
         inherits: [BNTest.Entity],
         current: null,
@@ -11534,6 +14393,7 @@
                 M.scale = BNTest.GLVec3.op_Multiply$1(M.scale, scale);
             }
             M.rotation.y = Math.random() * 360;
+            //M.RandomShift(0.10);
             this.addFoliage(M);
         },
         absorbModel: function (E) {
@@ -11570,7 +14430,9 @@
             }
         },
         addFoliage: function (M) {
-            if (this.current == null || ((this.current.indices.length + M.indices.length) | 0) >= 44500) {
+            //if (current == null || current.Indices.Length + M.Indices.Length >= 44500)
+            //if (current == null || current.Indices.Length + M.Indices.Length >= 65535)
+            if (this.current == null || (((Bridge.Int.div((((this.current.verticies.length + M.verticies.length) | 0)), 3)) | 0)) >= 65535) {
                 this.current = new BNTest.Mesh(this.game);
                 this.model.meshes.add(this.current);
             }
@@ -11603,11 +14465,129 @@
         }
     });
 
+    Bridge.define("BNTest.HeavyShot", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 5,
+        bulletLifeSpan: 70,
+        bulletGraphic: null,
+        minCoolDown: 75,
+        started: false,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 2.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 1;
+        },
+        update: function () {
+            if (!this.started && this.bulletGraphic != null) {
+                this.started = true;
+
+                var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                //GLColor icecolor = new GLColor(0.7, 0.7, 1, 0.7);
+                var icecolor = new BNTest.GLColor(1.0, 0.1, 0.1, 0.9);
+                pal.set(new BNTest.GLColor(1, 0, 0), icecolor);
+                pal.set(new BNTest.GLColor(1, 1, 1), icecolor);
+                this.bulletGraphic.applyPalette(pal);
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.0;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+            P.multiHit = true;
+            P.setScale(BNTest.GLVec3.createUniform(2.0));
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            P.settouchDamage(260.0);
+
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+
+            var HSZ = BNTest.GLVec3.createUniform(10 * P.getScale().x);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            this.entity.world.add(P);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.HPOrb", {
         inherits: [BNTest.Entity],
         healing: 10,
         pickupDelay: 0,
         ready: false,
+        frame: 0,
+        falling: false,
         ctor: function (world, lifespan) {
             if (lifespan === void 0) { lifespan = 900; }
 
@@ -11681,6 +14661,7 @@
                     //model.Scale = GLVec3.CreateUniform(1.5);
                     //model.Scale = GLVec3.CreateUniform(0.75);
                     this.model.scale = BNTest.GLVec3.createUniform(1);
+                    this.model.smoothen();
                     this.ready = true;
                     //CacheBoundingBox();
                     if (tmdl == null) {
@@ -11705,11 +14686,23 @@
             //Speed.Y = 0;
             this.speed = BNTest.GLVec3.op_Multiply$1(this.speed, 0.96);
 
-            if (this.world.findSolidCollision$2(BNTest.GLVec3.op_Addition(this.getPosition(), new BNTest.GLVec3.ctor(0, (BS.y) + 1, 0))).length > 0) {
+            /* if (world.FindSolidCollision(Position + new GLVec3(0, (BS.Y) + 1, 0)).Length > 0)
+                {
+                    //Position.Y += 1;
+                    Speed.Y = 0;
+                }
+                else
+                {
+
+                    Speed.Y += 0.05;
+                }*/
+            //if ((!falling && (frame & 7) != 0) || world.FindSolidCollision(Position + new GLVec3(0, (BS.Y) + 1, 0)).Length > 0)
+            if ((!this.falling && (this.frame & 15) !== 0) || this.world.findSolidCollision$2(BNTest.GLVec3.op_Addition(this.getPosition(), new BNTest.GLVec3.ctor(0, (BS.y) + 1, 0))).length > 0) {
                 //Position.Y += 1;
+                this.falling = false;
                 this.speed.y = 0;
             } else {
-
+                this.falling = true;
                 this.speed.y += 0.05;
             }
             if (this.pickupDelay > 0) {
@@ -11738,6 +14731,649 @@
         },
         draw: function (gl) {
             BNTest.Entity.prototype.draw.call(this, gl);
+        }
+    });
+
+    Bridge.define("BNTest.IceBall", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        active: false,
+        ready: true,
+        ball: null,
+        maxActive: 90,
+        currentActive: 0,
+        releaseForce: 1.75,
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        /**
+         * @instance
+         * @public
+         * @memberof BNTest.IceBall
+         * @default 2.5
+         * @type number
+         */
+        bulletSpeed: 2.5,
+        bulletLifeSpan: 100,
+        bulletGraphic: null,
+        /**
+         * @instance
+         * @public
+         * @memberof BNTest.IceBall
+         * @default 60
+         * @type number
+         */
+        minCoolDown: 60,
+        started: false,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 5.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        onAttacked: function (source) {
+            var E = this.entity;
+            //releases the ball.
+            if (this.active && this.ball != null && this.ball.alive) {
+                //accelerate on release.
+                this.ball.speed = BNTest.GLVec3.op_Multiply$1(this.ball.speed, 1.1);
+            }
+            this.active = false;
+        },
+        release: function () {
+            if (this.ball != null && this.ball.alive) {
+                //accelerate on release.
+                this.ball.speed = BNTest.GLVec3.op_Multiply$1(this.ball.speed, this.releaseForce);
+
+                //ball.knockbackPower *= 2;
+                this.ball.knockbackPower += this.ball.getScale().y * 0.67;
+            }
+            this.entity.speed.x *= 0.5;
+            this.entity.speed.z *= 0.5;
+            this.active = false;
+        },
+        update: function () {
+            if (!this.started && this.bulletGraphic != null) {
+                this.started = true;
+
+                var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                var icecolor = new BNTest.GLColor(0.7, 0.7, 1, 0.7);
+                pal.set(new BNTest.GLColor(1, 0, 0), icecolor);
+                pal.set(new BNTest.GLColor(1, 1, 1), icecolor);
+                this.bulletGraphic.applyPalette(pal);
+            }
+            if (!this.entity.controller[6]) {
+                this.ready = true;
+            }
+            if (this.active) {
+                if (!this.entity.controller[6] || (this.currentActive >= this.maxActive) || (this.ball != null && (this.entity.speed.x !== this.ball.speed.x || this.entity.speed.z !== this.ball.speed.z))) {
+                    this.release();
+                    return;
+                } else if (this.ball != null && this.ball.alive) {
+                    this.ball.setScale(BNTest.GLVec3.op_Addition(this.ball.getScale(), BNTest.GLVec3.createUniform(0.02)));
+                    //ball.Scale += GLVec3.CreateUniform(0.025);
+                    //ball.Scale += GLVec3.CreateUniform(0.03);
+                    //ball.touchDamage += 1.25f;
+                    //ball.touchDamage += 0.75f;
+                    this.ball.settouchDamage(this.ball.gettouchDamage()+1.0);
+                    //var speedup = 1.0075;
+                    /* var speedup = 1.004;
+                        ball.Speed.X *= speedup;
+                        ball.Speed.Z *= speedup;
+                        entity.Speed.X *= speedup;
+                        entity.Speed.Z *= speedup;*/
+
+                    var sz = 11 * this.ball.getScale().x;
+                    var HSZ = BNTest.GLVec3.createUniform(sz);
+                    this.ball.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+                    this.ball.getBehavior(BNTest.LifeSpan).HP = (this.ball.getBehavior(BNTest.LifeSpan).HP + 1) | 0;
+                    this.entity.shootTime++;
+
+                    var SP = this.ball.speed.toVector2();
+                    //SP = SP.Normalize((ball.model.Scale.X * 20).As<float>());
+                    //SP = SP.Normalize(((ball.model.Scale.X * 13)+5).As<float>());
+                    SP = SP.normalize(((this.ball.model.scale.x * 10) + 5));
+                    this.entity.setx(this.ball.model.offset.x - SP.x);
+                    this.entity.setz(this.ball.model.offset.z - SP.y);
+                    this.currentActive = (this.currentActive + 1) | 0;
+                    //entity.Speed.X = SP.X;
+                    //entity.Speed.Z = SP.Y;
+                    this.entity.animation = "pushing";
+                    if (Math.abs(this.ball.gety() - this.entity.gety()) > 25) {
+                        this.release();
+                    }
+                    //entity.As<PlayerCharacter>().forcedAngle = null;
+                    //entity.As<PlayerCharacter>().FrictionActive = true;
+
+
+                    return;
+                } else {
+                    this.release();
+                }
+
+            } else {
+                this.entity.forcedAngle = null;
+                this.entity.frictionActive = true;
+                if (System.String.equals(this.entity.animation, "pushing")) {
+                    this.entity.animation = "idle";
+                    this.entity.initModel();
+                    //entity.model.meshes[1].Rotation.X = 0;
+                    //entity.model.meshes[2].Rotation.X = 0;
+                }
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.13;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        //D.SY = -1.5;
+                        D.SY = -0.7;
+                        D.SZ = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x + (V1.x * 5);
+                        //D.Y = P.Y - 15;
+                        //D.Y = P.Y - 5;
+                        D.Y = P.y - 10;
+                        D.Z = P.z + (V1.y * 5);
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            //entity.PlaySound("pew");
+            var spd = new BNTest.Vector2(evt.SX, evt.SZ);
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+
+            //P.touchDamage = 25f;
+            P.settouchDamage(50.0);
+            //P.Scale = GLVec3.CreateUniform(1.25);
+            P.setScale(BNTest.GLVec3.createUniform(1.5));
+
+            P.speed = new BNTest.GLVec3.ctor(evt.SX, evt.SY, evt.SZ);
+            P.obstruction = true;
+
+            P.gravity = new BNTest.GLVec3.ctor(0, 0.12, 0);
+            P.rotationSpeed = new BNTest.GLVec3.ctor(3.5, 0, 0);
+            P.ifriction = 0.98;
+            P.bounces = true;
+            P.multiHit = true;
+            //P.knockbackPower = 6;
+            P.knockbackPower = 4;
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+
+            //M.Rotation.X = 60;
+            var sz = 11 * P.getScale().x;
+            var HSZ = BNTest.GLVec3.createUniform(sz);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+
+            this.entity.world.add(P);
+
+
+            P.ifriction = 1;
+
+            var C = this.entity.controller;
+            if (!C[0] && !C[1] && !C[2] && !C[3] && !C[4] && this.ready) {
+                this.ball = P;
+                this.entity.speed.x = P.speed.x;
+                this.entity.speed.z = P.speed.z;
+                this.entity.forcedAngle = BNTest.MathHelper.radiansToDegrees(P.speed.toVector2().toAngle()) - 90;
+                this.entity.frictionActive = false;
+                this.active = true;
+                this.currentActive = 0;
+                this.ready = false;
+            } else {
+                this.ball = null;
+                this.entity.playSound("pew");
+
+                this.ready = false;
+            }
+
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
+    Bridge.define("BNTest.Laevatein", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 10,
+        bulletLifeSpan: 15,
+        bulletGraphic: null,
+        minCoolDown: 85,
+        activetime: 0,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 5.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        update: function () {
+            if (this.activetime > 0) {
+                this.activetime = (this.activetime - 1) | 0;
+                if (this.activetime <= 0) {
+                    this.entity.forcedAngle = null;
+                    //entity.As<PlayerCharacter>().FrictionActive = true;
+                }
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.13;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+                        this.entity.forcedAngle = this._angle;
+                        this.activetime = this.bulletLifeSpan;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("woosh2");
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+            P.ignoresTerrain = true;
+            P.multiHit = true;
+            P.setScale(BNTest.GLVec3.createUniform(1.5));
+            P.anchorRotationSpeed = 0.25;
+            P.currentAnchorRotation = BNTest.MathHelper.degreesToRadians(this.entity.model.rotation.y);
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.knockbackPower = 5;
+
+            P.settouchDamage(40.0);
+
+
+            M.rotation.y = evt.A;
+
+            //GLVec3 HSZ = GLVec3.CreateUniform(10*P.model.Scale.X);
+            var HSZ = BNTest.GLVec3.createUniform(10 * P.model.scale.x);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+            var T = new BNTest.LifeSpan(P, this.bulletLifeSpan);
+            T.fadeTime = 5;
+            P.addBehavior(T);
+            var repeat = 10;
+            while (repeat > 0) {
+                //P.AnchorDistance += 17;
+                P.anchorDistance += 15;
+                this.entity.world.add(P);
+                P = P.clone();
+                repeat = (repeat - 1) | 0;
+            }
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
+    Bridge.define("BNTest.LargeLaser", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 12,
+        bulletLifeSpan: 70,
+        bulletGraphic: null,
+        minCoolDown: 150,
+        activetime: 0,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 3.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        update: function () {
+            if (this.activetime > 0) {
+                this.activetime = (this.activetime - 1) | 0;
+                if (this.activetime <= 0) {
+                    this.entity.forcedAngle = null;
+                    //entity.As<PlayerCharacter>().FrictionActive = true;
+                }
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        D.SX = V.x;
+                        D.SY = V.y;
+
+                        /* Vector2 V1 = V * bulletSpeed;
+                            D.SX = V1.X;
+                            D.SY = V1.Y;
+                            GLVec3 P = entity.getCenter() + (V);
+                            D.X = P.X;
+                            D.Y = P.Y;
+                            D.Z = P.Z;*/
+                        //D.P = entity.UID;
+
+                        this.entity.forcedAngle = this._angle;
+                        //entity.As<PlayerCharacter>().FrictionActive = false;
+                        this.activetime = this.bulletLifeSpan;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("laser");
+
+            var P = new BNTest.Laser(this.entity.world, this.entity, new BNTest.Vector2(evt.SX, evt.SY));
+            P.solid = false;
+
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            //P.touchDamage = 100f;
+            //P.touchDamage = 60f;
+            //P.touchDamage = 80f;
+            //P.touchDamage = 90f;
+            //P.touchDamage = 180f;
+            P.settouchDamage(120.0);
+
+            //P.Speed = new GLVec3() + new Vector2(evt.SX, evt.SY);
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            //P.model.Rotation.Y = evt.A;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            this.entity.world.add(P);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
+    Bridge.define("BNTest.Laser", {
+        inherits: [BNTest.Entity,BNTest.IHarmfulEntity],
+        frame: 0,
+        user: null,
+        direction: null,
+        width: 35,
+        multiHit: true,
+        attackFrame: 0,
+        attackInterval: 20,
+        knockbackPower: 3,
+        range: 350,
+        _touchDamage: 0,
+        config: {
+            alias: [
+            "getIsHarmful", "BNTest$IHarmfulEntity$getIsHarmful",
+            "getAttacker", "BNTest$IHarmfulEntity$getAttacker",
+            "gettouchDamage", "BNTest$IHarmfulEntity$gettouchDamage",
+            "settouchDamage", "BNTest$IHarmfulEntity$settouchDamage",
+            "ontouchDamage", "BNTest$IHarmfulEntity$ontouchDamage"
+            ]
+        },
+        ctor: function (world, User, Direction) {
+            this.$initialize();
+            BNTest.Entity.ctor.call(this, world);
+            this.user = User;
+
+            this.game = world.game;
+            this.model = new BNTest.Model(this.game);
+            this.solid = true;
+
+            this.model.forceRender = true;
+
+            var M = new BNTest.Mesh(this.game);
+            var M2 = new BNTest.Mesh(this.game);
+            //M.AddCube2(new GLVec3(), size, new GLColor(0, 0, 0, 0.3), null);
+            //M.AddCube2(GLVec3.CreateUniform(-0.5), GLVec3.CreateUniform(0.5), new GLColor(1,1,1), null);
+            //M.AddCube2(GLVec3.CreateUniform(0), GLVec3.CreateUniform(1), new GLColor(1, 1, 1), null);
+            var W = (Bridge.Int.div(this.width, 3)) | 0;
+            W = this.width / 2.5;
+            M2.addCube2(new BNTest.GLVec3.ctor(11, -W, -W), new BNTest.GLVec3.ctor(this.range - 1, W, W), new BNTest.GLColor(1, 1, 1, 0.8), null);
+            W = (Bridge.Int.div(this.width, 2)) | 0;
+            M.addCube2(new BNTest.GLVec3.ctor(10, -W, -W), new BNTest.GLVec3.ctor(this.range, W, W), new BNTest.GLColor(1, 1, 1, 0.5), null);
+
+
+
+            this.model.meshes.add(M2);
+            this.model.meshes.add(M);
+
+            //CacheBoundingBox();
+            this.customBoundingBox = new BNTest.BoundingBox.ctor();
+
+            /* model.Scale.X = 1000;
+                model.Scale.Y = Width/2;
+                model.Scale.Z = Width/2;*/
+
+            this.model.rotation.y = BNTest.MathHelper.radiansToDegrees(Direction.toAngle());
+
+            this.direction = Direction.normalize();
+
+            this.attackFrame = this.attackInterval;
+            this.model.meshes.getItem(1).scale = this.model.meshes.getItem(0).scale;
+            this.model.meshes.getItem(0).scale.y = (this.model.meshes.getItem(0).scale.z = 0.1, 0.1);
+
+            this.speed = new BNTest.GLVec3.ctor(Direction.x, 0, Direction.y);
+            this.speed = BNTest.GLVec3.op_Multiply$1(this.speed, 5);
+        },
+        getIsHarmful: function () {
+            return true;
+        },
+        getAttacker: function () {
+            return this.user;
+        },
+        gettouchDamage: function () {
+            return this._touchDamage;
+        },
+        settouchDamage: function (value) {
+            this._touchDamage = value;
+        },
+        update: function () {
+            var $t, $t1, $t2;
+            if (this.model.alpha >= 1) {
+                if (this.model.meshes.getItem(0).scale.y < 1) {
+                    this.model.meshes.getItem(0).scale.y = ($t = this.model.meshes.getItem(0).scale.z + 0.075, this.model.meshes.getItem(0).scale.z = $t, $t);
+                } else {
+                    this.model.meshes.getItem(0).scale.y = (this.model.meshes.getItem(0).scale.z = 1, 1);
+                }
+            } else {
+                if (this.model.meshes.getItem(0).scale.y > 0) {
+                    this.model.meshes.getItem(0).scale.y = ($t1 = this.model.meshes.getItem(0).scale.z - 0.065, this.model.meshes.getItem(0).scale.z = $t1, $t1);
+                } else {
+                    this.model.meshes.getItem(0).scale.y = (this.model.meshes.getItem(0).scale.z = 0, 0);
+                }
+            }
+            this.frame = (this.frame + 1) | 0;
+            this.setPosition(this.user.getPosition().clone());
+            this.model.meshes.getItem(0).rotation.x = ($t2 = this.model.meshes.getItem(1).rotation.x + 5, this.model.meshes.getItem(1).rotation.x = $t2, $t2);
+            var hue = (this.frame * 0.03) % 1;
+            //GLColor C = GLColor.ColorFromAhsb(255, hue*255, 0.8f, 0.7f);
+            var alpha = 128;
+            var C = BNTest.GLColor.colorFromAhsb(alpha, hue * 360, 0.8, 0.7);
+            this.model.meshes.getItem(1).replaceAllColors(C);
+            this.attackFrame = (this.attackFrame + 1) | 0;
+            if (this.attackFrame < this.attackInterval) {
+                BNTest.Entity.prototype.update.call(this);
+                return;
+            }
+            this.attackFrame = 0;
+            var i = 0;
+            var LE = this.world.entities;
+            var ln = LE.getCount();
+            var D = this.direction.clone();
+
+            var far = BNTest.GLVec3.op_Addition(this.getPosition().clone(), new BNTest.GLVec3.ctor(D.x * 100000, 0, D.y * 100000));
+            var mln = this.getPosition().roughDistance(far);
+
+            var Y = this.getPosition().y;
+            while (i < ln) {
+                var E = LE.getItem(i);
+                if (E.getTargetPriority) {
+                    if (!this.user.sameTeam(E)) {
+                        if (E.getPosition().roughDistance(far) < mln) {
+                            var dist = (BNTest.GLVec3.op_Subtraction(this.getPosition(), E.getPosition())).getLength();
+                            if (dist <= this.range) {
+                                D.x = this.direction.x;
+                                D.y = this.direction.y;
+                                D.multiply(dist);
+                                D.x += this.getPosition().x;
+                                D.y += this.getPosition().z;
+
+                                if (Math.abs(E.getPosition().x - D.x) + Math.abs(E.getPosition().z - D.y) <= this.width && (Math.abs(E.getPosition().y - Y) <= this.width || Math.abs(E.lastBB.max.y - Y) <= this.width || Math.abs(E.lastBB.min.y - Y) <= this.width)) {
+                                    this.game.attack(E, this);
+                                }
+                            }
+                        }
+                    }
+                }
+                i = (i + 1) | 0;
+            }
+
+            /* Position.Y -= Width / 2;
+                Position.Z -= Width / 2;*/
+            var spd = this.speed;
+            this.speed = new BNTest.GLVec3.ctor();
+            BNTest.Entity.prototype.update.call(this);
+            this.speed = spd;
+        },
+        ontouchDamage: function (target) {
+            return true;
         }
     });
 
@@ -11781,7 +15417,9 @@
             BNTest.EntityBehavior.ctor.call(this, entity);
             this.maximumDist = 800;
             //maximumDarkness = 0.65;
-            this.maximumDarkness = 0.75;
+            //maximumDarkness = 0.75;
+            //maximumDarkness = 0.94;
+            this.maximumDarkness = 0.93;
             //maximumDarkness = 1;
         },
         update: function () {
@@ -11809,6 +15447,17 @@
         persistence: 45,
         _movementPriority: 0,
         _moveTo: null,
+        frame: 0,
+        TB: null,
+        v: null,
+        relative: null,
+        config: {
+            init: function () {
+                this.TB = new BNTest.BoundingBox.ctor();
+                this.v = new BNTest.GLVec3.ctor();
+                this.relative = new BNTest.GLVec3.ctor();
+            }
+        },
         ctor: function (entity) {
             this.$initialize();
             BNTest.EntityBehavior.ctor.call(this, entity);
@@ -11879,9 +15528,18 @@
             if (this._moveTo != null) {
                 var controller = this.entity.controller;
                 var lcontroller = this.entity.lController;
-                var relative = BNTest.GLVec3.op_Subtraction(this._moveTo, this.entity.getPosition());
-                var V = BNTest.GLVec3.op_Addition(this.entity.getPosition(), (BNTest.GLVec3.op_Multiply$1(relative, 0.5)));
-                if (this.entity.world.findSolidCollision(new BNTest.BoundingBox.$ctor1(V, BNTest.GLVec3.op_Addition(V, new BNTest.GLVec3.ctor(0, 100, 0)))).length < 1) {
+                this.relative.copyFrom(this._moveTo);
+                this.relative.subtract(this.entity.getPosition());
+                this.v.copyFrom(this.relative);
+                this.v.multiply$1(0.5, 0.5, 0.5);
+                this.v.add(this.entity.getPosition());
+                //GLVec3 V = entity.Position + (relative * 0.5);
+                this.frame = (this.frame + 1) | 0;
+                this.TB.min.copyFrom(this.v);
+                this.TB.max.copyFrom(this.v);
+                this.TB.max.add$1(0, 100, 0);
+                //BoundingBox TB = new BoundingBox(V, V + new GLVec3(0, 100, 0));
+                if ((this.frame & 3) === 0 && this.entity.world.findSolidCollision(this.TB).length < 1) {
                     //unsafe to proceed
                     if (this.entity.getHandledLocally()) {
                         var D = {  };
@@ -11894,8 +15552,8 @@
                 this.resetController();
 
                 //if (Math.Abs(relative.Z) > Math.Abs(relative.X))
-                if (Math.abs(relative.z) > 1) {
-                    if (relative.z > 0) {
+                if (Math.abs(this.relative.z) > 1) {
+                    if (this.relative.z > 0) {
                         controller[3] = true;
                     } else {
                         controller[2] = true;
@@ -11903,14 +15561,14 @@
                 } else {
                     controller[3] = (controller[2] = false, false);
                 }
-                if (Math.abs(relative.x) > 1) {
-                    controller[0] = relative.x < 0;
-                    controller[1] = relative.x > 0;
+                if (Math.abs(this.relative.x) > 1) {
+                    controller[0] = this.relative.x < 0;
+                    controller[1] = this.relative.x > 0;
                 } else {
                     controller[0] = (controller[0] = false, false);
                 }
 
-                var currentProgress = relative.getRoughLength();
+                var currentProgress = this.relative.getRoughLength();
                 if (this._lastProgress > currentProgress) {
                     this._lastProgress = currentProgress;
                     this._timeSinceLastProgress = 0;
@@ -11938,7 +15596,8 @@
                     }
                     //controller[5] = true;
                     if (this.setsAngle) {
-                        Platformer.model.rotation.y = BNTest.MathHelper.radiansToDegrees(relative.toVector2().toAngle()) - 90;
+                        Platformer.model.rotation.y = BNTest.MathHelper.radiansToDegrees(this.relative.xZAngle()) - 90;
+                        //Platformer.model.Rotation.Y = MathHelper.RadiansToDegrees(relative.ToVector2().ToAngle()) - 90;
                     }
                     /* if (!Platformer.onGround)
                         {
@@ -11997,11 +15656,14 @@
                             D2.T = "R";
                             this.sendCustomEvent(D2, true);
                         }
-                    } else if (Math.abs(relative.x) < 150) {
+                    } else if (Math.abs(this.relative.x) < 150) {
                         controller[0] = false;
                         controller[1] = false;
                     }
                 }
+                /* TB.Release();
+                    V.Release();
+                    relative.Release();*/
             }
             BNTest.EntityBehavior.prototype.update.call(this);
         }
@@ -12268,9 +15930,9 @@
     Bridge.define("BNTest.PlatformerControls", {
         inherits: [BNTest.EntityBehavior],
         _platformer: null,
-        accel: 0.35,
+        accel: 0.38,
         jumpSpeed: 3.0,
-        maxSpeed: 1.9,
+        maxSpeed: 2.1,
         ctor: function (entity) {
             this.$initialize();
             BNTest.EntityBehavior.ctor.call(this, entity);
@@ -12330,12 +15992,20 @@
         _Attacker: null,
         _IsHarmful: true,
         _touchDamage: 1,
+        constantDamage: false,
+        clearTime: 0,
+        maxClearTime: 15,
+        ignoresTerrain: false,
+        currentAnchorRotation: 0,
+        anchorDistance: 0,
+        anchorRotationSpeed: 0,
         knockbackPower: 1,
         gravity: null,
         bounces: false,
         ifriction: 1,
         rotationSpeed: null,
         multiHit: false,
+        bounceForce: 0.9,
         lastDamaged: null,
         damaged: null,
         config: {
@@ -12383,6 +16053,11 @@
             P.gravity = this.gravity;
             P.solid = this.solid;
             P.settouchDamage(this.gettouchDamage());
+            P.currentAnchorRotation = this.currentAnchorRotation;
+            P.anchorRotationSpeed = this.anchorRotationSpeed;
+            P.anchorDistance = this.anchorDistance;
+            P.ignoresTerrain = this.ignoresTerrain;
+            P.customBoundingBox = this.customBoundingBox;
             var T = this.getBehavior(BNTest.LifeSpan);
             if (T != null) {
                 P.addBehavior(new BNTest.LifeSpan(P, T.HP, T.flickerTime));
@@ -12396,6 +16071,17 @@
             if (this.lastBB == null) {
                 BNTest.Entity.prototype.update.call(this);
                 return;
+            }
+            if (this.anchorRotationSpeed !== 0) {
+                this.currentAnchorRotation += this.anchorRotationSpeed;
+                var V = new BNTest.Vector2(this.anchorDistance).rotate(this.currentAnchorRotation);
+                this.getPosition().x = this.getAttacker().getPosition().x + V.x;
+                this.getPosition().y = this.getAttacker().getPosition().y;
+                this.getPosition().z = this.getAttacker().getPosition().z + V.y;
+
+                V = V.normalize(this.speed.getLength());
+                this.speed.x = V.x;
+                this.speed.z = V.y;
             }
             var LBS = this.lastBB.getSize();
             if (this.lastBB != null && LBS.getRoughLength() > 0) {
@@ -12414,34 +16100,36 @@
                 }
                 var HS = BNTest.GLVec3.op_Multiply$1(this.speed, 0.5);
                 var C = this.lastBB.getCenter();
-                if (!this.bounces) {
-                    var Solids = System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(BNTest.GLVec3.op_Addition(C, (BNTest.GLVec3.op_Addition(this.speed, HS))), this)).where($_.BNTest.Projectile.f1).toList(BNTest.Entity);
+                if (!this.ignoresTerrain) {
+                    if (!this.bounces) {
+                        var Solids = System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(BNTest.GLVec3.op_Addition(C, (BNTest.GLVec3.op_Addition(this.speed, HS))), this)).where($_.BNTest.Projectile.f1).toList(BNTest.Entity);
 
-                    Solids.addRange(System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(C, this)).where($_.BNTest.Projectile.f1));
-                    if (Solids.getCount() > 0) {
-                        this.alive = false;
-                    }
-                } else {
-                    //using obstruction collision on multiple obstruction projectiles can lead to janky physics, so i switched back to just solid
-                    var SY = LBS.y;
-                    var Solids1;
-                    Solids1 = System.Linq.Enumerable.from(this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(this.speed.x, 0, this.speed.z))), this)).where(function (E) {
-                        return (E.onKill == null) && E.lastBB.getSize().y > SY;
-                    }).toList(BNTest.Entity);
-                    if (Solids1.getCount() > 0) {
-                        this.speed.x *= -0.9;
-                        this.speed.z *= -0.9;
-                    }
+                        Solids.addRange(System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(C, this)).where($_.BNTest.Projectile.f1));
+                        if (Solids.getCount() > 0) {
+                            this.alive = false;
+                        }
+                    } else {
+                        //using obstruction collision on multiple obstruction projectiles can lead to janky physics, so i switched back to just solid
+                        var SY = LBS.y;
+                        var Solids1;
+                        Solids1 = System.Linq.Enumerable.from(this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(this.speed.x, 0, this.speed.z))), this)).where(function (E) {
+                            return (E.onKill == null) && E.lastBB.getSize().y > SY;
+                        }).toList(BNTest.Entity);
+                        if (Solids1.getCount() > 0) {
+                            this.speed.x *= -this.bounceForce;
+                            this.speed.z *= -this.bounceForce;
+                        }
 
-                    var Y = this.gety();
-                    var D = Bridge.compare((0.0), this.speed.y);
-                    Solids1 = System.Linq.Enumerable.from(this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(0, this.speed.y, 0))), this)).where(Bridge.fn.bind(this, function (E) {
-                        return (E.onKill == null) && Bridge.compare(this.gety(), E.gety()) === D;
-                    })).toList(BNTest.Entity);
-                    if (Solids1.getCount() > 0) {
-                        this.model.offset.y -= this.speed.y;
-                        this.speed.y *= -0.9;
+                        var Y = this.gety();
+                        var D = Bridge.compare((0.0), this.speed.y);
+                        Solids1 = System.Linq.Enumerable.from(this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(0, this.speed.y, 0))), this)).where(Bridge.fn.bind(this, function (E) {
+                            return (E.onKill == null) && Bridge.compare(this.gety(), E.gety()) === D;
+                        })).toList(BNTest.Entity);
+                        if (Solids1.getCount() > 0) {
+                            this.model.offset.y -= this.speed.y;
+                            this.speed.y *= -this.bounceForce;
 
+                        }
                     }
                 }
 
@@ -12450,9 +16138,28 @@
             this.lastDamaged = this.damaged;
             this.damaged = LD;
             this.damaged.clear();
-            BNTest.Entity.prototype.update.call(this);
+            if (this.lastDamaged.getCount() <= 0) {
+                this.clearTime = 0;
+            } else {
+                this.clearTime = (this.clearTime + 1) | 0;
+                if (this.clearTime >= this.maxClearTime) {
+                    this.lastDamaged.clear();
+                    this.clearTime = 0;
+                }
+            }
+            if (this.anchorRotationSpeed !== 0) {
+                var SPD = this.speed;
+                this.speed = new BNTest.GLVec3.ctor();
+                BNTest.Entity.prototype.update.call(this);
+                this.speed = SPD;
+            } else {
+                BNTest.Entity.prototype.update.call(this);
+            }
         },
         ontouchDamage: function (target) {
+            if (this.constantDamage) {
+                return true;
+            }
             var ret = !this.damaged.contains(target);
             if (ret) {
                 this.damaged.add(target);
@@ -12686,14 +16393,17 @@
         }
     });
 
-    Bridge.define("BNTest.RapidWideGun", {
+    Bridge.define("BNTest.RapidSniper", {
         inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
         _ammo: 0,
-        _maxAmmo: 9,
+        _maxAmmo: 5,
         _shotDelay: 0,
         _maxShotDelay: 3,
         _angle: 0,
+        bulletSpeed: 13,
+        bulletLifeSpan: 35,
         bulletGraphic: null,
+        minCoolDown: 25,
         config: {
             alias: [
             "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
@@ -12708,11 +16418,10 @@
             BNTest.EntityBehavior.ctor.call(this, entity);
         },
         getEnergyCost: function () {
-            return 2.5;
+            return 3.5;
         },
         getMaxCooldown: function () {
-            //return (_maxAmmo * _maxShotDelay) + 15;
-            return (((((this._maxAmmo * this._maxShotDelay) | 0)) + 13) | 0);
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
         },
         setFiringAngle: function (value) {
             this._angle = value;
@@ -12731,18 +16440,18 @@
                         var D = {  };
                         D.A = this._angle;
 
-                        var inaccuracy = 0.6;
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.0;
                         var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
-                        //V = V.Normalize(18);
-                        //V *= 18;
-                        var V1 = BNTest.Vector2.op_Multiply(V, 9);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
                         D.SX = V1.x;
                         D.SY = V1.y;
-                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (BNTest.Vector2.op_Multiply(V, 15)));
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
                         D.X = P.x;
                         D.Y = P.y;
                         D.Z = P.z;
-                        //SendCustomEvent(D, true);
+
                         this.customEvent(D);
                     }
 
@@ -12758,29 +16467,136 @@
             var M = new BNTest.Model(this.entity.game);
             M.meshes.add(this.bulletGraphic);
             P.model = M;
+            //P.knockbackPower = 0.7;
+            P.knockbackPower = 0.5;
 
-            P.settouchDamage(8);
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            P.settouchDamage(40.0);
 
             P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
-            P.addBehavior(new BNTest.LifeSpan(P, 60));
+            //P.AddBehavior(new LifeSpan(P, 60));
 
             M.rotation.y = evt.A;
 
             var HSZ = new BNTest.GLVec3.ctor(7, 7, 7);
             M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
-
-
-            //P.x = entity.x;
-            P.sety(this.entity.gety() + 2);
-            //P.z = entity.z;
+            P.customBoundingBox = M.customBoundingBox;
 
             P.setx(evt.X);
-            P.sety(evt.Y);
+            P.sety(evt.Y + 2);
             P.setz(evt.Z);
 
 
-            //P.Position += P.Speed * 2;
-            P.addBehavior(new BNTest.LifeSpan(P, 14));
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            this.entity.world.add(P);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
+    Bridge.define("BNTest.RapidWideGun", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 7,
+        _shotDelay: 0,
+        _maxShotDelay: 3,
+        _angle: 0,
+        bulletSpeed: 14,
+        bulletLifeSpan: 10,
+        bulletGraphic: null,
+        minCoolDown: 3,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 3.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 1;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        //float inaccuracy = 0.13f;
+                        var inaccuracy = 0.6;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            //entity.PlaySound("pew");
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            //P.touchDamage = 50f;
+            P.settouchDamage(60.0);
+            P.knockbackPower = 0.4;
+            P.model.scale = BNTest.GLVec3.createUniform(2.0);
+
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+
+            var HSZ = BNTest.GLVec3.createUniform(9);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
             this.entity.world.add(P);
         },
         fire: function (angle) {
@@ -12956,12 +16772,17 @@
             var M = new BNTest.Mesh(world.game);
             M.addVoxelMap(V, true);
             //M.AddVoxelMap(V, false);
+            //M.RandomShift(0.15);
             this.model.meshes.add(M);
             this.model.scale = BNTest.GLVec3.createUniform(scale);
             this.customBoundingBox = size.clone();
             this.getPosition().y = -this.maxY;
 
             this.minY = size.min.y + 12;
+            /* if (Math.Random()<0.2)
+                {
+                    minY -= 50;
+                }*/
         },
         onNextWave: function () {
             this.active = false;
@@ -13051,10 +16872,130 @@
         }
     });
 
+    Bridge.define("BNTest.RockDrop", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 4,
+        _angle: 0,
+        bulletSpeed: 1.0,
+        bulletLifeSpan: 160,
+        bulletGraphic: null,
+        minCoolDown: 100,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 3.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.0;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        //Vector2 V1 = V * 100;
+                        var V1 = BNTest.Vector2.op_Multiply(V, 120);
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x + V1.x;
+                        //D.Y = P.Y - 15;
+                        D.Y = P.y - 150;
+                        D.Z = P.z + V1.y;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+            var spd = new BNTest.Vector2(evt.SX, evt.SZ);
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+            P.setScale(BNTest.GLVec3.createUniform(2.25));
+
+            //P.touchDamage = 80f;
+            P.settouchDamage(200.0);
+            //P.Speed = new GLVec3(evt.SX, evt.SY, evt.SZ);
+            P.obstruction = true;
+
+            //P.gravity = new GLVec3(0, 0.07, 0);
+            P.gravity = new BNTest.GLVec3.ctor(0, 0.1, 0);
+            P.bounceForce *= 0.5;
+
+            //P.rotationSpeed = new GLVec3(0, 3.5, 0);
+            P.ifriction = 0.98;
+            P.bounces = true;
+            P.multiHit = true;
+            //P.knockbackPower = 8;
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+            //M.Rotation.X = 45;
+            //M.Rotation.X = 60;
+            var sz = 11 * P.getScale().x;
+            var HSZ = BNTest.GLVec3.createUniform(sz);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            P.model.rotation.x = 90;
+
+            //Vector2 down = sep.Rotate(2.35619f);
+            this.entity.world.add(P);
+            var shadow = new BNTest.Shadow(this.entity.world, P);
+            this.entity.world.add(shadow);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.SecondaryResponder", {
         inherits: [BNTest.EntityBehavior],
         attemptTime: 0,
         time: 0,
+        weapon: 6,
         ctor: function (entity, attemptTime) {
             if (attemptTime === void 0) { attemptTime = 30; }
 
@@ -13064,7 +17005,7 @@
         },
         onAttacked: function (source) {
             var E = this.entity;
-            E.controller[6] = true;
+            E.controller[this.weapon] = true;
             this.time = this.attemptTime;
         },
         update: function () {
@@ -13072,7 +17013,7 @@
                 this.time = (this.time - 1) | 0;
             } else {
                 var E = this.entity;
-                E.controller[6] = false;
+                E.controller[this.weapon] = false;
             }
             BNTest.EntityBehavior.prototype.update.call(this);
         }
@@ -13084,6 +17025,7 @@
         started: false,
         entity: null,
         frame: 0,
+        yoff: 0,
         ctor: function (world, entity) {
             this.$initialize();
             BNTest.Entity.ctor.call(this, world);
@@ -13099,6 +17041,7 @@
             this.model.setVisible(false);
             var mdl = "shadow";
             var tmdl = BNTest.ModelCache.get_this().get(mdl, false);
+            this.yoff = 0.15 + (Math.random() * 0.4);
             if (tmdl != null) {
                 console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
                 //model.CopyFrom(tmdl);
@@ -13129,41 +17072,19 @@
 
                     var box = this.game.getVoxelCombo(["object/softshadow"]);
                     box.swapYZ();
-                    //box.ApplyPalette(pal);
-                    //body.ApplyPalette(pal);
+
                     var md = new BNTest.Model(this.game);
                     var M = new BNTest.Mesh(this.game);
                     md.scale.y = 0.01;
-                    //md.Scale.X = md.Scale.Z = 0.5;
-                    //md.Scale = GLVec3.CreateUniform(0.6);
-                    //M.AddVoxelMap(box, smooth);
+
                     M.addVoxelMap(box, smooth, true, true);
-                    md.meshes.add(M.clone());
-                    //md.BleedThrough = true;
+                    md.meshes.add(M);
+
                     this.model.children.add(md);
                     md.alpha = 0.5;
 
 
-                    /* box = Game.GetVoxelCombo(new string[] { "object/orb" });
-                        //pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, 0.12);
-                        pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, alpha * 0.4);
-                        box.ApplyPalette(pal);
-
-
-                        md = new Model(Game);
-                        M = new Mesh(Game);
-                        M.AddVoxelMap(box, smooth);
-                        md.Scale = GLVec3.CreateUniform(1);
-                        md.meshes.Add(M);
-                        //md.alpha = 0.5f;
-                        //model.children.Add(md);
-
-                        //M.AddVoxelMap(box, smooth);
-                        model.children.Add(md);
-                        model.Scale = GLVec3.CreateUniform(1.5);*/
-                    //model.Smoothen();
                     this.ready = true;
-                    //CacheBoundingBox();
                     if (tmdl == null) {
                         BNTest.ModelCache.get_this().set$1(mdl, this.model);
                     }
@@ -13180,18 +17101,21 @@
                 this.setPosition(this.entity.getPosition().clone());
                 this.model.scale = this.model.scale.clone();
             }
+            this.model.drawOrder = 2;
             this.frame = (this.frame + 1) | 0;
-            if ((this.frame & 1) > 0) {
+            if ((this.frame & 3) > 0) {
                 this.model.offset.x = this.entity.model.offset.x;
                 this.model.offset.z = this.entity.model.offset.z;
                 return;
             }
             this.lastBB.copyFrom(this.customBoundingBox);
-            this.lastBB.add(this.getPosition());
+            //LastBB.Add(Position);
             //LastBB = CustomBoundingBox + Position;
             if ((this.frame & 7) === 0) {
                 //world.BringToFront(model);
-                this.model.drawOrder = 1;
+
+                //Make sure ALL shadows have a draworder unique to shadows that no other model uses, this way we can draw all shadows as a batch(skips a bunch of webgl databindings).
+
             }
             //base.Update();
             this.model.setVisible(false);
@@ -13205,16 +17129,18 @@
                 O.x = EO.x;
                 O.y = EO.y;
                 O.z = EO.z;
-                if (this.entity.lastBB != null && this.entity.lastBB.getRoughLength() > 0) {
-                    O.y = this.entity.lastBB.max.y;
-                }
+                this.lastBB.add(O);
+                /* if (entity.LastBB != null && entity.LastBB.RoughLength>0)
+                    {
+                        O.Y = entity.LastBB.Max.Y;
+                    }*/
                 var LE = System.Linq.Enumerable.from(this.world.findPlatformCollision(this.lastBB)).where(function (E) {
                     return E.lastBB != null && E.lastBB.min.y > O.y;
                 }).toList(BNTest.Entity);
                 LE.sort($_.BNTest.Shadow.f1);
                 if (LE.getCount() > 0) {
                     var dist = Math.abs(this.entity.gety() - LE.getItem(0).lastBB.min.y);
-                    O.y = LE.getItem(0).lastBB.min.y - 0.25;
+                    O.y = LE.getItem(0).lastBB.min.y - (this.yoff);
                     //model.Scale = model.Scale.Clone();
                     var minscale = 0.3;
                     this.model.scale.x = ($t = minscale + (dist * 0.003), this.model.scale.z = $t, $t);
@@ -13240,6 +17166,201 @@
     Bridge.apply($_.BNTest.Shadow, {
         f1: function (E1, E2) {
             return Bridge.compare(E1.lastBB.min.y, E2.lastBB.min.y);
+        }
+    });
+
+    Bridge.define("BNTest.ShopScreen", {
+        inherits: [BNTest.Sprite],
+        characters: null,
+        menu: null,
+        charCount: 0,
+        purchase: null,
+        moneyDisplay: null,
+        messageDisplay: null,
+        exit: null,
+        current: 0,
+        ctor: function (Characters) {
+            this.$initialize();
+            BNTest.Sprite.ctor.call(this);
+            this.characters = Characters;
+            var self = this;
+
+            this.spriteBuffer.width = 1024;
+            this.spriteBuffer.height = Bridge.Int.clip32(this.spriteBuffer.width * BNTest.App.targetAspect);
+
+            this.purchase = new BNTest.ButtonSprite.$ctor1("Purchase", 40);
+            this.purchase.position = new BNTest.Vector2(800);
+            this.purchase.onClick = function () {
+                self.doPurchase();
+            };
+            this.purchase.clickSound = "";
+
+
+            this.moneyDisplay = new BNTest.TextSprite();
+            this.moneyDisplay.setFontSize(40);
+            this.moneyDisplay.setTextColor("#FFFFFF");
+
+            this.messageDisplay = new BNTest.TextSprite();
+            this.messageDisplay.setFontSize(40);
+            this.messageDisplay.setTextColor("#FFFFFF");
+            this.messageDisplay.position = new BNTest.Vector2(150, 250);
+            this.messageDisplay.setText("             No characters available.\n(Clear some new waves and check back.)");
+            this.messageDisplay.visible = false;
+
+
+            this.exit = new BNTest.ButtonSprite.$ctor1("Done", 50);
+            this.exit.position = new BNTest.Vector2(820, 600);
+
+            this.exit.onClick = function () {
+                self.visible = false;
+            };
+
+            this.initMenu();
+        },
+        doPurchase: function () {
+            var F = this.menu.getSelectedData();
+            var mon = System.Int32.parse(BNTest.App.storage.Mon);
+            if (mon >= F.cost && F.purchase()) {
+                //purchase was successful.
+                //AudioManager._this.Blast("SFX/cash.ogg");
+                BNTest.AudioManager.get_this().blast("SFX/ok2B.ogg");
+
+
+                this.initMenu();
+                BNTest.GLDemo._this.CS.initMenu();
+            } else {
+                //purchase fail
+                BNTest.AudioManager.get_this().blast("SFX/hit.ogg");
+            }
+            this.moneyDisplay.setText(System.String.concat("Mon:", BNTest.App.storage.Mon));
+        },
+        initMenu: function () {
+            /* Menu = new ButtonMenu(0, 600, 50, true);
+                Menu.Position = new Vector2(150, 200);*/
+            this.charCount = 0;
+            //Menu = new ButtonMenu(700, 450, 46, true);
+            this.menu = new BNTest.ButtonMenu(1000, 450, 46, true);
+            this.menu.position = new BNTest.Vector2(0, 300);
+            this.menu.onChoose = Bridge.fn.bind(this, $_.BNTest.ShopScreen.f1);
+            var def = null;
+            var L = this.characters.getItems();
+            //L = L.Where(J => !J.Purchased && J.Buyable).ToList();
+            L = System.Linq.Enumerable.from(L).where($_.BNTest.ShopScreen.f2).toList(BNTest.FeatureItem);
+            var missing = L.getCount();
+            L = System.Linq.Enumerable.from(L).where($_.BNTest.ShopScreen.f3).toList(BNTest.FeatureItem);
+            var available = L.getCount();
+
+            //var L = Characters.GetItems();
+            var i = 0;
+            while (i < L.getCount()) {
+                var A = L.getItem(i);
+                var B = this.menu.addButton(System.String.concat(System.String.concat(A.name, "\nCost:"), A.cost));
+                B.data = A;
+                if (def == null) {
+                    def = B;
+                }
+                this.charCount = (this.charCount + 1) | 0;
+                //ButtonSprite B = new ButtonSprite()
+                i = (i + 1) | 0;
+            }
+            if (this.charCount <= 0 && missing > 0) {
+                this.messageDisplay.visible = true;
+            } else {
+                this.messageDisplay.visible = false;
+            }
+
+            //Menu.Finish(999999999);
+            //Menu.Finish((int)Math.Ceiling(Menu.GetAllButtons().Count / 3.0));
+            var rows = Bridge.Int.clip32(Math.ceil(this.menu.getAllButtons().getCount() / 4.0));
+            if (rows < 1) {
+                rows = 1;
+            }
+            this.menu.finish(rows);
+            this.menu.select(def);
+            if (this.charCount === 0) {
+                this.purchase.lock();
+            } else {
+                this.purchase.unlock();
+            }
+            /* if (CharCount == 1)
+                {
+                    def.Visible = false;
+                }*/
+            this.moneyDisplay.setText(System.String.concat("Mon:", BNTest.App.storage.Mon));
+            if (this.current < System.Int32.parse(BNTest.App.storage.Mon)) {
+                this.current = System.Int32.parse(BNTest.App.storage.Mon);
+            }
+        },
+        update: function () {
+            this.menu.update();
+            this.purchase.checkClick();
+            this.exit.checkClick();
+        },
+        render: function () {
+            var LC = this.current;
+            var target = System.Int32.parse(BNTest.App.storage.Mon);
+            if (this.current > target) {
+                var whyyy = BNTest.MathHelper.incrementTowards(this.current, target, 1 + ((this.current - target) / 20));
+                this.current = Bridge.Int.clip32(whyyy);
+                /* current = Math.Max((current - 1).As<double>(), target);
+                    int c = (current - target) / 20;
+                    current = Math.Max((current - c).As<double>(), target);*/
+                /* if (current-30 >target)
+                    {
+                        current = Math.Max((current - 10).As<double>(), target);
+                    }
+                    else if (current - 20 > target)
+                    {
+                        current = Math.Max((current - 5).As<double>(), target);
+                    }
+                    else if (current - 10 > target)
+                    {
+                        current = Math.Max((current - 1).As<double>(), target);
+                    }*/
+            }
+            if (LC !== this.current) {
+                this.moneyDisplay.setText(System.String.concat("Gems:", this.current));
+            }
+
+            this.spriteGraphics.clearRect(0, 0, 1024, 1024);
+
+            this.spriteGraphics.fillStyle = "#000000";
+            //spriteGraphics.GlobalAlpha = 0.4f;
+            //spriteGraphics.GlobalAlpha = 0.5f;
+            this.spriteGraphics.globalAlpha = 0.55;
+            this.spriteGraphics.fillRect(0, 0, 1024, 1024);
+            this.spriteGraphics.globalAlpha = 1;
+            this.menu.draw(this.spriteGraphics);
+
+            this.purchase.draw(this.spriteGraphics);
+
+            this.moneyDisplay.draw(this.spriteGraphics);
+            this.messageDisplay.draw(this.spriteGraphics);
+            this.exit.draw(this.spriteGraphics);
+        },
+        draw: function (g) {
+            this.render();
+            BNTest.Sprite.prototype.draw.call(this, g);
+        }
+    });
+
+    Bridge.ns("BNTest.ShopScreen", $_);
+
+    Bridge.apply($_.BNTest.ShopScreen, {
+        f1: function () {
+            var F = this.menu.getSelectedData();
+            var mon = System.Int32.parse(BNTest.App.storage.Mon);
+            if (mon >= F.cost) {
+                this.purchase.unlock();
+            } else {
+                this.purchase.lock();
+            }
+        },
+        f2: function (J) {
+            return !J.getPurchased();
+        },
+        f3: function (J) {
+            return J.getBuyable();
         }
     });
 
@@ -13381,6 +17502,116 @@
         }
     });
 
+    Bridge.define("BNTest.SpreadShot", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 9,
+        _shotDelay: 0,
+        _maxShotDelay: 4,
+        _angle: 0,
+        bulletSpeed: 7,
+        bulletLifeSpan: 45,
+        bulletGraphic: null,
+        minCoolDown: 40,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 3.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 1;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var i = 2;
+                        while (i > 0) {
+                            var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                            var D = {  };
+                            D.A = this._angle;
+
+                            //float inaccuracy = 0.10f;
+                            //float inaccuracy = 0.13f;
+                            //float inaccuracy = 0.50f;
+                            var inaccuracy = 0.6;
+                            var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                            var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                            D.SX = V1.x;
+                            D.SY = V1.y;
+                            var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                            D.X = P.x;
+                            D.Y = P.y;
+                            D.Z = P.z;
+
+                            this.customEvent(D);
+                            i = (i - 1) | 0;
+                        }
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            P.settouchDamage(24.0);
+            P.knockbackPower = 0.25;
+
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+
+            var HSZ = BNTest.GLVec3.createUniform(10);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            this.entity.world.add(P);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.SwordSwing", {
         inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
         _ammo: 0,
@@ -13394,6 +17625,7 @@
         speed: null,
         forcedAngle: 0,
         minCoolDown: 45,
+        attackDamage: 120,
         config: {
             alias: [
             "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
@@ -13465,6 +17697,7 @@
 
             var P = new BNTest.Projectile(this.entity.world, this.entity);
             P.solid = false;
+            P.multiHit = true;
             var M = new BNTest.Model(this.entity.game);
             M.meshes.add(this.bulletGraphic);
             P.model = M;
@@ -13472,7 +17705,8 @@
             //P.touchDamage = 7.5f;
             //P.touchDamage = 15f;
             //P.touchDamage = 35f;
-            P.settouchDamage(50.0);
+            //P.touchDamage = 50f;
+            P.settouchDamage(this.attackDamage);
 
             P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
             //P.AddBehavior(new LifeSpan(P, 60));
@@ -13732,6 +17966,7 @@
                 M.addVoxelMap(VM, smooth);
                 this.model.meshes.add(M);
                 this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 3);
+                //M.RandomShift(0.1);
                 if (tmdl == null) {
                     BNTest.ModelCache.get_this().set$1(Char, this.model);
                 }
@@ -13740,8 +17975,8 @@
             this.setScale(BNTest.GLVec3.op_Multiply$1(this.getScale(), (0.8 + (Math.random() * 0.4))));
             //var width = (0.7 + (Math.Random() * 0.6));
             var width = (0.5 + (Math.random() * 0.9));
-            this.getScale().x *= width;
-            this.getScale().z *= width;
+            /* Scale.X *= width;
+                Scale.Z *= width;*/
             this.getPosition().y = -(this.size * this.model.scale.y * 0.5) + 10;
             this.cacheBoundingBox();
 
@@ -14134,6 +18369,12 @@
         cantstep: false,
         frictionActive: true,
         stepheight: 10,
+        FSC: null,
+        config: {
+            init: function () {
+                this.FSC = System.Array.init(0, null);
+            }
+        },
         ctor: function (world) {
             this.$initialize();
             BNTest.ControllableEntity.ctor.call(this, world);
@@ -14161,28 +18402,44 @@
             }
         },
         updateCollisions: function () {
+            var clear = this.FSC.length > 0;
             var spd = 0.8;
 
             var Y = this.lastBB.min.y;
-            var Y2 = this.lastBB.max.y;
+            var Y2 = this.lastBB.max.y - this.stepheight;
+            var step2 = this.stepheight + this.stepheight;
 
             //var EB = LastBB * 1.5;
-            var EB = BNTest.BoundingBox.op_Addition(new BNTest.BoundingBox.$ctor2(300), this.getPosition());
-
-            var STY = ((this.lastBB.getSize().y / 2) + 3);
-
-
-            var L = this.game.world.findSolidCollision(EB, this);
-            //var DB = LastBB + new GLVec3(0, 5, 0);
-            var DB = BNTest.BoundingBox.op_Addition(this.lastBB, new BNTest.GLVec3.ctor(0, STY / 2, 0));
+            //var EB = new BoundingBox(300)+Position;
+            //var EB = new BoundingBox(200) + Position;
+            var sz = ((this.lastBB.getRoughLength() * 0.75) + this.speed.getRoughLength()) + 10;
+            sz *= 2;
             var TB;
+            TB = new BNTest.BoundingBox.$ctor2(sz);
+            TB.add(this.getPosition());
+            //var sz = LastBB.Size;
+            //var EB = new BoundingBox((LastBB.Size.X + LastBB.Size.Y) + Speed.RoughLength + 10) + Position;
+
+            //double STY = ((LastBB.Size.Y / 2) + 3);
+            var STY = (((this.lastBB.max.y - this.lastBB.min.y) / 2) + 3);
+
+            if (this.FSC.length === 0) {
+                //FSC.Clear();
+                this.game.world.findSolidCollision(TB, this, this.FSC);
+            }
+            var L = this.FSC;
+            //var DB = LastBB + new GLVec3(0, 5, 0);
+            TB.copyFrom(this.lastBB);
+            TB.add$1(0, STY / 2, 0);
+
             var ground = System.Array.init(0, null);
             var i = 0;
-            while (i < L.length) {
+            var ln = L.length;
+            while (i < ln) {
                 var E = L[i];
-                TB = E.lastBB;
-                var TY = (TB.min.y - STY);
-                if ((TY - Y2) <= this.stepheight && TB.intersection$2(DB)) {
+                var EB = E.lastBB;
+                var TY = (EB.min.y - STY);
+                if ((TY - Y2) <= step2 && EB.intersection$2(TB)) {
                     ground.push(E);
                 }
                 i = (i + 1) | 0;
@@ -14211,12 +18468,12 @@
                 this.model.rotation.x = -16;
             } else if (this.speed.y >= 0) {
                 this.onGround = true;
-                this.speed.y = Math.min(this.speed.y, 0);
                 this.model.rotation.x = 0;
 
                 //Y = (B.Min.Y - 11);
                 Y = (B.min.y - STY);
                 if (Math.abs(this.gety() - Y) <= this.stepheight) {
+                    this.speed.y = Math.min(this.speed.y, 0);
                     var P = BNTest.GLVec3.op_Multiply$1(ground[0].speed, ground[0].groundFriction);
                     this.model.offset.x += P.x;
                     this.model.offset.y += P.y;
@@ -14241,10 +18498,34 @@
                             }
                         }*/
 
-                    if (B.intersection$2(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(this.speed.x, this.speed.y, 0))))) {
+
+                    var spacing = 10;
+                    var speed = 0.2;
+                    TB.copyFrom(this.lastBB);
+                    TB.add$1(0, ((-spacing) | 0), 0);
+                    //TB = LastBB + new GLVec3(0, -spacing, 0);
+
+                    var up = (TB).intersection(L);
+                    TB.copyFrom(this.lastBB);
+                    TB.add$1(0, spacing, 0);
+                    var down = (TB).intersection(L);
+                    //if (LastBB.Intersection(L).Length > 0 && (LastBB + new GLVec3(0,5,0)).Intersection(L).Length>0)
+                    if (up.length <= 0 && down.length > 0) {
+                        this.speed.y = Math.min(0, this.speed.y - speed);
+                        this.onGround = false;
+                    } else if (up.length > 0 && down.length <= 0) {
+                        this.speed.y = Math.max(0, this.speed.y + speed);
+                        this.onGround = false;
+                    }
+
+                    TB.copyFrom(this.lastBB);
+                    TB.add$1(this.speed.x, this.speed.y, 0);
+                    if (B.intersection$2(TB)) {
                         this.speed.x = 0;
                     }
-                    if (B.intersection$2(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(0, this.speed.y, this.speed.z))))) {
+                    TB.copyFrom(this.lastBB);
+                    TB.add$1(0, this.speed.y, this.speed.z);
+                    if (B.intersection$2(TB)) {
                         this.speed.z = 0;
                     }
 
@@ -14252,8 +18533,39 @@
                     //cantstep = true;
                 }
                 //y = (B.Min.Y - 11);
+            } else {
+                /* var up = (LastBB + new GLVec3(0, -20, 0)).Intersection(L);
+                    var down = (LastBB + new GLVec3(0, 20, 0)).Intersection(L);
+                    //if (LastBB.Intersection(L).Length > 0 && (LastBB + new GLVec3(0,5,0)).Intersection(L).Length>0)
+                    if (up.Length<=0 && down.Length>0)
+                    {
+                        Speed.Y -= 0.25;
+                    }
+                    else if (up.Length>0 && down.Length<=0)
+                    {
+                        Speed.Y += 0.25;
+                    }*/
+                var spacing1 = 10;
+                var speed1 = 0.2;
+                TB.copyFrom(this.lastBB);
+                TB.add$1(0, ((-spacing1) | 0), 0);
+                //TB = LastBB + new GLVec3(0, -spacing, 0);
+
+                var up1 = (TB).intersection(L);
+                TB.copyFrom(this.lastBB);
+                TB.add$1(0, spacing1, 0);
+                var down1 = (TB).intersection(L);
+                //if (LastBB.Intersection(L).Length > 0 && (LastBB + new GLVec3(0,5,0)).Intersection(L).Length>0)
+                if (up1.length <= 0 && down1.length > 0) {
+                    this.speed.y = Math.min(0, this.speed.y - speed1);
+                    this.onGround = false;
+                } else if (up1.length > 0 && down1.length <= 0) {
+                    this.speed.y = Math.max(0, this.speed.y + speed1);
+                    this.onGround = false;
+                }
             }
-            TB = this.lastBB.clone();
+            TB.copyFrom(this.lastBB);
+            //TB = LastBB.Clone();
             var PB = BNTest.BoundingBox.op_Addition(TB, this.speed);
             var CL = PB.intersection(L);
             if (L.length > 0 && CL.length > 0) {
@@ -14261,37 +18573,38 @@
                 var stuck = 0;
 
                 TB.max.y -= (this.stepheight * 0.75);
-                var S = new BNTest.GLVec3.ctor(this.speed.x, 0, 0);
                 //PB = TB + S;
                 PB.copyFrom(TB);
-                PB.add(S);
+                PB.add$1(this.speed.x, 0, 0);
                 if (PB.intersection(L).length <= 0) {
                     this.model.offset.x += this.speed.x;
-                    TB = BNTest.BoundingBox.op_Addition(TB, S);
-                    stuck = (stuck + 1) | 0;
+                    TB.add$1(this.speed.x, 0, 0);
+
                 } else {
                     this.cantstep = true;
+                    stuck = (stuck + 1) | 0;
                 }
 
                 //if (!B.Intersection(LastBB + (new GLVec3(0, 0, Speed.Z))))
-                S = new BNTest.GLVec3.ctor(0, 0, this.speed.z);
                 //PB = TB + S;
                 PB.copyFrom(TB);
-                PB.add(S);
+                PB.add$1(0, 0, this.speed.z);
                 if (PB.intersection(L).length <= 0) {
                     this.model.offset.z += this.speed.z;
-                    TB = BNTest.BoundingBox.op_Addition(TB, S);
-                    stuck = (stuck + 1) | 0;
+                    TB.add$1(0, 0, this.speed.z);
+
                 } else {
                     this.cantstep = true;
+                    stuck = (stuck + 1) | 0;
                 }
-                S = new BNTest.GLVec3.ctor(0, this.speed.y, 0);
                 //PB = TB + S;
                 PB.copyFrom(TB);
-                PB.add(S);
+                PB.add$1(0, this.speed.y, 0);
                 if (PB.intersection(L).length <= 0) {
                     //model.Offset.Y += Speed.Y;
                     //TB += S;
+
+                } else {
                     stuck = (stuck + 1) | 0;
                 }
                 this.model.offset.y += this.speed.y;
@@ -14304,12 +18617,19 @@
                         if (C.getRoughLength() < 100) {
                             C = BNTest.GLVec3.op_Multiply$1(C, 0.001);
                             if (BB.intersection$2(BNTest.BoundingBox.op_Addition(this.lastBB, C))) {
-                                C = BNTest.GLVec3.op_Addition(C, BNTest.GLVec3.op_Addition(BNTest.GLVec3.op_Addition(C, C), C));
+                                //C += C + C + C;
+                                C.add(C);
+                                C.add(C);
                             }
                             this.getPosition().x += C.x;
                             this.getPosition().z += C.z;
-                            this.lastBB = BNTest.BoundingBox.op_Addition(this.lastBB, C);
+                            if (C.y < 0) {
+                                this.getPosition().y += C.y;
+                            }
+                            //LastBB += C;
+                            this.lastBB.add(C);
                         }
+                        //C.Release();
                     }
                 }
                 //model.Offset.Y += Speed.Y;
@@ -14318,6 +18638,13 @@
                 this.model.offset.y += this.speed.y;
                 this.model.offset.z += this.speed.z;
                 //model.Offset += Speed;
+            }
+            /* PB.Release();
+                TB.Release();
+                TB.Min.Release();
+                TB.Max.Release();*/
+            if (clear) {
+                BNTest.HelperExtensions.clear$1(BNTest.Entity, this.FSC);
             }
         },
         update: function () {
@@ -14358,8 +18685,12 @@
         reward: true,
         useSwingAnimation: false,
         flickerColor: null,
+        defaultColor: null,
         maxHPDrops: 3,
         dropsChance: 1,
+        combo: 0,
+        lastKill: 0,
+        maxComboTime: 120,
         _HP: 100,
         _PointsForKilling: 10,
         pmesh: null,
@@ -14392,7 +18723,10 @@
             "onDamaged", "BNTest$ICombatant$onDamaged",
             "onDeath", "BNTest$ICombatant$onDeath",
             "onKill", "BNTest$ICombatant$onKill"
-            ]
+            ],
+            init: function () {
+                this.defaultColor = new BNTest.GLColor(1, 1, 1);
+            }
         },
         ctor: function (world, me, character, team) {
             if (team === void 0) { team = -1000; }
@@ -14418,6 +18752,8 @@
             //Char = "reimu";
             //string weaponGraphic = "object/amulet";
             var weaponGraphic = "object/basicshot";
+            var scsmooth = false;
+            var scsnoise = false;
             this.team = team;
             if (this.team === -1000) {
                 if (me.CPU) {
@@ -14465,6 +18801,7 @@
             weapons.set("cirno", "object/ice");
             weapons.set("marisa", "object/star");
             weapons.set("reisen", "object/bullet");
+            weapons.set("flandre", "object/yinyangorb");
             weapons.set("koishi", (weapons.set("satori", "object/heart"), "object/heart"));
             weapons.set("aya", ($t = (weapons.set("tenshi", "object/wind"), "object/wind"), weapons.set("youmu", $t), $t));
             if (weapons.containsKey(this.char)) {
@@ -14503,21 +18840,25 @@
                     weaponGraphic = "object/wind";
                 }*/
             var tmdl = BNTest.ModelCache.get_this().get(this.char, false);
-
+            var Ppal = true;
             if (tmdl != null) {
                 console.log(System.String.concat(System.String.concat("loading \"", this.char), "\" model from cache."));
                 this.model.copyFrom(tmdl);
-                this.initCPU();
+                if (me.CPU) {
+                    this.initCPU();
+                }
                 this.initModel();
             } else {
-                BNTest.AnimationLoader.get_this().asyncGet$1(["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches", "head/mouseEars", "body/Lsidependant", "body/mouseTail", "foot/shortsocks", "body/capelet", "arm/capelet"], Bridge.fn.bind(this, function () {
+                BNTest.AnimationLoader.get_this().asyncGet$1(["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches", "head/mouseEars", "body/Lsidependant", "body/mouseTail", "foot/shortsocks", "body/capelet", "arm/capelet", "head/sideponytail", "head/smallRim", "body/flandrewings"], Bridge.fn.bind(this, function () {
                     var $t1, $t2, $t3, $t4;
                     tmdl = BNTest.ModelCache.get_this().get(this.char, false);
 
                     if (tmdl != null) {
                         console.log(System.String.concat(System.String.concat("loading \"", this.char), "\" model from cache."));
                         this.model.copyFrom(tmdl);
-                        this.initCPU();
+                        if (me.CPU) {
+                            this.initCPU();
+                        }
                         this.initModel();
                         return;
                     }
@@ -14533,6 +18874,8 @@
                     var mult = 3;
                     var bdy = ["body/rahmoo"];
                     var item = [];
+                    var hatflip = false;
+
                     var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
                     var Headpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
                     var Hatpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
@@ -14714,9 +19057,27 @@
 
                             pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
                             //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
-                            hd = ["head/base", "head/rahmoo"];
+                            hd = ["head/base", "head/medium"];
                             ht = ["head/sideribbon"];
                             ar = ["arm/base", "arm/sleeve"];
+                        }
+                        if (Bridge.referenceEquals(this.char, "flandre")) {
+                            //Bodypal[new GLColor(1, 0, 0)] = new GLColor(0, 0.7, 0.2);
+                            //pal[new GLColor(1, 1, 0)] = new GLColor(1, 1, 1);
+
+                            //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1.0, 0.85, 0.35);
+                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.95, 0.95, 0.3));
+
+                            hd = ["head/base", "head/medium", "head/sideponytail"];
+                            ht = ["head/cap", "head/smallRim", "head/sideribbon"];
+                            bdy = ["body/shortskirt", "body/shortskirtfrill", "body/flandrewings"];
+                            ar = ["arm/base", "arm/shortsleeve"];
+
+                            Hatpal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0, 0));
+                            Hatpal.set(new BNTest.GLColor(0, 0, 0), new BNTest.GLColor(1, 1, 1));
+                            //Hatpal[new GLColor(1, 0, 0)] = new GLColor();
+                            hatflip = true;
+
                         }
 
                         //bdy = new string[] { "body/rahmoo", "body/top" };
@@ -14747,6 +19108,7 @@
                     M.Spd = 0.075 * mult;
 
                     M.addVoxelMap(body, smooth);
+                    //M.ReverseVerticeOrder();
                     this.model.meshes.add(M);
 
                     var arm = BNTest.VoxelMap.fromAnimationCombo(ar);
@@ -14756,8 +19118,9 @@
                     M.Dir = 1;
                     M.Spd = 1.5 * mult;
                     M.addVoxelMap(arm, smooth);
-                    M.offset.x = 1.5;
-                    M.offset.y = 2;
+                    //M.Offset.X = 1.5;
+                    M.offset.x = 1.25;
+                    M.offset.y = 2.5;
                     M.rotation.z = armrotation;
                     M.scale.z = 0.75;
                     if (item.length > 0) {
@@ -14783,8 +19146,9 @@
                     M.Dir = -1;
                     M.Spd = 1.5 * mult;
                     M.addVoxelMap(arm, smooth);
-                    M.offset.x = -1.5;
-                    M.offset.y = 2;
+                    //M.Offset.X = -1.5;
+                    M.offset.x = -1.25;
+                    M.offset.y = 2.5;
                     M.rotation.z = (-armrotation) | 0;
                     M.scale.z = 0.75;
                     this.model.meshes.add(M);
@@ -14813,6 +19177,9 @@
                     head.applyPalette(pal);
                     head.applyPalette(Headpal);
                     var hat = BNTest.VoxelMap.fromAnimationCombo(ht);
+                    if (hatflip) {
+                        hat.flipX();
+                    }
                     hat.applyPalette(pal);
                     hat.applyPalette(Hatpal);
                     head.combine(hat);
@@ -14825,6 +19192,9 @@
 
 
                     //model.Smoothen();
+                    if (smooth) {
+                        this.model.smoothen(0.7);
+                    }
                     if (tmdl == null) {
                         BNTest.ModelCache.get_this().set$1(this.char, this.model);
                     }
@@ -14852,6 +19222,15 @@
                 this.addBehavior(new BNTest.WideShot(this));
             } else if (Bridge.referenceEquals(this.char, "tenshi")) {
                 this.addBehavior(new BNTest.BasicSword(this));
+            } else if (Bridge.referenceEquals(this.char, "cirno")) {
+                this.addBehavior(new BNTest.RapidWideGun(this));
+            } else if (Bridge.referenceEquals(this.char, "sanae")) {
+                this.addBehavior(new BNTest.RapidSniper(this));
+            } else if (Bridge.referenceEquals(this.char, "marisa")) {
+                this.addBehavior(new BNTest.SpreadShot(this));
+            } else if (Bridge.referenceEquals(this.char, "flandre")) {
+                this.addBehavior(new BNTest.HeavyShot(this));
+
             } else {
                 this.addBehavior(new BNTest.RapidFireGun(this));
             }
@@ -14862,6 +19241,33 @@
             if (Bridge.referenceEquals(this.char, "reimu")) {
                 this.addBehavior(new BNTest.YinYangOrbGun(this));
                 secondaryWeaponGraphic = "object/yinyangorb";
+                //secondaryWeaponGraphic = "object/keystone";
+                scsmooth = true;
+            }
+            if (Bridge.referenceEquals(this.char, "cirno")) {
+                this.addBehavior(new BNTest.IceBall(this));
+                secondaryWeaponGraphic = "object/yinyangorb";
+                scsmooth = true;
+            }
+            if (Bridge.referenceEquals(this.char, "sanae")) {
+                this.addBehavior(new BNTest.FivePointShot(this));
+                secondaryWeaponGraphic = "object/starB";
+                scsmooth = true;
+            }
+            if (Bridge.referenceEquals(this.char, "marisa")) {
+                this.addBehavior(new BNTest.LargeLaser(this));
+            }
+            if (Bridge.referenceEquals(this.char, "flandre")) {
+                this.addBehavior(new BNTest.Laevatein(this));
+                secondaryWeaponGraphic = "object/basicshot";
+                Ppal = false;
+                //scsmooth = true;
+            }
+            if (Bridge.referenceEquals(this.char, "tenshi")) {
+                this.addBehavior(new BNTest.RockDrop(this));
+                secondaryWeaponGraphic = "object/keystone";
+                scsmooth = true;
+                scsnoise = true;
             }
             var speedrate = this.game.bulletSpeedRate;
             var minion = me.minion;
@@ -14913,6 +19319,7 @@
                     //T2.MinCoolDown = 180;
                     var T3 = this.getBehavior$1(BNTest.IWeaponBehavior, $_.BNTest.PlayerCharacter.f1);
                     T3.minCoolDown = 120;
+                    T3.attackDamage *= 0.5;
 
                     /* T2._maxAmmo = 1;
                         T2.bulletSpeed = 2.5f;
@@ -15012,24 +19419,34 @@
             }
             if (me.CPU && !minion) {
                 var T21 = this.getBehavior(BNTest.IWeaponBehavior);
-                if (!Bridge.referenceEquals(this.char, "tenshi")) {
-
-                    var T6 = new BNTest.ProximityAttacker(this);
+                if (Bridge.referenceEquals(this.char, "flandre")) {
+                    var T6 = new BNTest.EnemyEngager(this);
                     T6.framesPerTick = 20;
-                    T6.predict = true;
+                    T6.weapon = 6;
+                    this.addBehavior(T6);
+                    var TB = new BNTest.SecondaryResponder(this);
+                    TB.weapon = 5;
+                    this.addBehavior(TB);
+
+                } else if (!Bridge.referenceEquals(this.char, "tenshi")) {
+
+                    var T7 = new BNTest.ProximityAttacker(this);
+                    T7.framesPerTick = 20;
+                    T7.predict = true;
                     //T.passive = true;
                     if (Bridge.referenceEquals(this.char, "koishi")) {
-                        T6.aggroRange = 100;
+                        T7.aggroRange = 100;
                     } else {
                         this.maxAmmo = 1;
                         //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
                         this.ammoRechargeRate = 0.00333333341;
                     }
-                    this.addBehavior(T6);
-                } else {
-                    var T7 = new BNTest.EnemyEngager(this);
-                    T7.framesPerTick = 20;
                     this.addBehavior(T7);
+                } else {
+                    var T8 = new BNTest.EnemyEngager(this);
+                    T8.framesPerTick = 20;
+                    this.addBehavior(T8);
+                    this.addBehavior(new BNTest.SecondaryResponder(this));
                 }
                 this.canShoot = true;
                 this.maxRespawnTime = 999999999;
@@ -15066,11 +19483,17 @@
                         VM = BNTest.VoxelMap.fromImages$1(weaponGraphic);
                         //VoxelMap VM = VoxelMap.FromImages(AnimationLoader.Get(weaponGraphic));
                         VM.swapYZ();
-                        this.pmesh.addVoxelMap(VM);
+                        this.pmesh.addVoxelMap(VM, true);
 
                         BNTest.ModelCache.get_this().set(System.String.concat("W1:", weaponGraphic), this.pmesh);
                     }
-                    this.pmesh.applyPalette(pal);
+                    if (Ppal) {
+                        this.pmesh.applyPalette(pal);
+                    }
+                    //this will prevent buffer clears.
+                    this.pmesh.update();
+                    this.pmesh.clonedBuffer = true;
+                    this.pmesh.doNotUnload = true;
                     var weapon = this.getBehavior$1(BNTest.IWeaponBehavior, $_.BNTest.PlayerCharacter.f2);
                     var weapon2 = this.getBehavior$1(BNTest.IWeaponBehavior, $_.BNTest.PlayerCharacter.f3);
                     weapon.bulletGraphic = this.pmesh;
@@ -15082,21 +19505,32 @@
                         } else {
                             w2msh = new BNTest.Mesh(this.game);
                             VM = BNTest.VoxelMap.fromImages$1(secondaryWeaponGraphic);
+                            if (scsnoise) {
+                                VM.addNoise(0.05);
+                            }
+
                             VM.swapYZ();
-                            w2msh.addVoxelMap(VM);
+                            w2msh.addVoxelMap(VM, true);
+                            if (scsmooth) {
+                                w2msh.smoothenB(0.5);
+                                //w2msh.Smoothen();
+                            }
                             BNTest.ModelCache.get_this().set(System.String.concat("W2:", secondaryWeaponGraphic), w2msh);
                         }
-                        w2msh.applyPalette(pal);
+                        if (Ppal) {
+                            w2msh.applyPalette(pal);
+                        }
                         weapon2.bulletGraphic = w2msh;
+                        w2msh.update();
+                        w2msh.clonedBuffer = true;
+                        w2msh.doNotUnload = true;
                     } else if (weapon2 != null) {
                         weapon2.bulletGraphic = this.pmesh;
                     }
                     //GetBehavior<IWeaponBehavior>().As<RapidFireGun>().BulletGraphic = Pmesh;
                 }));
             }
-            if (me.CPU && Bridge.referenceEquals(this.char, this.game.localplayer.character.char)) {
-                this.model.color = new BNTest.GLColor(0.25, 0.25, 0.25);
-            }
+
     },
     getHP: function () {
         return this._HP;
@@ -15130,7 +19564,8 @@
             armrotation = 67;
         }
         //double mult = 3;
-        var mult = 3.5;
+        //double mult = 3.5;
+        var mult = 3.9;
 
         var i = 0;
 
@@ -15150,8 +19585,10 @@
         M.Dir = 1;
         M.Spd = 1.5 * mult;
 
-        M.offset.x = 1.5;
-        M.offset.y = 2;
+        //M.Offset.X = 1.5;
+        //M.Offset.Y = 2;
+        M.offset.x = 1.25;
+        M.offset.y = 2.5;
         M.rotation = new BNTest.GLVec3.ctor();
         M.rotation.z = armrotation;
         M.scale.z = 0.75;
@@ -15160,8 +19597,10 @@
         M.Dir = -1;
         M.Spd = 1.5 * mult;
 
-        M.offset.x = -1.5;
-        M.offset.y = 2;
+        //M.Offset.X = -1.5;
+        //M.Offset.Y = 2;
+        M.offset.x = -1.25;
+        M.offset.y = 2.5;
         M.rotation = new BNTest.GLVec3.ctor();
         M.rotation.z = (-armrotation) | 0;
         M.scale.z = 0.75;
@@ -15224,6 +19663,12 @@
         NS.forcesFlush = true;
         NS.updateOnSync = true;
         this.addBehavior(NS);
+        //model.color = new GLColor(0.25, 0.25, 0.25);
+        if (this.me.CPU && Bridge.referenceEquals(this.char, this.game.localplayer.character.char)) {
+            //model.color = new GLColor(0.25, 0.25, 0.25);
+            //defaultColor = new GLColor(0.25, 0.25, 0.25);
+            this.defaultColor = BNTest.GLColor.createShade(0.5);
+        }
     },
     updateShoot: function () {
         //IWeaponBehavior weapon = GetBehavior<IWeaponBehavior>(WB => ((IWeaponBehavior)WB).WeaponType == 1);
@@ -15282,23 +19727,35 @@
     },
     update: function () {
         var $t;
-
+        this.lastKill = (this.lastKill + 1) | 0;
+        if (this.lastKill >= this.maxComboTime) {
+            this.combo = 0;
+        }
         if (this.respawnPosition == null) {
             this.respawnPosition = this.getPosition().clone();
         }
         if (this.respawnTime > 0) {
             this.model.setVisible(false);
-            this.lastBB = new BNTest.BoundingBox.ctor();
+            if (!this.lastBB.getEmpty()) {
+                if (this.lastBB == null) {
+                    this.lastBB = new BNTest.BoundingBox.ctor();
+                } else {
+                    this.lastBB.max.copyFrom(this.lastBB.min);
+                }
+            }
             this.respawnTime = (this.respawnTime - 1) | 0;
             if (!this.me.CPU) {
                 //Position = ((Position + RespawnPosition) * 0.5);
                 this.setPosition(BNTest.GLVec3.lerp(this.getPosition(), this.respawnPosition, 0.015));
                 var Dist = (BNTest.GLVec3.op_Subtraction(this.respawnPosition, this.getPosition()));
                 if (this.respawnTime <= 0 || Dist.getLength() <= 0.5) {
-                    this.setPosition(this.respawnPosition.clone());
+                    this.getPosition().copyFrom(this.respawnPosition);
                 } else {
-                    this.setPosition(BNTest.GLVec3.op_Addition(this.getPosition(), Dist.normalize(0.5)));
+                    var D2 = Dist.normalize(0.5);
+                    this.getPosition().add(D2);
+                    //D2.Release();
                 }
+                //Dist.Release();
             }
             return;
         }
@@ -15321,7 +19778,8 @@
                 this.setx(0);
                 this.sety(-120);
                 this.setz(0);
-                this.speed = new BNTest.GLVec3.ctor();
+                //Speed = new GLVec3();
+                this.speed.set();
                 this.model.rotation.x = 0;
                 if (this.me.CPU) {
                     //onDeath(null);
@@ -15340,7 +19798,8 @@
         if (this.flickerColor != null && (this.game.frame & 2) > 0) {
             this.model.color = this.flickerColor;
         } else {
-            this.model.color = new BNTest.GLColor(1, 1, 1);
+            //model.color = new GLColor(1, 1, 1);
+            this.model.color = this.defaultColor;
         }
         var meshcount = this.model.meshes.getCount();
         if (meshcount < 5) {
@@ -15395,6 +19854,20 @@
             this.rotateTest(this.model.meshes.getItem(1), "y", 3.0, 1.25);
             this.rotateTest(this.model.meshes.getItem(1), "x", 1.2, 1.25);
         }
+        if (Bridge.referenceEquals(this.animation, "pushing")) {
+            /* model.meshes[1].Rotation.X = -100;
+                    model.meshes[2].Rotation.X = -100;
+                    model.meshes[1].Rotation.Z = -30;
+                    model.meshes[2].Rotation.Z = 30;*/
+            this.model.meshes.getItem(1).rotation.x = -95;
+            this.model.meshes.getItem(2).rotation.x = -95;
+            this.model.meshes.getItem(1).rotation.z = -35;
+            this.model.meshes.getItem(2).rotation.z = -this.model.meshes.getItem(1).rotation.z;
+
+            //model.meshes[1].Rotation.Y = -60;
+            this.model.meshes.getItem(1).rotation.y = -50;
+            this.model.meshes.getItem(2).rotation.y = -this.model.meshes.getItem(1).rotation.y;
+        }
         if (this.speed.y === 0 && (this.speed.x !== 0 || this.speed.z !== 0)) {
             if (Bridge.referenceEquals(this.animation, "jump")) {
                 this.model.meshes.getItem(3).offset.z = 0;
@@ -15407,7 +19880,7 @@
 
             if (swing) {
                 //animation = "attackswing";
-            } else {
+            } else if (!Bridge.referenceEquals(this.animation, "pushing")) {
                 /* if (animation == "attackswing")
                         {
                             this.InitModel();
@@ -15420,7 +19893,7 @@
 
             this.rotateTest(this.model.meshes.getItem(0));
 
-            if (!Bridge.referenceEquals(this.animation, "attackswing")) {
+            if (!Bridge.referenceEquals(this.animation, "attackswing") && !Bridge.referenceEquals(this.animation, "pushing")) {
                 this.rotateTest(this.model.meshes.getItem(1));
                 this.rotateTest(this.model.meshes.getItem(2));
             } else {
@@ -15476,7 +19949,8 @@
         if (!this.me.CPU) {
             //DropCoins(50, 5, 1);
             //DropCoins(5+(5 * (int)Math.Floor(Game.wave/2.5)), 5, 1);
-            this.dropCoins(((5 + (((5 * Bridge.Int.clip32(Math.floor(this.game.wave / 2.5))) | 0))) | 0), 4, 1);
+            //DropCoins(5 + (5 * (int)Math.Floor(Game.wave / 2.5)), 4, 1);
+            this.dropCoins(((5 + (((5 * Bridge.Int.clip32(Math.floor(this.game.wave / 1.25))) | 0))) | 0), 4, 1);
 
             this.invincibilityFrames = this.maxInvincibilityFrames;
             if (!src.multiHit) {
@@ -15490,7 +19964,8 @@
         if (!src.multiHit) {
             src.alive = false;
         }
-        this.speed.y -= 2 / this.knockbackResistLevel;
+        //Speed.Y -= (2 * src.As<Projectile>().knockbackPower) / knockbackResistLevel;
+        this.speed.y -= (2 * ((1 + src.knockbackPower) * 0.5)) / this.knockbackResistLevel;
 
         this.invincibilityFrames = this.maxInvincibilityFrames;
     },
@@ -15519,22 +19994,22 @@
                     Value = 1;
                 }
             }
-            if (((this.getCoins() - c.value) | 0) <= 0) {
+            //if (Coins-c.Value<=0)
+            if (Value >= this.getCoins()) {
                 return;
             }
             c.setValue(Value);
+            this.setCoins((this.getCoins() - c.value) | 0);
             //prevent the final coin from spawning, the last coin is lost permanently.
             if (i > permaloss) {
                 this.world.add(c);
             }
-            this.setCoins((this.getCoins() - c.value) | 0);
             i = (i - 1) | 0;
         }
     },
     onDeath: function (source) {
         //throw new NotImplementedException();
         //Alive = false;
-
         if (this.me != null) {
             this.me.lives = (this.me.lives - 1) | 0;
         }
@@ -15577,26 +20052,52 @@
         N.set("reisen", 60);
         N.set("nazrin", 20);
         var c = new BNTest.Coin(this.world);
+        var cval = 10;
         if (!this.me.minion) {
-            c.setValue((((((100 * this.game.wave) | 0)) + 500) | 0));
+            cval = ((((100 * this.game.wave) | 0)) + 500) | 0;
+            //c.SetValue();
         } else if (this.model.scale.x > 1.0) {
             //c.model.Scale *= (GLVec3.One + model.Scale) * 0.5;
             //c.CustomBoundingBox *= c.model.Scale.X;
             //c.Value = 200;
-            c.setValue(200);
+            //c.SetValue(200);
+            cval = 200;
         } else if (N.containsKey(this.char)) {
             //c.model.Scale *= (1.75);
             //c.CustomBoundingBox *= c.model.Scale.X;
             //c.Value = 40;
             //c.SetValue(40);
-            c.setValue(N.get(this.char));
+            cval = N.get(this.char);
+            //c.SetValue(N[Char]);
         } else {
-            c.setValue(10);
+            cval = 10;
         }
-
+        if (source != null && source.BNTest$IHarmfulEntity$getAttacker() != null && Bridge.is(source.BNTest$IHarmfulEntity$getAttacker(), BNTest.PlayerCharacter)) {
+            var PC = source.BNTest$IHarmfulEntity$getAttacker();
+            //The combo hasn't counted up yet, so we add one, to account for that.
+            var combo = (PC.combo + 1) | 0;
+            if (combo > 1) {
+                var bonus = 0;
+                var nb = 3;
+                var cmb = combo;
+                while (cmb >= nb) {
+                    bonus = (bonus + 1) | 0;
+                    cmb = (cmb - nb) | 0;
+                    nb = (nb + 1) | 0;
+                }
+                //int bonus = (int)(combo / 3);
+                //int bonus = (int)(combo / 4);
+                cval = (cval + (((bonus * 5) | 0))) | 0;
+            }
+        }
+        c.setValue(cval);
         c.solid = false;
-        c.setPosition(this.getPosition().clone());
-        c.speed = BNTest.GLVec3.op_Multiply$1(this.speed, 0.35);
+        c.getPosition().copyFrom(this.getPosition());
+        c.getPosition().add$1(0, -2, 0);
+        //c.Position = Position.Clone();
+        c.speed.copyFrom(this.speed);
+        c.speed.multiply$1(0.35);
+        c.speed.add$1(0, -1, 0);
         /* c.Position = LastGround.Clone() + new GLVec3(0,-1,0);
                 c.Position.Y += (CustomBoundingBox.Size.Y / 3);*/
         if (this.reward) {
@@ -15611,7 +20112,7 @@
             this.controller[5] = false;
             if (Bridge.referenceEquals(this.char, "suika")) {
                 if (Math.random() < 0.1) {
-                    this.model.scale = BNTest.GLVec3.op_Multiply$1(BNTest.GLVec3.getOne(), 5);
+                    this.model.scale = BNTest.GLVec3.createUniform(5);
                     var csz = 10.0 * this.model.scale.x;
                     var hsz = csz / 2;
                     this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
@@ -15629,7 +20130,7 @@
                             stepheight = 5;
                             defense = 1;
                             knockbackResistLevel = 1;*/
-                    this.model.scale = BNTest.GLVec3.op_Multiply$1(BNTest.GLVec3.getOne(), 0.65);
+                    this.model.scale = BNTest.GLVec3.createUniform(0.65);
                     var csz1 = 8.0;
                     csz1 *= this.model.scale.x;
                     var hsz1 = csz1 / 2;
@@ -15649,6 +20150,8 @@
     },
     onKill: function (combatant) {
         //throw new NotImplementedException();
+        this.combo = (this.combo + 1) | 0;
+        this.lastKill = 0;
     }
     });
 
