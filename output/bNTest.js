@@ -3011,6 +3011,7 @@
         lastZnear: 0,
         bGMVolume: 0.4,
         bGMMute: false,
+        masterVolume: 1,
         gameDisabled: false,
         gamePlaySettings: null,
         currentAlpha: 1,
@@ -3398,8 +3399,12 @@
                     pal.set(new BNTest.GLColor(1, 0, 0), C);
                     pal.set(new BNTest.GLColor(1, 1, 1), C2);
                     i = (max * 2) | 0;
+                    var VM = OVM.clone();
+                    var mod = new BNTest.Model(this);
                     while (i > 0) {
-                        var V1 = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                        //var V = GLVec3.Random(range, RND) - hrange;
+                        var V1 = BNTest.GLVec3.random(range, RND);
+                        V1.subtract(hrange);
                         if (this.safeForFoliage(V1)) {
                             V1.y = 4;
                             C2.a = (C2.r = (C2.g = (C2.b = 1)));
@@ -3407,18 +3412,21 @@
                             if (Math.random() < 0.5) {
                                 C2.copy(C);
                             }
-                            var VM = OVM.clone();
+                            VM.copyFrom(OVM);
+                            //var VM = OVM.Clone();
                             VM.applyPalette(pal);
                             VM.addNoise(0.1 * Math.random());
-                            var mod = new BNTest.Model(this);
+
                             var msh = new BNTest.Mesh(this);
                             msh.addVoxelMap(VM, true);
                             mod.meshes.add(msh);
                             mod.offset = V1;
                             mod.rotation.y = Math.random() * 360;
-                            mod.scale.y *= 0.75 + (Math.random() * 0.7);
+                            //mod.Scale.Y *= 0.75 + (Math.Random() * 0.7);
+                            mod.scale.y = 0.75 + (Math.random() * 0.7);
                             mod.scale.x = ($t = mod.scale.y * (0.75 + (Math.random() * 0.7)), mod.scale.z = $t, $t);
                             this.foliage.absorbModel$1(mod);
+                            mod.meshes.remove(msh);
                         }
                         i = (i - 1) | 0;
                     }
@@ -3471,8 +3479,9 @@
                 }
             }
             if (this.music != null && !this.bGMMute) {
-                if (this.music.getVolume() < this.bGMVolume) {
-                    this.music.setVolume(BNTest.MathHelper.clamp(this.music.getVolume() + spd, 0, this.bGMVolume));
+                var vol = this.bGMVolume * this.masterVolume;
+                if (this.music.getVolume() < vol) {
+                    this.music.setVolume(BNTest.MathHelper.clamp(this.music.getVolume() + spd, 0, vol));
                 }
             }
         },
@@ -4091,6 +4100,7 @@
                 this.localplayer.character.setHP(100);
                 this.wave = 0;
             }
+            this.currentSong = 0;
             this.guiVisible = true;
             BNTest.KeyboardManager.update();
             var Char = this.CS.menu.getSelectedText();
@@ -5365,19 +5375,21 @@
             var min = 450;
             var maxLength = 1600;
             if (position != null) {
-                var dist = (BNTest.GLVec3.op_Subtraction(this.world.cam, position)).getRoughLength();
+                //double dist = (world.Cam - position).RoughLength;
+                var dist = this.world.cam.roughDistance(position);
                 //float dist = (world.Offset - position).Length;
                 dist -= min;
+                var ml = maxLength - min;
                 if (dist > 0) {
-                    if (dist >= maxLength) {
+                    if (dist >= ml) {
                         //volume of 0, just don't play it.
                         return;
                     } else {
-                        vol = 1.0 - (dist / maxLength);
+                        vol = BNTest.MathHelper.clamp(1.0 - (dist / ml));
                     }
                 }
             }
-            BNTest.AudioManager.get_this().blast(System.String.concat(System.String.concat("SFX/", sound), ".ogg"), vol);
+            BNTest.AudioManager.get_this().blast(System.String.concat(System.String.concat("SFX/", sound), ".ogg"), vol * this.masterVolume);
         },
         sendEvent: function (type, data, flush) {
             if (flush === void 0) { flush = false; }
@@ -7568,14 +7580,14 @@
                 var offset = (Bridge.Int.div(this.verticies.length, 3)) | 0;
                 var i = 0;
                 if (!respectOffsets) {
-                    this.updateMinMax$3(M.verticies);
+                    this.updateMinMax$4(M.verticies);
                     BNTest.HelperExtensions.pushRange(System.Double, this.verticies, M.verticies);
                 } else {
                     var P = BNTest.GLVec3.op_Subtraction(M.offset, this.offset);
                     i = 0;
                     while (i < M.verticies.length) {
                         var N = BNTest.GLVec3.op_Addition(new BNTest.GLVec3.ctor(M.verticies[Bridge.identity(i, (i = (i + 1) | 0))], M.verticies[Bridge.identity(i, (i = (i + 1) | 0))], M.verticies[Bridge.identity(i, (i = (i + 1) | 0))]), P);
-                        this.updateMinMax(N);
+                        this.updateMinMax$1(N);
                         this.verticies.push(N.x);
                         this.verticies.push(N.y);
                         this.verticies.push(N.z);
@@ -8432,7 +8444,7 @@
             BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
             BNTest.Mesh.pushColor(this.colors, C);
 
-            this.updateMinMax$1([V1, V2, V3, V4]);
+            this.updateMinMax$2([V1, V2, V3, V4]);
 
 
 
@@ -8447,33 +8459,44 @@
             }
             this.needsUpdate = true;
         },
-        updateMinMax$1: function (V) {
+        updateMinMax: function () {
+            var i = 0;
+            var V = this.verticies;
+            while (i < V.length) {
+                //UpdateMinMax(V[i]);
+                //i++;
+                this.updateMinMax$3(V[i], V[((i + 1) | 0)], V[((i + 2) | 0)]);
+                i = (i + 3) | 0;
+            }
+        },
+        updateMinMax$2: function (V) {
             if (V === void 0) { V = []; }
             var i = 0;
-            while (i < V.length) {
-                this.updateMinMax(V[i]);
+            var ln = V.length;
+            while (i < ln) {
+                this.updateMinMax$1(V[i]);
                 i = (i + 1) | 0;
             }
         },
-        updateMinMax$3: function (V) {
+        updateMinMax$4: function (V) {
             if (V === void 0) { V = []; }
             var i = 0;
             var ln = V.length;
             while (i < ln) {
                 //var N = new GLVec3(V[i], V[i + 1], V[i + 2]);
                 var N = new BNTest.GLVec3.ctor(V[i], V[((i + 1) | 0)], V[((i + 2) | 0)]);
-                this.updateMinMax(N);
+                this.updateMinMax$1(N);
                 /* N.Release();*/
                 i = (i + 3) | 0;
             }
         },
-        updateMinMax: function (V) {
+        updateMinMax$1: function (V) {
             /* Min = GLVec3.Min(Min, V);
                 Max = GLVec3.Max(Max, V);*/
             this.min.min(V);
             this.max.max(V);
         },
-        updateMinMax$2: function (X, Y, Z) {
+        updateMinMax$3: function (X, Y, Z) {
             /* Min = GLVec3.Min(Min, V);
                 Max = GLVec3.Max(Max, V);*/
             this.min.min$1(X, Y, Z);
@@ -8506,7 +8529,7 @@
             BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
             BNTest.Mesh.pushColor(this.colors, C);
 
-            this.updateMinMax$1([V1, V2, V3, V4]);
+            this.updateMinMax$2([V1, V2, V3, V4]);
 
             if (!inv) {
                 BNTest.Mesh.pushValue(this.indices, [ind, ((ind + 1) | 0), ((ind + 2) | 0), ((ind + 2) | 0), ((ind + 1) | 0), ((ind + 3) | 0)]);
@@ -10391,6 +10414,16 @@
                 VA.setY(0);
                 X = (X + 1) | 0;
                 VA.incrX();
+            }
+        },
+        copyFrom: function (VM) {
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            var M2 = VM.map;
+            while (i < ln) {
+                M[i] = M2[i];
+                i = (i + 1) | 0;
             }
         },
         setColor: function (color, visibleOnly) {
