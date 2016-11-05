@@ -11,12 +11,13 @@
 	<script src="../output/jszip-utils.js"></script>
 	<script src="../output/jsziphelper.js"></script>
 	<script src="../output/archive-min.js"></script>
-    <script src="../output/bridge.min.js"></script>
+    <script src="../output/bridge.js"></script>
 	<script src="../output/require.js"></script>
 	<!--<script type="text/javascript" src="../output/glMatrix-0.9.5.min.js"></script>-->
 	<script src="../output/sylvester.js" type="text/javascript"></script>
     <script src="../output/glUtils.js" type="text/javascript"></script>
 	<script src="../output/gl-matrix.js" type="text/javascript"></script>
+	<script src="../output/glsomething.js" type="text/javascript"></script>
 	<script src="../output/gl-matrix/mat4.js" type="text/javascript"></script>
 
     <script id="shader-fs" type="x-shader/x-fragment">
@@ -127,6 +128,7 @@
 	  
 	  uniform float darknessLevel;
 	  uniform vec3 lightPosition;
+	  ///uniform vec4 lights[8];
 	  
 	  uniform float ambientLightLevel;
 	  
@@ -137,7 +139,11 @@
 	  varying vec2 vTextureCoord;
 	  varying float vLighting;
       void main(void) {
+		//non Pre-multiply
 		vec4 pos = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		
+		//Pre-muliply
+		//vec4 pos = uMVMatrix * vec4(aVertexPosition, 1.0);
         gl_Position = pos;
         vColor = aVertexColor;
 		vTextureCoord = aTextureCoord;
@@ -146,14 +152,34 @@
 		//vLighting = (vLighting * 0.35);
 		//vLighting = (1.0 - ((length(pos.xyz - vec3(0,0,100)))*0.01));
 		//vLighting = (1.0 - (length(pos.xyz - vec3(0,0,100))*0.0010));
-		vLighting = (1.0 - (length(pos.xyz - lightPosition)*darknessLevel));
-		vLighting = clamp((vLighting),0.0,1.0);
+		//vLighting = (1.0 - (length(pos.xyz - lightPosition)*darknessLevel));
+		//for (i=0;i<2;i=i+1) { vLighting = (max((distance(P,lights[i].xyz)*darknessLevel),vLighting)); }
+		/*for (int i=0;i<8;i+=4) 
+		{
+			//vLighting = max((distance(P,lights[i].xyz)*(lights[i].w)),vLighting);
+			vLighting = max((distance(P,lights[i].xyz)*darknessLevel),vLighting);
+		}
+		vLighting = (1.0 - (vLighting));*/
+		/*float innerRate=0.5;
+		//float innerSize=0.25;
+		float innerSize=0.20;
+		float outerAccel=((1.0/innerSize)-1.0);
+		//float outerAccel=3.0;
+		float VL = (distance(P,lightPosition)*darknessLevel);
+		VL*=innerRate;
+		VL+=clamp(((VL-innerSize)*outerAccel),0.0,1.0);
+
+		VL = (1.0 - (VL));*/
+		float VL = (1.0 - (distance(pos.xyz,lightPosition)*darknessLevel));
+		//vLighting = (1.0 - (distance(posb.xyz,lightPosition)*darknessLevel));
+		VL = clamp((VL),0.0,1.0);
 		//vLighting += ambientLightLevel;
-		vLighting = max(vLighting,ambientLightLevel);
+		VL = max(VL,ambientLightLevel);
+		vLighting = VL;
 		//vLighting = 2.5;
       }
     </script>
-    <script src="../output/bNTest.min.js"></script>
+    <script src="../output/bNTest.js"></script>
 </head>
 <body>
     <!-- 
