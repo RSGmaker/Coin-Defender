@@ -707,6 +707,7 @@
             updateWindow: function () {
                 //var R = Window.InnerWidth / Window.InnerHeight;
                 var H = window.innerHeight;
+                document.body.style.cursor = "auto";
 
                 //if (size != _lSize)
                 if (H !== BNTest.App._lHeight) {
