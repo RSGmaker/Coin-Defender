@@ -17265,7 +17265,7 @@
                 //purchase fail
                 BNTest.AudioManager.get_this().blast("SFX/hit.ogg");
             }
-            this.moneyDisplay.setText(System.String.concat("Mon:", BNTest.App.storage.Mon));
+            this.moneyDisplay.setText(System.String.concat("Gems:", BNTest.App.storage.Mon));
         },
         initMenu: function () {
             /* Menu = new ButtonMenu(0, 600, 50, true);
@@ -17319,7 +17319,7 @@
                 {
                     def.Visible = false;
                 }*/
-            this.moneyDisplay.setText(System.String.concat("Mon:", BNTest.App.storage.Mon));
+            this.moneyDisplay.setText(System.String.concat("Gems:", BNTest.App.storage.Mon));
             if (this.current < System.Int32.parse(BNTest.App.storage.Mon)) {
                 this.current = System.Int32.parse(BNTest.App.storage.Mon);
             }
