@@ -884,11 +884,23 @@
                 JSZipHelper.openZip(path, function (obj) {
                     console.log(System.String.concat("JZH!!!", obj));
                     BNTest.AnimationLoader.get_this().jzip = obj;
-                    GD.start(CV);
+                    try {
+                        GD.start(CV);
+                    }
+                    catch ($e1) {
+                        $e1 = System.Exception.create($e1);
+
+                    }
                     BNTest.App.finish(); /* LT.TextContent = "";Document.Body.Style.Cursor = Cursor.Auto;*/
                 });
             } else {
-                GD.start(BNTest.App.canvas);
+                try {
+                    GD.start(BNTest.App.canvas);
+                }
+                catch ($e1) {
+                    $e1 = System.Exception.create($e1);
+
+                }
                 BNTest.App.finish();
                 /* LT.TextContent = "";
                     Document.Body.Style.Cursor = Cursor.Auto;*/
@@ -18260,7 +18272,8 @@
                 this.model.copyFrom(tmdl, true);
                 this.ready = true;
             } else {
-                BNTest.AnimationLoader.get_this().asyncGet$1(["object/softshadow"], Bridge.fn.bind(this, function () {
+                var asset = "object/softshadowS";
+                BNTest.AnimationLoader.get_this().asyncGet$1([asset], Bridge.fn.bind(this, function () {
                     if (tmdl != null) {
                         console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
                         //model.CopyFrom(tmdl);
@@ -18283,7 +18296,7 @@
                         pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, 0.36);*/
 
                     //VoxelMap box = Game.GetVoxelCombo(new string[] { "object/softshadow" });
-                    var box = this.game.getVoxelCombo(["object/softshadowS"]);
+                    var box = this.game.getVoxelCombo([asset]);
                     box.swapYZ();
 
                     var md = new BNTest.Model(this.game);
