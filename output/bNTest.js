@@ -124,8 +124,16 @@
         statics: {
             directory: "",
             _throttleRequests: false,
+            GP: null,
+            gPctx: null,
             spritesheetdata: "[{\"name\":\"Sakuya_Blink0\",\"x\":1122,\"y\":645,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Idle0\",\"x\":1122,\"y\":516,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Jump0\",\"x\":388,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Walk0\",\"x\":194,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Walk1\",\"x\":97,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Walk2\",\"x\":0,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Sakuya_Walk3\",\"x\":1025,\"y\":903,\"width\":96,\"height\":128},{\"name\":\"SakuyaArm0\",\"x\":1122,\"y\":1065,\"width\":16,\"height\":81},{\"name\":\"Sakuyabullet0\",\"x\":1067,\"y\":1146,\"width\":40,\"height\":20},{\"name\":\"Starbullet0\",\"x\":945,\"y\":855,\"width\":32,\"height\":32},{\"name\":\"Tile0\",\"x\":1122,\"y\":872,\"width\":48,\"height\":48},{\"name\":\"Tile1\",\"x\":1067,\"y\":1048,\"width\":48,\"height\":48},{\"name\":\"Tile2\",\"x\":1122,\"y\":774,\"width\":48,\"height\":48},{\"name\":\"Tile3\",\"x\":1122,\"y\":823,\"width\":48,\"height\":48},{\"name\":\"Tile4\",\"x\":970,\"y\":919,\"width\":48,\"height\":48},{\"name\":\"Tile5\",\"x\":970,\"y\":968,\"width\":48,\"height\":48},{\"name\":\"Tile6\",\"x\":1067,\"y\":1097,\"width\":48,\"height\":48},{\"name\":\"Tombstone0\",\"x\":940,\"y\":790,\"width\":48,\"height\":64},{\"name\":\"Yinyangorb0\",\"x\":875,\"y\":790,\"width\":64,\"height\":64},{\"name\":\"Cirno_Blink0\",\"x\":873,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Cirno_Idle0\",\"x\":1025,\"y\":0,\"width\":96,\"height\":128},{\"name\":\"Cirno_Jump0\",\"x\":1025,\"y\":129,\"width\":96,\"height\":128},{\"name\":\"Cirno_Walk0\",\"x\":1025,\"y\":258,\"width\":96,\"height\":128},{\"name\":\"Cirno_Walk1\",\"x\":1025,\"y\":387,\"width\":96,\"height\":128},{\"name\":\"Cirno_Walk2\",\"x\":1025,\"y\":516,\"width\":96,\"height\":128},{\"name\":\"Cirno_Walk3\",\"x\":1025,\"y\":645,\"width\":96,\"height\":128},{\"name\":\"CirnoArm0\",\"x\":1122,\"y\":921,\"width\":16,\"height\":61},{\"name\":\"Flame0\",\"x\":516,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"Flame1\",\"x\":387,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"Flame2\",\"x\":258,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"Flame3\",\"x\":129,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"Flame4\",\"x\":645,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"Flame5\",\"x\":0,\"y\":790,\"width\":128,\"height\":128},{\"name\":\"LFairy2\",\"x\":875,\"y\":855,\"width\":36,\"height\":34},{\"name\":\"Light0\",\"x\":774,\"y\":790,\"width\":100,\"height\":100},{\"name\":\"Lightorbbullet\",\"x\":912,\"y\":855,\"width\":32,\"height\":32},{\"name\":\"Marisa_Blink0\",\"x\":776,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Marisa_Idle0\",\"x\":873,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Marisa_Jump0\",\"x\":970,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Marisa_Walk0\",\"x\":1122,\"y\":0,\"width\":96,\"height\":128},{\"name\":\"Marisa_Walk1\",\"x\":1122,\"y\":129,\"width\":96,\"height\":128},{\"name\":\"Marisa_Walk2\",\"x\":1122,\"y\":258,\"width\":96,\"height\":128},{\"name\":\"Marisa_Walk3\",\"x\":582,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"MarisaArm0\",\"x\":1006,\"y\":790,\"width\":16,\"height\":61},{\"name\":\"Marisabullet0\",\"x\":0,\"y\":769,\"width\":200,\"height\":20},{\"name\":\"Reimu_Blink0\",\"x\":679,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Idle0\",\"x\":582,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Jump0\",\"x\":485,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Walk0\",\"x\":388,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Walk1\",\"x\":291,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Walk2\",\"x\":194,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reimu_Walk3\",\"x\":97,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"ReimuArm0\",\"x\":1122,\"y\":983,\"width\":16,\"height\":81},{\"name\":\"Reisen_Blink0\",\"x\":0,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reisen_Idle0\",\"x\":1122,\"y\":387,\"width\":96,\"height\":128},{\"name\":\"Reisen_Jump0\",\"x\":776,\"y\":919,\"width\":96,\"height\":128},{\"name\":\"Reisen_Walk0\",\"x\":679,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Reisen_Walk1\",\"x\":485,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"Reisen_Walk2\",\"x\":1025,\"y\":774,\"width\":96,\"height\":128},{\"name\":\"Reisen_Walk3\",\"x\":291,\"y\":1048,\"width\":96,\"height\":128},{\"name\":\"ReisenArm0\",\"x\":989,\"y\":790,\"width\":16,\"height\":61},{\"name\":\"Reisenbullet0\",\"x\":970,\"y\":1017,\"width\":32,\"height\":20},{\"name\":\"BG0\",\"x\":0,\"y\":0,\"width\":1024,\"height\":768}]",
             __this: null,
+            config: {
+                init: function () {
+                    this.GP = document.createElement('canvas');
+                    this.gPctx = BNTest.Helper.getContext(BNTest.AnimationLoader.GP);
+                }
+            },
             get_this: function () {
                 if (BNTest.AnimationLoader.__this == null) {
                     BNTest.AnimationLoader.__this = new BNTest.AnimationLoader();
@@ -138,10 +146,13 @@
                 }
             },
             getPixels: function (image) {
-                var tmp = document.createElement('canvas');
+                //HTMLCanvasElement tmp = new HTMLCanvasElement();
+                var tmp = BNTest.AnimationLoader.GP;
                 tmp.width = image.width;
                 tmp.height = image.height;
-                var g = BNTest.Helper.getContext(tmp);
+                //CanvasRenderingContext2D g = Helper.GetContext(tmp);
+                var g = BNTest.AnimationLoader.gPctx;
+                //g.Clear();
                 g.drawImage(image, 0, 0);
 
                 return g.getImageData(0, 0, tmp.width, tmp.height).data;
@@ -617,7 +628,7 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Coin Defender",
-            gameVersion: "0.6",
+            gameVersion: "0.7",
             storage: null,
             IC: null,
             DEBUG: false,
@@ -626,6 +637,52 @@
                 init: function () {
                     this.storage = Bridge.global.localStorage;
                 }
+            },
+            finish: function () {
+                var LT = document.getElementById("loadtext");
+                LT.textContent = "";
+                document.body.style.cursor = "auto";
+                document.title = System.String.concat(System.String.concat(System.String.concat(BNTest.App.gameName, " "), BNTest.App.gameVersion), " by:RSGmaker");
+            },
+            loadZip: function (GD, CV) {
+                var $step = 0,
+                    $jumpFromFinally, 
+                    $tcs = new System.Threading.Tasks.TaskCompletionSource(), 
+                    $returnValue, 
+                    path, 
+                    LT, 
+                    $async_e, 
+                    $asyncBody = Bridge.fn.bind(this, function () {
+                        try {
+                            for (;;) {
+                                $step = System.Array.min([0], $step);
+                                switch ($step) {
+                                    case 0: {
+                                        path = "Assets/Images.zip";
+                                        LT = document.getElementById("loadtext");
+                                        JSZipHelper.openZip(path, function (obj) {
+                                            console.log(System.String.concat("JZH!!!", obj));
+                                            BNTest.AnimationLoader.get_this().jzip = obj;
+                                            GD.start(CV);
+                                            LT.textContent = ""; /* Window.ClearInterval(A);*/
+                                        });
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                    default: {
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch($async_e1) {
+                            $async_e = System.Exception.create($async_e1);
+                            $tcs.setException($async_e);
+                        }
+                    }, arguments);
+
+                $asyncBody();
+                return $tcs.task;
             },
             initSaveData: function () {
                 if (BNTest.App.storage.Mon == null || Bridge.referenceEquals(BNTest.App.storage.Mon, "")) {
@@ -746,15 +803,22 @@
         },
         $main: function () {
             // Create a new Button
-            var button = Bridge.merge(document.createElement('button'), {
-                innerHTML: "Click Me",
-                onclick: $_.BNTest.App.f1
-            } );
+            /* var button = new HTMLButtonElement
+                {
+                    InnerHTML = "Click Me",
+                    OnClick = (ev) =>
+                    {
+                        // When Button is clicked, 
+                        // the Bridge Console should open.
+                        Console.WriteLine("Success!");
+                    }
+                };*/
+            document.title = "Loading...";
             BNTest.App.initSaveData();
 
 
             document.body.style.cssText = "overflow: hidden;margin: 0;padding: 0;";
-            document.body.onresize = $_.BNTest.App.f2;
+            document.body.onresize = $_.BNTest.App.f1;
 
             // Add the Button to the page
             //Document.Body.AppendChild(button);
@@ -767,7 +831,7 @@
                     Height = 960
                 };*/
             BNTest.AnimationLoader.init();
-            document.title = System.String.concat(System.String.concat(System.String.concat(BNTest.App.gameName, " "), BNTest.App.gameVersion), " by:RSGmaker");
+            //Document.Title = GameName + " "+GameVersion+" by:RSGmaker";
 
             BNTest.WGMatrix.init();
             BNTest.App.IC = new BNTest.InputController("KeyboardMouse");
@@ -799,22 +863,36 @@
 
             //Canvas = canvas;
             //Document.Body.AppendChild(canvas);
+            document.body.style.cursor = "wait";
             BNTest.KeyboardManager.init();
             var GD = new BNTest.GLDemo();
             var CV = BNTest.App.canvas;
             var path = "Assets/Images.zip";
             var useJzip = false;
-
+            var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            /* if (isFirefox)
+                {
+                    useJzip = true;
+                }*/
+            var LT = document.getElementById("loadtext");
 
             if (useJzip) {
+                LT.textContent = "Downloading 3d content, Please Wait...";
+                //LoadZip(GD,CV);
+                //JSZipHelper.OnDownload = () => LT.TextContent= "Processing content, Please Wait...";
                 JSZipHelper.openZip(path, function (obj) {
                     console.log(System.String.concat("JZH!!!", obj));
                     BNTest.AnimationLoader.get_this().jzip = obj;
                     GD.start(CV);
+                    BNTest.App.finish(); /* LT.TextContent = "";Document.Body.Style.Cursor = Cursor.Auto;*/
                 });
             } else {
                 GD.start(BNTest.App.canvas);
+                BNTest.App.finish();
+                /* LT.TextContent = "";
+                    Document.Body.Style.Cursor = Cursor.Auto;*/
             }
+
             //AnimationLoader._this.AsyncGet("Asset/rahmoo", s => new GLDemo().Start(Canvas));
 
             var smooth = true;
@@ -846,12 +924,7 @@
     Bridge.ns("BNTest.App", $_);
 
     Bridge.apply($_.BNTest.App, {
-        f1: function (ev) {
-            // When Button is clicked, 
-            // the Bridge Console should open.
-            Bridge.Console.log("Success!");
-        },
-        f2: function (evt) {
+        f1: function (evt) {
             BNTest.App.updateWindow();
         }
     });
@@ -1112,6 +1185,7 @@
 
     Bridge.define("BNTest.Entity", {
         model: null,
+        models: null,
         alive: true,
         speed: null,
         game: null,
@@ -1443,6 +1517,7 @@
          * @return  {void}
          */
         update: function () {
+            this.model.entity = this;
             this.model.offset.x += this.speed.x;
             this.model.offset.y += this.speed.y;
             this.model.offset.z += this.speed.z;
@@ -1541,6 +1616,7 @@
         },
         min: null,
         max: null,
+        _Center: null,
         $ctor1: function (Min, Max) {
             this.$initialize();
             //this.Min = Min;
@@ -1615,7 +1691,12 @@
             var X = (this.max.x - this.min.x) * 0.5;
             var Y = (this.max.y - this.min.y) * 0.5;
             var Z = (this.max.z - this.min.z) * 0.5;
-            return new BNTest.GLVec3.ctor(this.min.x + X, this.min.y + Y, this.min.z + Z);
+            if (this._Center == null) {
+                this._Center = new BNTest.GLVec3.ctor();
+            }
+            this._Center.set(this.min.x + X, this.min.y + Y, this.min.z + Z);
+            return this._Center;
+            //return new GLVec3(Min.X + X, Min.Y + Y, Min.Z + Z);
             //return new GLVec3(Min.X + X, Min.Y + Y, Min.Z + Z);
         },
         copyFrom: function (B) {
@@ -1663,6 +1744,11 @@
             this.max.x -= X;
             this.max.y -= Y;
             this.max.z -= Z;
+        },
+        set: function (size) {
+            var hsize = size / 2;
+            this.min.set(-hsize, -hsize, -hsize);
+            this.max.set(hsize, hsize, hsize);
         },
         toString: function () {
             return System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat("{Pos:", this.min.toString()), "}"), "{Size:"), this.getSize().toString()), "}");
@@ -1725,6 +1811,24 @@
             var bmn = b.min;
             var bmx = b.max;
             return (this.max.x >= bmn.x && this.min.x <= bmx.x) && (this.max.y >= bmn.y && this.min.y <= bmx.y) && (!!(this.max.z >= bmn.z & this.min.z <= bmx.z));
+        },
+        intersects: function (list) {
+            //List<Entity> ret = new List<Entity>();
+            var i = 0;
+            var ln = list.length;
+            while (i < ln) {
+                var B = list[i];
+                if (B.lastBB.intersection$2(this)) {
+                    return true;
+                }
+                i = (i + 1) | 0;
+            }
+            return false;
+            //return list.Where(E => Intersection(E.LastBB)).ToList();
+        },
+        updateMinMax: function (V) {
+            this.min.min(V);
+            this.max.max(V);
         },
         contains: function (V) {
             return (BNTest.GLVec3.op_LessThanOrEqual(this.min, V) && BNTest.GLVec3.op_GreaterThanOrEqual(this.max, V));
@@ -2898,37 +3002,185 @@
             missingTime: 0,
             lastTime: 0,
             updated: true,
+            instanceRendering: false,
             doDrawScene: function (elapsedTime) {
-                requestAnimationFrame(BNTest.GLDemo.doDrawScene);
-                if (BNTest.GLDemo.lastTime === 0) {
-                    BNTest.GLDemo.lastTime = elapsedTime;
-                }
-                var T = (elapsedTime - BNTest.GLDemo.lastTime);
-                if (!BNTest.GLDemo._this.paused && !BNTest.GLDemo._this.gameDisabled) {
-                    BNTest.GLDemo._this.totaltime += T;
-                }
-                BNTest.GLDemo.missingTime += T;
-                if (BNTest.GLDemo.missingTime > 48) {
-                    BNTest.GLDemo.missingTime = 35;
-                }
-                if (BNTest.GLDemo.updated) {
-                    if (!BNTest.GLDemo._this.serverMode) {
-                        BNTest.GLDemo._this.drawScene(elapsedTime);
-                    }
-                    BNTest.GLDemo.updated = false;
-                }
-                BNTest.GLDemo._this.update(elapsedTime);
-                BNTest.GLDemo.missingTime -= 16.6667;
-                BNTest.GLDemo.updated = true;
-                if (BNTest.GLDemo.missingTime >= 16.6667) {
+                var $step = 0,
+                    $task1, 
+                    $task2, 
+                    $jumpFromFinally, 
+                    T, 
+                    Tsk, 
+                    Tsk2, 
+                    times, 
+                    $asyncBody = Bridge.fn.bind(this, function () {
+                        for (;;) {
+                            $step = System.Array.min([0,1,2,3,4,5,6], $step);
+                            switch ($step) {
+                                case 0: {
+                                    requestAnimationFrame(BNTest.GLDemo.doDrawScene);
+                                    if (BNTest.GLDemo.lastTime === 0) {
+                                        BNTest.GLDemo.lastTime = elapsedTime;
+                                    }
+                                    T = (elapsedTime - BNTest.GLDemo.lastTime);
+                                    BNTest.GLDemo.lastTime = elapsedTime;
+                                    //_this.framedelay += (T*0.001);
+                                    BNTest.GLDemo._this.framedelay -= (BNTest.GLDemo._this.framedelay / 60.0);
+                                    BNTest.GLDemo._this.framedelay += (T * 0.001);
+                                    if (!BNTest.GLDemo._this.paused && !BNTest.GLDemo._this.gameDisabled) {
+                                        BNTest.GLDemo._this.totaltime += T;
+                                    }
+                                    BNTest.GLDemo.missingTime += T;
+                                    if (BNTest.GLDemo.missingTime > 48) {
+                                        BNTest.GLDemo.missingTime = 35;
+                                    }
+                                    Tsk = null;
+                                    Tsk2 = null;
+
+
+                                    if (BNTest.GLDemo._this.asyncedDraw) {
+                                        BNTest.GLDemo.updated = true;
+                                        times = 1;
+                                        BNTest.GLDemo.missingTime -= 16.6667;
+                                        if (BNTest.GLDemo.missingTime >= 16.6667) {
+                                            BNTest.GLDemo.missingTime -= 16.6667;
+                                            times = (times + 1) | 0;
+                                        }
+                                        Tsk2 = System.Threading.Tasks.Task.run(function () {
+                                            return BNTest.GLDemo.updateaAync(times, elapsedTime);
+                                        });
+                                        //Tsk = UpdateaAync(times, elapsedTime);
+                                    } else {
+                                        BNTest.GLDemo._this.update(elapsedTime);
+                                        BNTest.GLDemo.missingTime -= 16.6667;
+                                        BNTest.GLDemo.updated = true;
+                                        if (BNTest.GLDemo.missingTime >= 16.6667) {
+                                            BNTest.GLDemo._this.update(elapsedTime);
+                                            BNTest.GLDemo.missingTime -= 16.6667;
+                                            BNTest.GLDemo.updated = true;
+                                        }
+                                    }
+                                    if (BNTest.GLDemo.updated) {
+                                        if (!BNTest.GLDemo._this.serverMode) {
+                                            //_this.drawScene(elapsedTime);
+                                            /* if (_this.asyncedDraw)
+                                                        {
+                                                            Tsk = Drawl(elapsedTime);
+                                                        }
+                                                        else*/
+                                            if (BNTest.GLDemo._this.asyncedDraw) {
+                                                //Tsk = Drawl(elapsedTime);
+                                                Tsk = System.Threading.Tasks.Task.run(function () {
+                                                    BNTest.GLDemo._this.drawScene(elapsedTime);
+                                                });
+                                            } else {
+                                                BNTest.GLDemo._this.drawScene(elapsedTime);
+                                            }
+                                        }
+                                        BNTest.GLDemo.updated = false;
+                                    }
+                                    if (Tsk != null) {
+                                        $step = 1;
+                                        continue;
+                                    } 
+                                    $step = 3;
+                                    continue;
+                                }
+                                case 1: {
+                                    $task1 = Tsk;
+                                    $step = 2;
+                                    $task1.continueWith($asyncBody, true);
+                                    return;
+                                }
+                                case 2: {
+                                    $task1.getAwaitedResult();
+                                    $step = 3;
+                                    continue;
+                                }
+                                case 3: {
+                                    if (Tsk2 != null) {
+                                        $step = 4;
+                                        continue;
+                                    } 
+                                    $step = 6;
+                                    continue;
+                                }
+                                case 4: {
+                                    $task2 = Tsk2;
+                                    $step = 5;
+                                    $task2.continueWith($asyncBody, true);
+                                    return;
+                                }
+                                case 5: {
+                                    $task2.getAwaitedResult();
+                                    $step = 6;
+                                    continue;
+                                }
+                                case 6: {
+                                
+
+
+                                    //Helper.Log("time:" + elapsedTime + " missing:" + missingTime);
+                                    return;
+                                }
+                                default: {
+                                    return;
+                                }
+                            }
+                        }
+                    }, arguments);
+
+                $asyncBody();
+            },
+            updateaAync: function (times, elapsedTime) {
+                while (times > 0) {
                     BNTest.GLDemo._this.update(elapsedTime);
-                    BNTest.GLDemo.missingTime -= 16.6667;
-                    BNTest.GLDemo.updated = true;
+                    times = (times - 1) | 0;
                 }
-                BNTest.GLDemo.lastTime = elapsedTime;
+                //await Task.Delay(0);
+                return null;
 
+            },
+            drawl: function (elapsedTime) {
+                var $step = 0,
+                    $task1, 
+                    $jumpFromFinally, 
+                    $tcs = new System.Threading.Tasks.TaskCompletionSource(), 
+                    $returnValue, 
+                    $async_e, 
+                    $asyncBody = Bridge.fn.bind(this, function () {
+                        try {
+                            for (;;) {
+                                $step = System.Array.min([0,1], $step);
+                                switch ($step) {
+                                    case 0: {
+                                        $task1 = System.Threading.Tasks.Task.delay(1);
+                                        $step = 1;
+                                        $task1.continueWith($asyncBody);
+                                        return;
+                                    }
+                                    case 1: {
+                                        $task1.getAwaitedResult();
+                                        BNTest.GLDemo._this.drawScene(elapsedTime);
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                    default: {
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch($async_e1) {
+                            $async_e = System.Exception.create($async_e1);
+                            $tcs.setException($async_e);
+                        }
+                    }, arguments);
 
-                //Helper.Log("time:" + elapsedTime + " missing:" + missingTime);
+                $asyncBody();
+                return $tcs.task;
+            },
+            getWaveText: function (wave) {
+                return System.String.concat(System.String.concat(System.String.concat("", ((((((Bridge.Int.div((((wave - 1) | 0)), 8)) | 0)) + 1) | 0))), "-"), (((((((wave - 1) | 0)) % 8) + 1) | 0)));
             },
             test: function (self) {
                 /* var CV = new HTMLCanvasElement();
@@ -3045,6 +3297,8 @@
         LTS: null,
         BTS: null,
         CTS: null,
+        FPSTS: null,
+        framedelay: 1,
         radar: null,
         ended: true,
         gameover: false,
@@ -3063,8 +3317,18 @@
         startButton: null,
         shopButton: null,
         shop: null,
+        waveSelect: null,
+        overlayColor: "#000000",
+        overlayAlpha: 0,
+        scene: 0,
         wavetime: 3,
         wave: 0,
+        /**
+         * @instance
+         * @public
+         * @memberof BNTest.GLDemo
+         * @type Array.<string>
+         */
         enemyList: null,
         smooth: true,
         lastModelName: "rahmoo",
@@ -3076,6 +3340,7 @@
         maxWaveDelay: 150,
         waveDelay: 0,
         paused: false,
+        asyncedDraw: false,
         latencyM: 100,
         dlatency: 0,
         tflat: null,
@@ -3095,6 +3360,7 @@
                 this.LTS = new BNTest.TextSprite();
                 this.BTS = new BNTest.TextSprite();
                 this.CTS = new BNTest.TextSprite();
+                this.FPSTS = new BNTest.TextSprite();
                 this.radar = new BNTest.Sprite();
                 this.tflat = System.Array.init(16, 0);
                 this.FA = new Float32Array(16);
@@ -3124,6 +3390,19 @@
             this.CTS.setShadowOffset(new BNTest.Vector2(3, 3));
             this.CTS.setShadowColor("#000000");
             this.CTS.position = new BNTest.Vector2(830, 660);
+
+            //FPSTS.Position = new Vector2(0, 700);
+            this.FPSTS.position = new BNTest.Vector2(970, -4);
+            this.FPSTS.setText("FPS:0");
+            //FPSTS.FontSize = 32;
+            this.FPSTS.setFontSize(28);
+            this.FPSTS.setTextColor("#FFFFFF");
+            this.FPSTS.setShadowBlur(5);
+            this.FPSTS.setShadowOffset(new BNTest.Vector2(3, 3));
+            this.FPSTS.setShadowColor("#000000");
+            //FPSTS.Visible = false;
+            this.FPSTS.visible = true;
+            this.FPSTS.alpha = 0.7;
 
             /* Radar.spriteBuffer.Width = 100;
                 Radar.spriteBuffer.Height = 100;*/
@@ -3248,15 +3527,16 @@
                 //world = new Model(self);
                 this.camera.children.add(this.world.model);
                 this.foliage = new BNTest.Foliage(this.world);
-                this.generateFloor();
+                //GenerateFloor();
 
                 this.world.add(this.foliage);
-
+                this.generateScene();
 
 
                 this.gamePlaySettings = new BNTest.GamePlaySettings();
                 this.gamePlaySettings.gameMode = BNTest.GameMode.teamBattle;
 
+                new BNTest.Shadow(this.world, null);
 
                 this.localplayer = new BNTest.Player(true, false);
                 var character = "default";
@@ -3285,7 +3565,10 @@
 
                 var box = new BNTest.DonationBox(this.world);
                 this.world.add(box);
+                box.lastBB = BNTest.BoundingBox.op_Addition(new BNTest.BoundingBox.$ctor2(40), box.model.offset);
                 //box.LastBB = box.GetBoundingBox();
+
+
 
                 var c = new BNTest.Coin(this.world);
                 c.solid = false;
@@ -3311,126 +3594,7 @@
                 var F = this.foliage;
                 //var F = new Foliage(world);
                 this.world.add(F);
-                var B = this.world.model.getBoundingBox();
-                var BS = B.getSize();
-                BS.y = 0;
-                var max = 40;
-                var i = max;
-                var RND = new System.Random.ctor();
-                var FC = [new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(1, 0, 1), new BNTest.GLColor(0, 0, 1)];
-                var shrub = new BNTest.GLColor(0, 0.6, 0.1);
-                //var rng = 1000;
-                var rng = 800;
-                var rng2 = (rng + rng) | 0;
-                var range = new BNTest.GLVec3.ctor(rng2, -5, rng2);
-                var hrange = new BNTest.GLVec3.ctor(rng, -15, rng);
-                box.lastBB = BNTest.BoundingBox.op_Addition(new BNTest.BoundingBox.$ctor2(40), box.model.offset);
-                while (i > 0) {
-                    var V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
-                    //var Bnds = new BoundingBox(V-new GLVec3(-10,-10,-10), V + new GLVec3(40, 40, 40));
-                    /* if (SafeForFoliage(V))
-                        {
-                            var rock = new Rock(world);
-                            rock.Position = new GLVec3(V.X, rock.Position.Y, V.Z);
-                            world.Add(rock);
 
-                            //rock.LastBB = rock.GetBoundingBox();
-                            rock.CacheBoundingBox();
-                            F.AbsorbModel(rock.model);
-                            rock.LastBB = rock.CustomBoundingBox + rock.Position;
-                        }*/
-                    //Bnds = new BoundingBox(V - new GLVec3(-10, -10, -10), V + new GLVec3(40, 40, 40));
-                    V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
-                    if (this.safeForFoliage(V, true)) {
-                        var tree = new BNTest.Tree(this.world);
-                        tree.setPosition(new BNTest.GLVec3.ctor(V.x, tree.getPosition().y, V.z));
-                        this.world.add(tree);
-
-                        //tree.LastBB = tree.GetBoundingBox();
-                        tree.cacheBoundingBox();
-                        tree.lastBB = BNTest.BoundingBox.op_Addition(tree.customBoundingBox, tree.getPosition());
-                        F.absorbModel$1(tree.model);
-                    }
-                    var fi = 7;
-                    //fi = 2000;
-                    while (fi > 0) {
-                        V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
-                        if (this.safeForFoliage(V)) {
-                            V.y = 7;
-                            //F.AddPatch(V, FC.Pick(), 50, 0.25, 2);
-                            //F.AddPatch(V, FC.Pick(), 30, 0.15, 2);
-                            F.addFlower(V, BNTest.HelperExtensions.pick(BNTest.GLColor, FC), null, 2 + (Math.random() * 3));
-                        }
-                        fi = (fi - 1) | 0;
-                    }
-                    fi = 3;
-                    /* while (fi > 0)
-                        {
-                            V = GLVec3.Random(range, RND) - hrange;
-                            //if (world.FindSolidCollision(Bnds).Length <= 0)
-                            if (SafeForFoliage(V))
-                            {
-                                V.Y = 7;
-                                //F.AddShrub(V, shrub, 2.5+(Math.Random()*2.5));
-                                F.AddShrub(V, shrub, 2.0 + (Math.Random() * 2.0));
-                            }
-                            fi--;
-                        }*/
-                    fi = 2;
-                    while (fi > 0) {
-                        V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
-                        //if (world.FindSolidCollision(Bnds).Length <= 0)
-                        if (this.safeForFoliage(V)) {
-                            //V.Y = 7;
-                            V.y = 8;
-                            //F.AddFlatShrub(V, shrub, 2.5 + (Math.Random() * 2.5));
-                            F.addPatch(V, shrub, ((15 + Bridge.Int.clip32(Math.random() * 15)) | 0), 0.1 + (Math.random() * 0.2), 2.5 + (Math.random() * 2.5));
-                        }
-                        fi = (fi - 1) | 0;
-                    }
-                    i = (i - 1) | 0;
-                }
-                BNTest.AnimationLoader.get_this().asyncGet$1(["object/mushroom"], Bridge.fn.bind(this, function () {
-                    var $t;
-                    var OVM = BNTest.VoxelMap.fromImages$1("object/mushroom");
-                    var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var C = new BNTest.GLColor();
-                    var C2 = new BNTest.GLColor(1, 1, 1);
-                    pal.set(new BNTest.GLColor(1, 0, 0), C);
-                    pal.set(new BNTest.GLColor(1, 1, 1), C2);
-                    i = (max * 2) | 0;
-                    var VM = OVM.clone();
-                    var mod = new BNTest.Model(this);
-                    while (i > 0) {
-                        //var V = GLVec3.Random(range, RND) - hrange;
-                        var V1 = BNTest.GLVec3.random(range, RND);
-                        V1.subtract(hrange);
-                        if (this.safeForFoliage(V1)) {
-                            V1.y = 4;
-                            C2.a = (C2.r = (C2.g = (C2.b = 1)));
-                            C.setAhsb(Math.random(), Math.random(), Math.random());
-                            if (Math.random() < 0.5) {
-                                C2.copy(C);
-                            }
-                            VM.copyFrom(OVM);
-                            //var VM = OVM.Clone();
-                            VM.applyPalette(pal);
-                            VM.addNoise(0.1 * Math.random());
-
-                            var msh = new BNTest.Mesh(this);
-                            msh.addVoxelMap(VM, true);
-                            mod.meshes.add(msh);
-                            mod.offset = V1;
-                            mod.rotation.y = Math.random() * 360;
-                            //mod.Scale.Y *= 0.75 + (Math.Random() * 0.7);
-                            mod.scale.y = 0.75 + (Math.random() * 0.7);
-                            mod.scale.x = ($t = mod.scale.y * (0.75 + (Math.random() * 0.7)), mod.scale.z = $t, $t);
-                            this.foliage.absorbModel$1(mod);
-                            mod.meshes.remove(msh);
-                        }
-                        i = (i - 1) | 0;
-                    }
-                }));
                 /* var rock = new Rock(world);
                     rock.Position = new GLVec3(-50, rock.Position.Y, -50);
                     world.Add(rock);*/
@@ -3441,6 +3605,133 @@
                 //world.children.Add(PC.model);
                 //Global.SetInterval(drawScene, 15);
             }
+        },
+        generateScene: function () {
+            this.generateFloor();
+            var F = this.foliage;
+
+            var B = this.world.model.getBoundingBox();
+            var BS = B.getSize();
+            BS.y = 0;
+            var max = 40;
+            var i = max;
+            var RND = new System.Random.ctor();
+            var FC = [new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(1, 0, 1), new BNTest.GLColor(0, 0, 1)];
+            var shrub = new BNTest.GLColor(0, 0.6, 0.1);
+            //var rng = 1000;
+            var rng = 800;
+            var rng2 = (rng + rng) | 0;
+            var range = new BNTest.GLVec3.ctor(rng2, -5, rng2);
+            var hrange = new BNTest.GLVec3.ctor(rng, -15, rng);
+            if (this.scene !== 0) {
+                return;
+            }
+            while (i > 0) {
+                var V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                //var Bnds = new BoundingBox(V-new GLVec3(-10,-10,-10), V + new GLVec3(40, 40, 40));
+                /* if (SafeForFoliage(V))
+                    {
+                        var rock = new Rock(world);
+                        rock.Position = new GLVec3(V.X, rock.Position.Y, V.Z);
+                        world.Add(rock);
+
+                        //rock.LastBB = rock.GetBoundingBox();
+                        rock.CacheBoundingBox();
+                        F.AbsorbModel(rock.model);
+                        rock.LastBB = rock.CustomBoundingBox + rock.Position;
+                    }*/
+                //Bnds = new BoundingBox(V - new GLVec3(-10, -10, -10), V + new GLVec3(40, 40, 40));
+                V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                if (this.safeForFoliage(V, true)) {
+                    var tree = new BNTest.Tree(this.world);
+                    tree.setPosition(new BNTest.GLVec3.ctor(V.x, tree.getPosition().y, V.z));
+                    this.world.add(tree);
+
+                    //tree.LastBB = tree.GetBoundingBox();
+                    tree.cacheBoundingBox();
+                    tree.lastBB = BNTest.BoundingBox.op_Addition(tree.customBoundingBox, tree.getPosition());
+                    tree.model.cacheTransformation();
+                }
+                var fi = 7;
+                //fi = 2000;
+                while (fi > 0) {
+                    V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                    if (this.safeForFoliage(V)) {
+                        V.y = 7;
+                        //F.AddPatch(V, FC.Pick(), 50, 0.25, 2);
+                        //F.AddPatch(V, FC.Pick(), 30, 0.15, 2);
+                        F.addFlower(V, BNTest.HelperExtensions.pick(BNTest.GLColor, FC), null, 2 + (Math.random() * 3));
+                    }
+                    fi = (fi - 1) | 0;
+                }
+                fi = 3;
+                /* while (fi > 0)
+                    {
+                        V = GLVec3.Random(range, RND) - hrange;
+                        //if (world.FindSolidCollision(Bnds).Length <= 0)
+                        if (SafeForFoliage(V))
+                        {
+                            V.Y = 7;
+                            //F.AddShrub(V, shrub, 2.5+(Math.Random()*2.5));
+                            F.AddShrub(V, shrub, 2.0 + (Math.Random() * 2.0));
+                        }
+                        fi--;
+                    }*/
+                fi = 2;
+                while (fi > 0) {
+                    V = BNTest.GLVec3.op_Subtraction(BNTest.GLVec3.random(range, RND), hrange);
+                    //if (world.FindSolidCollision(Bnds).Length <= 0)
+                    if (this.safeForFoliage(V)) {
+                        //V.Y = 7;
+                        V.y = 8;
+                        //F.AddFlatShrub(V, shrub, 2.5 + (Math.Random() * 2.5));
+                        F.addPatch(V, shrub, ((15 + Bridge.Int.clip32(Math.random() * 15)) | 0), 0.1 + (Math.random() * 0.2), 2.5 + (Math.random() * 2.5));
+                    }
+                    fi = (fi - 1) | 0;
+                }
+                i = (i - 1) | 0;
+            }
+            BNTest.AnimationLoader.get_this().asyncGet$1(["object/mushroom"], Bridge.fn.bind(this, function () {
+                var $t;
+                var OVM = BNTest.VoxelMap.fromImages$1("object/mushroom");
+                var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                var C = new BNTest.GLColor();
+                var C2 = new BNTest.GLColor(1, 1, 1);
+                pal.set(new BNTest.GLColor(1, 0, 0), C);
+                pal.set(new BNTest.GLColor(1, 1, 1), C2);
+                i = (max * 2) | 0;
+                var VM = OVM.clone();
+                var mod = new BNTest.Model(this);
+                while (i > 0) {
+                    //var V = GLVec3.Random(range, RND) - hrange;
+                    var V1 = BNTest.GLVec3.random(range, RND);
+                    V1.subtract(hrange);
+                    if (this.safeForFoliage(V1)) {
+                        V1.y = 4;
+                        C2.a = (C2.r = (C2.g = (C2.b = 1)));
+                        C.setAhsb(Math.random(), Math.random(), Math.random());
+                        if (Math.random() < 0.5) {
+                            C2.copy(C);
+                        }
+                        VM.copyFrom(OVM);
+                        //var VM = OVM.Clone();
+                        VM.applyPalette(pal);
+                        VM.addNoise(0.1 * Math.random());
+
+                        var msh = new BNTest.Mesh(this);
+                        msh.addVoxelMap(VM, true);
+                        mod.meshes.add(msh);
+                        mod.offset = V1;
+                        mod.rotation.y = Math.random() * 360;
+                        //mod.Scale.Y *= 0.75 + (Math.Random() * 0.7);
+                        mod.scale.y = 0.75 + (Math.random() * 0.7);
+                        mod.scale.x = ($t = mod.scale.y * (0.75 + (Math.random() * 0.7)), mod.scale.z = $t, $t);
+                        this.foliage.absorbModel$1(mod);
+                        mod.meshes.remove(msh);
+                    }
+                    i = (i - 1) | 0;
+                }
+            }));
         },
         playMusic: function (song, volume) {
             if (volume === void 0) { volume = 1.0; }
@@ -3642,7 +3933,15 @@
             //var yr = 5;
             var yr = 0;
             var yr2 = (yr + yr) | 0;
-            var FVM = BNTest.VoxelMap.gen(sz, Depth, 0, true, false, true);
+            var FVM = null;
+            if (this.scene === 0) {
+                FVM = BNTest.VoxelMap.gen(sz, Depth, 0, true, false, true);
+            } else if (this.scene === 1) {
+                //Action<GLColor> carpet = (C) => { C.Copy(GLColor.RandomB(0.35, 0.1, 0.1, 0.55, 0.3, 0.3)); };
+                var carpet = $_.BNTest.GLDemo.f3;
+                FVM = new BNTest.VoxelMap.$ctor1(new BNTest.GLVec3.ctor(sz, 2, sz));
+                FVM.setColor$1(carpet, false);
+            }
             var msh = new BNTest.Mesh(self);
             msh.addVoxelMap(FVM, false, centered, true);
 
@@ -3665,6 +3964,7 @@
 
 
             var V;
+            var BB = new BNTest.BoundingBox.ctor();
 
 
             var x = (-size) | 0;
@@ -3678,6 +3978,7 @@
                     //msh = msh.Clone();
                     floor = new BNTest.Entity(this.world);
                     floor.model = new BNTest.Model(self);
+                    floor.model.forceRender = true;
 
                     //floor.groundFriction = 0.05;
 
@@ -3750,65 +4051,80 @@
             F.category = FC;
             F.cost = 0;
             F.setPurchased(true);
-            F.requirements = $_.BNTest.GLDemo.f3;
+            F.requirements = $_.BNTest.GLDemo.f4;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
             F.name = "Cirno";
             F.category = FC;
             F.cost = 90;
-            F.requirements = $_.BNTest.GLDemo.f4;
-            FI.add(F);
-
-            var cost = 200;
-
-            F = new BNTest.FeatureItem();
-            F.name = "Sanae";
-            F.category = FC;
-            F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f5;
             FI.add(F);
 
+            //var cost = 200;
+            var cost = 150;
+
             F = new BNTest.FeatureItem();
-            F.name = "Reisen";
+            F.name = "Sanae";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f6;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Youmu";
+            F.name = "Reisen";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f7;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Koishi";
+            F.name = "Youmu";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f8;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Marisa";
+            F.name = "Koishi";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f9;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Tenshi";
+            F.name = "Marisa";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f10;
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Flandre";
+            F.name = "Tenshi";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f11;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Flandre";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f12;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Sakuya";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f13;
+            FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Patchouli";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f14;
             FI.add(F);
 
             this.CS = new BNTest.CharacterSelect(FC);
@@ -3818,22 +4134,29 @@
             //StartButton.Position = new Vector2(680, 500);
             this.startButton.position = new BNTest.Vector2(680, 400);
             var self = this;
-            this.startButton.onClick = function () {
-                self.startGame();
-            };
+            this.startButton.onClick = Bridge.fn.bind(this, function () {
+                if (this.waveSelect.visible || !BNTest.WaveSelector.choiceAvailable()) {
+                    self.startGame();
+                } else {
+                    this.waveSelect.visible = true;
+                }
+            });
 
             this.shopButton = new BNTest.ButtonSprite.$ctor1("Shop", 50);
             this.shopButton.position = new BNTest.Vector2(680, 550);
             var A = System.Int32.parse(BNTest.App.storage.MaxLevel);
             //ShopButton.Visible = A > 0;
-            this.shopButton.onClick = Bridge.fn.bind(this, $_.BNTest.GLDemo.f12);
+            this.shopButton.onClick = Bridge.fn.bind(this, $_.BNTest.GLDemo.f15);
 
             this.shop = new BNTest.ShopScreen(FC);
             this.shop.visible = false;
+
+            this.waveSelect = new BNTest.WaveSelector();
+            this.waveSelect.visible = false;
         },
         endWave: function () {
             this.boss = null;
-            if (this.wave >= 1 && !this.skippedWave) {
+            if (this.wave >= this.waveSelect.wave && !this.skippedWave) {
                 var P = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f1).getPosition();
                 var i = 4;
                 while (i > 0) {
@@ -3888,7 +4211,8 @@
             //PlayStageMusic();
             //if (wave % 5 == 1)
             if (this.wave % 4 === 1) {
-                this.playNextSong(this.wave > 1);
+                this.playNextSong();
+                //PlayNextSong(wave>1);
                 var i = 0;
                 var LE = this.world.entities;
                 var ln = LE.getCount();
@@ -4017,6 +4341,15 @@
                 BNTest.Helper.addMultiple(String, L, "sakuya", 1);
                 BNTest.Helper.addMultiple(String, L, "reisen", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 6);
+            } else if (this.wave === 101) {
+                D = 0.25;
+                BNTest.Helper.addMultiple(String, L, "suika", 101);
+            } else if (this.wave === 25) {
+                BNTest.Helper.addMultiple(String, L, "suika", 6);
+                BNTest.Helper.addMultiple(String, L, "sakuya", 5);
+                BNTest.Helper.addMultiple(String, L, "suika", 8);
+                BNTest.Helper.addMultiple(String, L, "patchouli", 3);
+                BNTest.Helper.addMultiple(String, L, "suika", 12);
             } else if (this.wave === 22 || (this.wave % 10 !== 0 && this.wave > 26 && Math.random() <= 0.07)) {
                 BNTest.Helper.addMultiple(String, L, "suika", 10);
                 BNTest.Helper.addMultiple(String, L, "rumia", 5);
@@ -4025,9 +4358,6 @@
                 BNTest.Helper.addMultiple(String, L, "rumia", 1);
                 BNTest.Helper.addMultiple(String, L, "cirno", 1);
                 BNTest.Helper.addMultiple(String, L, "suika", 4);
-            } else if (this.wave === 101) {
-                D = 0.25;
-                BNTest.Helper.addMultiple(String, L, "suika", 101);
             } else if (this.wave > 0 && this.wave % 8 === 0) {
                 var bosses = ["koishi", "marisa", "tenshi", "flandre"];
                 var Char = "";
@@ -4077,6 +4407,10 @@
                 BNTest.Helper.addMultiple(String, pool, "reisen", Bridge.Int.clip32(2 + (difficulty * 1.1)));
                 BNTest.Helper.addMultiple(String, pool, "nazrin", Bridge.Int.clip32(5 + (difficulty * 2)));
             }
+            if (this.wave > 25) {
+                BNTest.Helper.addMultiple(String, pool, "patchouli", Bridge.Int.clip32(1 + (difficulty * 0.5)));
+            }
+
             var RND = new System.Random.ctor();
             var i = 0;
             while (i < max) {
@@ -4085,12 +4419,15 @@
             }
         },
         startGame: function () {
+            var $t;
             if (!this.ended || !BNTest.AnimationLoader.get_this().isIdle()) {
                 return;
             }
             if (this.localplayer.character == null) {
                 //localplayer.Character = new PlayerCharacter(world, localplayer, "reimu");
                 this.localplayer.character = new BNTest.PlayerCharacter(this.world, this.localplayer, "default");
+                $t = this.localplayer.character;
+                $t.setHitboxSize($t.getHitboxSize()*0.35);
             }
             if (this.gameover) {
 
@@ -4098,17 +4435,20 @@
                 this.localplayer.character.setCoins(1000);
 
                 this.localplayer.character.setHP(100);
-                this.wave = 0;
             }
-            this.currentSong = 0;
+            //wave = startwave - 1;
+            this.waveSelect.visible = false;
+            this.wave = (this.waveSelect.wave - 1) | 0;
+
+            this.currentSong = ((((Bridge.Int.div(this.wave, 4)) | 0)) - 1) | 0;
             this.guiVisible = true;
             BNTest.KeyboardManager.update();
             var Char = this.CS.menu.getSelectedText();
             Char = Char.toLowerCase();
             var LPC = this.localplayer.character;
             if (!Bridge.referenceEquals(Char, LPC.char)) {
-                this.localplayer.character = null;
                 this.world.remove(LPC);
+                this.localplayer.character = null;
                 var PC = new BNTest.PlayerCharacter(this.world, this.localplayer, Char, LPC.team);
                 this.localplayer.character = PC;
                 this.world.add(PC);
@@ -4134,6 +4474,10 @@
             //PlayStageMusic();
             this.nextWave();
             this.clearEntities();
+
+            if (this.localplayer.character != null) {
+                this.localplayer.character.setCoins((this.localplayer.character.getCoins() + ((((((this.wave - 1) | 0)) * 100) | 0))) | 0);
+            }
         },
         playNextSong: function (next) {
             if (next === void 0) { next = true; }
@@ -4158,12 +4502,19 @@
                 this.CS.update();
                 this.startButton.checkClick();
                 this.shopButton.checkClick();
+            } else if (this.waveSelect.visible) {
+                this.waveSelect.update();
+                this.startButton.checkClick();
+                this.shopButton.checkClick();
             }
             if (this.shop.visible) {
                 this.shop.update();
             }
             if (BNTest.App.DEBUG) {
                 this.updateDebug();
+            }
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(70)) {
+                this.FPSTS.visible = !this.FPSTS.visible;
             }
 
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(77)) {
@@ -4426,9 +4777,14 @@
             }
         },
         updateDebug: function () {
-            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(70)) {
-                this.fogActive = !this.fogActive;
-                this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, "uUseFog"), this.fogActive);
+            //replaced by FPS toggle
+            /* if (KeyboardManager._this.TappedButtons.Contains(KeyboardEvent.DOM_VK_F))
+                {
+                    fogActive = !fogActive;
+                    gl.Uniform1i(gl.GetUniformLocation(shaderProgram, "uUseFog"), fogActive);
+                }*/
+            if (BNTest.KeyboardManager.get_this().tappedButtons.contains(85)) {
+                this.asyncedDraw = !this.asyncedDraw;
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(82)) {
                 BNTest.KeyboardManager.allowRightClick = !BNTest.KeyboardManager.allowRightClick;
@@ -4462,6 +4818,7 @@
                 this.gameDisabled = !this.gameDisabled;
                 if (this.gameDisabled) {
                     this.clearEntities();
+                    this.waveDelay = 0;
                 } else {
                     this.skippedWave = true;
                     this.clearEntities();
@@ -4474,13 +4831,19 @@
                 this.localplayer.character.model.smoothen(0.7);
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(90)) {
-                var Char1 = Bridge.global.prompt("Enter a character name", "Reimu");
+                var LPC = this.localplayer.character;
+                var Char1 = "Reimu";
+                if (LPC != null) {
+                    Char1 = System.String.concat(LPC.char.toUpperCase().substr(0, 1), LPC.char.toLowerCase().substr(1));
+                }
+                Char1 = Bridge.global.prompt("Enter a character name", Char1);
                 //Char = Char[0].ToString().ToUpper() + Char.Substr(1);
                 Char1 = Char1.toLowerCase();
-                var LPC = this.localplayer.character;
+
                 if (!Bridge.referenceEquals(Char1, LPC.char)) {
                     this.localplayer.character = null;
                     this.world.remove(LPC);
+                    //var PC = new PlayerCharacter(world, localplayer, Char, LPC.Team,false);
                     var PC = new BNTest.PlayerCharacter(this.world, this.localplayer, Char1, LPC.team);
                     this.localplayer.character = PC;
                     this.world.add(PC);
@@ -4489,6 +4852,7 @@
                     PC.setCoins(LPC.getCoins());
                     PC.respawnPosition = LPC.respawnPosition;
                 }
+                BNTest.KeyboardManager.update();
             }
             if (BNTest.KeyboardManager.get_this().tappedButtons.contains(75)) {
                 if (Bridge.global.confirm("You have activated the save data \"Factory Reset\" function.\nPress OK to continue.")) {
@@ -4811,9 +5175,20 @@
             if (this.titlescreen && !this.titleRunning && BNTest.AnimationLoader.get_this().isIdle()) {
                 this.doTitle();
             }
+            if (this.titlescreen) {
+                this.world.setOffset(new BNTest.GLVec3.ctor(0, 15, 0));
+                this.world.model.rotation.y += 0.1;
+            } else if (this.localplayer != null) {
+                this.world.setOffset(BNTest.GLVec3.op_Multiply$1(this.localplayer.character.model.offset, -1));
+                //localplayer.Character.Update();
+            }
             if (this.camera != null) {
-                this.world.prepareRender();
-                this.camera.render();
+                if (!BNTest.GLDemo.instanceRendering) {
+                    this.world.prepareRender();
+                    this.camera.render();
+                } else {
+                    this.world.render(this.camera);
+                }
             }
             /* var testest = new WGMatrix();
                 testest.mvTranslate(new double[] { 100, 200, 300 });
@@ -4836,13 +5211,7 @@
                         i++;
                     }
                 }*/
-            if (this.titlescreen) {
-                this.world.setOffset(new BNTest.GLVec3.ctor(0, 15, 0));
-                this.world.model.rotation.y += 0.1;
-            } else if (this.localplayer != null) {
-                this.world.setOffset(BNTest.GLVec3.op_Multiply$1(this.localplayer.character.model.offset, -1));
-                //localplayer.Character.Update();
-            }
+
             if (this.started) {
                 //mesh.Render();
             } else if (BNTest.AnimationLoader.get_this().queueEmpty()) {
@@ -5078,7 +5447,8 @@
             tim = Math.max(0, tim);
             var s = tim % 60;
             var m = (((Bridge.Int.div(tim, 60)) | 0)) % 60;
-            var wv = System.String.concat(System.String.concat(System.String.concat("", ((((((Bridge.Int.div((((this.wave - 1) | 0)), 8)) | 0)) + 1) | 0))), "-"), (((((((this.wave - 1) | 0)) % 8) + 1) | 0)));
+            //string wv = "" + (((wave-1) / 8)+1) + "-" + (((wave-1) % 8)+1);
+            var wv = BNTest.GLDemo.getWaveText(this.wave);
             if (this.wave === 9) {
                 wv = "⑨";
             }
@@ -5094,6 +5464,10 @@
                         //time = "Press Enter to start";
                         if (this.CS.charCount > 1) {
                             time = "Choose a character";
+                            /* if (WaveSelect.Visible)
+                                {
+                                    time = "Select a wave";
+                                }*/
                         } else {
                             time = "Game is ready";
                         }
@@ -5110,6 +5484,10 @@
                             //time = "Press Enter to restart";
                             if (this.CS.charCount > 1) {
                                 time = "Choose a character";
+                                /* if (WaveSelect.Visible)
+                                    {
+                                        time = "Select a wave";
+                                    }*/
                             } else {
                                 time = "Game is ready";
                             }
@@ -5126,7 +5504,7 @@
             //var time = "5:00";
             var gui = BNTest.App.gui;
             gui.clearRect(0, 0, 1024, 1024);
-            this.CS.visible = this.titlescreen;
+            this.CS.visible = this.titlescreen && !this.waveSelect.visible;
             if (this.titlescreen) {
                 gui.fillStyle = "#220077";
                 gui.globalAlpha = 0.5;
@@ -5157,7 +5535,21 @@
 
                     this.startButton.draw(gui);
                     this.shopButton.draw(gui);
+
+                    if (this.waveSelect.visible) {
+                        this.waveSelect.draw(gui);
+                        time = "Select a wave";
+                    }
+                } else {
+                    this.waveSelect.visible = false;
                 }
+
+            } else if (this.overlayAlpha > 0) {
+                gui.fillStyle = this.overlayColor;
+                gui.globalAlpha = this.overlayAlpha;
+                gui.fillRect(0, 0, 1024, 1024);
+                gui.globalAlpha = 1.0;
+                this.overlayAlpha = 0;
             }
             /* else if (currentlightlevel<1)
                 {
@@ -5192,7 +5584,7 @@
                     this.CTS.visible = true;
                     if (false) {
                         var TMat = new BNTest.WGMatrix();
-                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f13);
+                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f16);
 
                         var Mat = new BNTest.WGMatrix();
                         /* Mat.Mat4MultMatrix(DB.model.Transformation);
@@ -5241,6 +5633,15 @@
                     }
                     this.CTS.draw(gui);
                 }
+                if (this.FPSTS.visible) {
+                    //FPSTS.Text = "FPS:" + Math.Round(framedelay / 16.6667);
+                    //FPSTS.Text = "FPS:" + Math.Round(framedelay * 0.016667);
+                    //FPSTS.Text = "FPS:" + Math.Round(framedelay / 16.6667);
+
+                    //FPSTS.Text = "FPS:" + Math.Round(60 / (framedelay));
+                    this.FPSTS.setText(System.String.concat("", System.Double.format(Bridge.Math.round(60 / (this.framedelay), 0, 6), 'G')));
+                    this.FPSTS.draw(gui);
+                }
             }
             this.TS.setTextColor("#FFFFFF");
             this.TS.setShadowOffset(new BNTest.Vector2(3, 3));
@@ -5264,6 +5665,11 @@
                     var R = this.world.model.countElements();
                     //T = T + "\n" + R[1] + " Verticies in " + R[0] + " Meshes.";
                     T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), this.intToDigits(R[1])), " Verticies in "), this.intToDigits(R[0])), " Meshes.");
+                    if (this.localplayer.character != null) {
+                        R = this.localplayer.character.model.countElements();
+                        T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\nPC:"), this.intToDigits(R[1])), " Verticies in "), this.intToDigits(R[0])), " Meshes.");
+                    }
+                    T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\nOctree:"), this.world.octree.children.getCount()), ", async-draw:"), System.Boolean.toString(this.asyncedDraw)), ", Buffer Binds:"), BNTest.Mesh.totalBindings), ","), BNTest.Mesh.skippedBindings);
                 }
             }
             {
@@ -5566,6 +5972,11 @@
             this.disableTextures();
             BNTest.Mesh.init(this.vertexPositionAttribute, this.vertexColorAttribute, this.vertexTextureCoordAttribute);
         },
+        setAlpha: function (alpha) {
+            alpha = BNTest.MathHelper.clamp(alpha);
+            this.currentAlpha = alpha;
+            this.gl.uniform1f(this.alphaUniform, this.currentAlpha);
+        },
         pushAlpha: function (alpha) {
             this.alphalist.push(this.currentAlpha);
             /* if (currentAlpha == 1 && alpha<1)
@@ -5712,6 +6123,12 @@
             /* if (flush)
                     setMatrixUniforms();*/
         },
+        setMatrix: function (m, flush) {
+            if (flush === void 0) { flush = false; }
+            this.matrix.copyFrom$1(m);
+
+            this.matrixNeedsFlush = true;
+        },
         mvTranslate: function (v) {
             //Script.Write("this.multMatrix(Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());");
             this.matrix.mvTranslate(v);
@@ -5843,28 +6260,31 @@
         mvPushMatrix: function (m) {
             if (m === void 0) { m = null; }
             this.matrixNeedsFlush = true;
-            this.matrix.mvPushMatrix();
-            return;
-            if (m != null) {
-                this.mvMatrixStack.push(m.dup());
-                this.mvMatrix = m.dup();
-            } else {
-                this.mvMatrixStack.push(this.mvMatrix.dup());
-            }
-            this.matrixNeedsFlush = true;
+            this.matrix.mvPushMatrix(); /*  return;
+                if (m != null)
+                {
+                    Script.Write("this.mvMatrixStack.push(m.dup())");
+                    Script.Write("this.mvMatrix = m.dup()");
+                }
+                else
+                {
+                    Script.Write("this.mvMatrixStack.push(this.mvMatrix.dup())");
+                }
+                matrixNeedsFlush = true;*/
         },
         mvPopMatrix: function () {
             this.matrixNeedsFlush = true;
             return this.matrix.mvPopMatrix();
 
-            if (!this.mvMatrixStack.length) {
-                throw ("Can't pop from an empty matrix stack.");
-            }
+            /* if (!Script.Write<bool>("this.mvMatrixStack.length"))
+                {
+                    Script.Write("throw (\"Can't pop from an empty matrix stack.\")");
+                }
 
-            this.mvMatrix = this.mvMatrixStack.pop();
-            //mvMatrix = Script.Write<object>("mvMatrixStack.pop()");
-            this.matrixNeedsFlush = true;
-            return this.mvMatrix;
+                mvMatrix = Script.Write<object>("this.mvMatrixStack.pop()");
+                //mvMatrix = Script.Write<object>("mvMatrixStack.pop()");
+                matrixNeedsFlush = true;
+                return mvMatrix;*/
         },
         mvScale: function (Scale) {
             this.matrix.mvScale(Scale);
@@ -5889,40 +6309,105 @@
         f2: function (E) {
             return !(Bridge.is(E, BNTest.RisingPlatform));
         },
-        f3: function () {
-            return true;
+        f3: function (C) {
+            C.copy(BNTest.GLColor.randomB(0.65, 0.25, 0.25, 0.75, 0.3, 0.3));
         },
         f4: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 9;
+            return true;
         },
         f5: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 2;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 9;
         },
         f6: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 18;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 2;
         },
         f7: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 14;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 18;
         },
         f8: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 8;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 14;
         },
         f9: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 16;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 8;
         },
         f10: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 24;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 16;
         },
         f11: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 32;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 24;
         },
         f12: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 32;
+        },
+        f13: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 6;
+        },
+        f14: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 25;
+        },
+        f15: function () {
             this.CS.initMenu();
             this.shop.initMenu();
             this.shop.visible = true;
         },
-        f13: function (D) {
+        f16: function (D) {
             return Bridge.is(D, BNTest.DonationBox);
+        }
+    });
+
+    Bridge.define("BNTest.GLRenderState", {
+        alpha: 1,
+        color: null,
+        bleedThrough: false,
+        znearRate: -1,
+        stack: null,
+        config: {
+            init: function () {
+                this.color = new BNTest.GLColor(1, 1, 1);
+                this.stack = System.Array.init(0, null);
+            }
+        },
+        apply: function (target, destination, GD) {
+            var G = GD.gl;
+            if (target.alpha !== destination.alpha) {
+                GD.setAlpha(destination.alpha);
+            }
+            if (!Bridge.equals(target.alpha, destination.color)) {
+                GD.setColor(destination.color);
+            }
+            if (!target.bleedThrough === destination.bleedThrough) {
+                GD.setDepthTest(!destination.bleedThrough);
+            }
+            if (target.znearRate !== destination.znearRate) {
+                GD.setPerspective(this.znearRate);
+            }
+
+            target.push();
+            target.copyFrom(destination);
+        },
+        applyPop: function (GD) {
+            var P = this.stack.pop();
+            this.apply(this, P, GD);
+        },
+        copyFrom: function (GRS) {
+            var G = GRS;
+            this.alpha = G.alpha;
+            this.bleedThrough = G.bleedThrough;
+            this.color.copy(G.color);
+            this.znearRate = G.znearRate;
+        },
+        clone: function () {
+            var ret = new BNTest.GLRenderState();
+            ret.copyFrom(this);
+            return ret;
+        },
+        push: function () {
+            var P = this.clone();
+            this.stack.push(P);
+        },
+        pop: function () {
+            var P = this.stack.pop();
+            this.copyFrom(P);
         }
     });
 
@@ -6160,6 +6645,12 @@
         getRoughLength: function () {
             return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
         },
+        getEmpty: function () {
+            return this.x === 0 && this.y === 0 && this.z === 0;
+        },
+        getIsOne: function () {
+            return this.x === this.y && this.y === this.z && this.z === 1;
+        },
         copyFrom: function (V) {
             this.x = V.x;
             this.y = V.y;
@@ -6309,11 +6800,14 @@
             this.z *= position.z;
         },
         multiply$1: function (X, Y, Z) {
-            if (Y === void 0) { Y = 0.0; }
-            if (Z === void 0) { Z = 0.0; }
             this.x *= X;
             this.y *= Y;
             this.z *= Z;
+        },
+        scale: function (scale) {
+            this.x *= scale;
+            this.y *= scale;
+            this.z *= scale;
         },
         divide: function (position) {
             this.x /= position.x;
@@ -6378,6 +6872,18 @@
                     array.push(item);
                     number = (number - 1) | 0;
                 }
+            },
+            repeat: function (s, number) {
+                if (number < 1) {
+                    return "";
+                }
+                var ret = s;
+                var i = (number - 1) | 0;
+                while (i > 0) {
+                    ret = System.String.concat(ret, s);
+                    i = (i - 1) | 0;
+                }
+                return ret;
             },
             cloneCanvas: function (C) {
                 var ret = document.createElement('canvas');
@@ -6515,9 +7021,21 @@
                 }
             },
             addIfNew: function (T, list, item) {
-                if (!list.contains(item)) {
-                    list.add(item);
+                var i = 0;
+                var ln = list.getCount();
+                var A = item;
+                while (i < ln) {
+                    var B = list.getItem(i);
+                    if (A == B) {
+                        return;
+                    }
+                    i = (i + 1) | 0;
                 }
+                list.add(item);
+                /* if (!list.Contains(item))
+                {
+                    list.Add(item);
+                }*/
             },
             removeAll: function (T, list, predicate) {
 
@@ -6570,6 +7088,22 @@
                     }
                     i = BNTest.HelperExtensions.indexOf(T, list, Source, ((i + 1) | 0), 3);
                 }
+            },
+            containsB$1: function (T, list, Value) {
+                var L = list.items;
+                return BNTest.HelperExtensions.containsB(T, L, Value);
+            },
+            containsB: function (T, list, Value) {
+                var i = 0;
+                var ln = list.length;
+                while (i < ln) {
+                    var O = list[i];
+                    if (O == Value) {
+                        return true;
+                    }
+                    i = (i + 1) | 0;
+                }
+                return false;
             },
             indexOf: function (T, list, Value, index, structureSize) {
                 if (index === void 0) { index = 0; }
@@ -7246,9 +7780,12 @@
     Bridge.define("BNTest.Mesh", {
         statics: {
             texture: true,
-            lastDrawn: null,
+            lastDrawn: -1000,
             allowInterpolation: true,
             enabled: true,
+            totalIDS: 0,
+            totalBindings: 0,
+            skippedBindings: 0,
             /**
              * set this to true, if you need proper textures on voxelmaps.
              *
@@ -7389,11 +7926,22 @@
         scale: null,
         min: null,
         max: null,
+        drawOrder: 0,
         doNotUnload: false,
+        finalMat: null,
         transformation: null,
         transformed: false,
         QV3: 0,
         qV3Set: false,
+        /**
+         * The ID of the buffers.
+         *
+         * @instance
+         * @public
+         * @memberof BNTest.Mesh
+         * @type number
+         */
+        ID: -1,
         TGV: null,
         config: {
             properties: {
@@ -7410,6 +7958,7 @@
                 this.scale = new BNTest.GLVec3.ctor(1, 1, 1);
                 this.min = new BNTest.GLVec3.ctor(System.Double.max, System.Double.max, System.Double.max);
                 this.max = new BNTest.GLVec3.ctor(System.Double.min, System.Double.min, System.Double.min);
+                this.finalMat = new BNTest.WGMatrix();
                 this.TGV = System.Array.init(8, null);
             }
         },
@@ -7442,6 +7991,13 @@
             this.offset = new BNTest.GLVec3.ctor();
             this.scale = BNTest.GLVec3.getOne();
             this.rotation = new BNTest.GLVec3.ctor();
+        },
+        compare: function (M) {
+            var ret = Bridge.compare(this.drawOrder, M.drawOrder);
+            if (ret === 0) {
+                ret = Bridge.compare(this.ID, M.ID);
+            }
+            return ret;
         },
         /**
          * permanently transforms all Verticies with the matrix provided.
@@ -7482,7 +8038,8 @@
             V[Bridge.identity(i, (i = (i + 1) | 0))] = T.y;
             V[Bridge.identity(i, (i = (i + 1) | 0))] = T.z;
         },
-        render: function () {
+        render: function (transform) {
+            if (transform === void 0) { transform = true; }
             if (this.indices.length <= 0) {
                 return;
             }
@@ -7491,7 +8048,8 @@
             }
             if (this.cubeVerticesBuffer != null) {
                 var G = this.getgl();
-                if (!Bridge.referenceEquals(BNTest.Mesh.lastDrawn, this)) {
+                //if (LastDrawn != this)
+                if (BNTest.Mesh.lastDrawn !== this.ID) {
                     // Draw the cube by binding the array buffer to the cube's vertices
                     // array, setting attributes, and pushing it to GL.
                     var GL_Float = G.FLOAT;
@@ -7512,13 +8070,15 @@
                     // Draw the cube.
 
                     G.bindBuffer(G.ELEMENT_ARRAY_BUFFER, this.cubeVerticesIndexBuffer);
-                    BNTest.Mesh.lastDrawn = this;
+                    //LastDrawn = this;
+                    BNTest.Mesh.lastDrawn = this.ID;
+
+                    BNTest.Mesh.totalBindings = (BNTest.Mesh.totalBindings + 1) | 0;
+                } else {
+                    //Helper.Log("skipping WEBGL bindings!");
+                    BNTest.Mesh.skippedBindings = (BNTest.Mesh.skippedBindings + 1) | 0;
                 }
-                /* else
-                    {
-                        Helper.Log("skipping WEBGL bindings!");
-                    }*/
-                this.draw();
+                this.draw(transform);
             }
         },
         replaceAllColors: function (NewColor, keepAlpha) {
@@ -7612,22 +8172,33 @@
             }
         },
         updateTranformation: function () {
-            this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
+            //Transformed = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1) || (Rotation.RoughLength != 0 || Offset.RoughLength != 0);
+            this.transformed = !(this.scale.getIsOne()) || (!this.rotation.getEmpty() || !this.offset.getEmpty());
 
             if (this.transformed) {
                 this.transformation.clear();
                 var M = this.transformation;
-                var scaled = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1);
-                var offseted = this.offset.getRoughLength() !== 0;
-                if (scaled) {
-                    if (offseted) {
-                        M.setPositionThenScale(this.offset, this.scale);
-                    } else {
-                        M.mvScale(this.scale);
-                    }
+                //var scaled = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1);
+                var scaled = !(this.scale.getIsOne());
+                //var offseted = Offset.RoughLength != 0;
+                var offseted = !this.offset.getEmpty();
+                var InstanceRendering = BNTest.GLDemo.instanceRendering;
+                if (scaled && !InstanceRendering) {
+                    /* if (offseted)
+                        {
+                            M.SetPositionThenScale(Offset, Scale);
+                        }
+                        else
+                        {
+                            M.mvScale(Scale);
+                        }*/
+                    M.setPositionThenScale(this.offset, this.scale);
                 }
-
-                if (this.rotation.getRoughLength() !== 0) {
+                if (InstanceRendering) {
+                    M.setPositionThenScale(this.offset, this.scale);
+                }
+                //if (Rotation.RoughLength != 0)
+                if (this.rotation.getEmpty()) {
                     if (this.rotation.y !== 0) {
                         M.rotateY(this.rotation.y * 0.01745329251);
                     }
@@ -7638,7 +8209,7 @@
                         M.rotateZ(this.rotation.z * 0.01745329251);
                     }
                 }
-                if (!scaled && offseted) {
+                if (!scaled && offseted && !InstanceRendering) {
                     M.setTranslation(this.offset);
                 }
 
@@ -7650,10 +8221,12 @@
             var G = this.getgl();
             G.drawElements(G.TRIANGLES, this.indices.length, G.UNSIGNED_SHORT, 0);
         },
-        draw: function () {
-            this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
+        draw: function (transform) {
+            if (transform === void 0) { transform = true; }
+            //Transformed = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1) || (Rotation.RoughLength!=0 || Offset.RoughLength!=0);
+            this.transformed = !(this.scale.getIsOne()) || (!this.rotation.getEmpty() || !this.offset.getEmpty());
 
-            if (this.transformed) {
+            if (this.transformed && transform) {
                 this.updateTranformation();
                 this.getGD().mvPushMatrix();
                 this.getGD().multMatrix(this.transformation.mvMatrix, true);
@@ -7668,6 +8241,7 @@
             }
         },
         update: function () {
+            var $t;
             if (!this.needsUpdate) {
                 return;
             }
@@ -7679,7 +8253,11 @@
                     this.cubeVerticesIndexBuffer = G.createBuffer();
                     this.cubeVerticesTextureCoordBuffer = G.createBuffer();
                     this.hasBuffer = true;
+                    if (this.clonedBuffer) {
+                        console.log(System.String.concat("split off clone old ID:", this.ID));
+                    }
                     this.clonedBuffer = false;
+                    this.ID = Bridge.identity(BNTest.Mesh.totalIDS, ($t = (BNTest.Mesh.totalIDS + 1) | 0, BNTest.Mesh.totalIDS = $t, $t));
                 }
 
                 G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
@@ -7814,6 +8392,19 @@
             this.needsUpdate = true;
 
         },
+        forceBuffer: function (target) {
+            var M = target;
+            M.unloadBuffers();
+
+            M.cubeVerticesBuffer = this.cubeVerticesBuffer;
+            M.cubeVerticesColorBuffer = this.cubeVerticesColorBuffer;
+            M.cubeVerticesIndexBuffer = this.cubeVerticesIndexBuffer;
+            M.cubeVerticesTextureCoordBuffer = this.cubeVerticesTextureCoordBuffer;
+            M.hasBuffer = this.hasBuffer;
+            M.clonedBuffer = true;
+            M.doNotUnload = this.doNotUnload;
+            M.needsUpdate = false;
+        },
         /**
          * 
          *
@@ -7826,8 +8417,9 @@
          */
         clone: function (shallow) {
             if (shallow === void 0) { shallow = false; }
+            this.update();
             var M = new BNTest.Mesh(this.getGD());
-
+            M.ID = this.ID;
             if (!shallow) {
                 var i = 0;
                 M.verticies = System.Array.init(0, 0);
@@ -7860,6 +8452,7 @@
                 M.hasBuffer = this.hasBuffer;
                 M.clonedBuffer = true;
                 M.doNotUnload = this.doNotUnload;
+                M.needsUpdate = false;
             } else {
                 M.verticies = this.verticies;
                 M.colors = this.colors;
@@ -7884,6 +8477,7 @@
                 M.offset = this.offset;
                 M.rotation = this.rotation;
                 M.scale = this.scale;
+                M.needsUpdate = false;
             }
 
 
@@ -7910,6 +8504,7 @@
             }
             console.log("Cleared mesh buffer.");
             this.hasBuffer = false;
+            this.ID = -1;
         },
         addTextureRect: function (times) {
             if (times === void 0) { times = 1; }
@@ -7918,10 +8513,11 @@
                 this.textureCoords.push(0, 0, 0, 1, 1, 0, 1, 1);
             }
         },
-        addVoxelMap: function (VM, interpolate, center, toplayeronly) {
+        addVoxelMap: function (VM, interpolate, center, toplayeronly, forceOptimize) {
             if (interpolate === void 0) { interpolate = false; }
             if (center === void 0) { center = true; }
             if (toplayeronly === void 0) { toplayeronly = false; }
+            if (forceOptimize === void 0) { forceOptimize = false; }
             if (interpolate && !BNTest.Mesh.allowInterpolation) {
                 interpolate = false;
             }
@@ -7946,10 +8542,6 @@
             //var zind = Script.Write<int>("System.Array.toIndex(M, [0,0,1])");
             var zind = 1;
             var ind = 0;
-            /* bool[] interpolation = new bool[8];
-                bool[] sides = new bool[6];
-                bool[] interpolation2 = new bool[8];
-                bool[] sides2 = new bool[6];*/
             var sides = null;
             var sides2 = null;
             var interpolation = null;
@@ -7957,9 +8549,6 @@
             while (X < MX) {
                 while (Y < MY) {
                     while (Z < MZ) {
-                        /* V.X = X;
-                            V.Y = Y;
-                            V.Z = Z;*/
                         //GLColor C = VM.GetVoxel(X, Y, Z);
                         //GLColor C = Map[X, Y, Z];
                         var C = M[ind];
@@ -7970,28 +8559,57 @@
                                     interpolation = VM.getValidQuadrants(X, Y, Z, interpolation);
                                 }
                                 sides = VM.getInvisibleSides(X, Y, Z, sides);
-                                if (BNTest.Mesh.correctTextures || ((Z + 1) | 0) >= MZ || true) {
-                                    CV.copyFrom(V);
-                                    CV.add(VB);
+                                CV.copyFrom(V);
+                                CV.add$1(1, 1, 1);
+                                if (BNTest.Mesh.correctTextures || ((Z + 1) | 0) >= MZ || (!forceOptimize && interpolate)) {
+                                    /* CV.CopyFrom(V);
+                                        CV.Add(VB);*/
                                     this.addCube2(V, CV, C, sides, interpolation);
                                 } else {
+
                                     if (interpolate) {
                                         interpolation2 = VM.getValidQuadrants(X, Y, ((Z + 1) | 0), interpolation2);
                                     }
                                     sides2 = VM.getInvisibleSides(X, Y, ((Z + 1) | 0), sides2);
-                                    if (BNTest.HelperExtensions.identical(Boolean, interpolation, interpolation2) && BNTest.HelperExtensions.identical(Boolean, sides, sides2) && Bridge.referenceEquals(C, M[((ind + 1) | 0)])) {
-                                        CV.copyFrom(V);
-                                        CV.add(VB2);
-                                        this.addCube2(V, CV, C, sides, interpolation);
-                                        V.z += 1;
+                                    var ZW = 0;
+                                    while (((Z + 1) | 0) < MZ && BNTest.HelperExtensions.identical(Boolean, interpolation, interpolation2) && BNTest.HelperExtensions.identical(Boolean, sides, sides2) && Bridge.referenceEquals(C, M[((ind + 1) | 0)])) {
+                                        CV.add$1(0, 0, 1);
                                         Z = (Z + 1) | 0;
                                         ind = (ind + 1) | 0;
-                                        //ind += zind;
-                                    } else {
-                                        CV.copyFrom(V);
-                                        CV.add(VB);
+                                        ZW = (ZW + 1) | 0;
+                                        if (interpolate) {
+                                            interpolation2 = VM.getValidQuadrants(X, Y, ((Z + 1) | 0), interpolation2);
+                                        }
+                                        sides2 = VM.getInvisibleSides(X, Y, ((Z + 1) | 0), sides2);
+                                    }
+                                    //else
+                                    {
+                                        /* CV.CopyFrom(V);
+                                            CV.Add(VB);*/
                                         this.addCube2(V, CV, C, sides, interpolation);
                                     }
+                                    V.z += ZW;
+                                    /* if (interpolate)
+                                        {
+                                            interpolation2 = VM.GetValidQuadrants(X, Y, Z + 1, interpolation2);
+                                        }
+                                        sides2 = VM.GetInvisibleSides(X, Y, Z + 1, sides2);
+                                        if (interpolation.Identical(interpolation2) && sides.Identical(sides2) && C == M[ind + 1])
+                                        {
+                                            CV.CopyFrom(V);
+                                            CV.Add(VB2);
+                                            AddCube2(V, CV, C, sides, interpolation);
+                                            V.Z += 1;
+                                            Z += 1;
+                                            ind++;
+                                            //ind += zind;
+                                        }
+                                        else
+                                        {
+                                            CV.CopyFrom(V);
+                                            CV.Add(VB);
+                                            AddCube2(V, CV, C, sides, interpolation);
+                                        }*/
                                 }
                             } else {
                                 CV.copyFrom(V);
@@ -8018,11 +8636,6 @@
                 X = (X + 1) | 0;
             }
             this.qV3Set = false;
-            /* CV.Release();
-                V.Release();
-                VB.Release();
-                VB2.Release();
-                SV.Release();*/
         },
         addVert: function (V, C) {
             BNTest.Mesh.pushValue(this.verticies, [V.x, V.y, V.z]);
@@ -8811,6 +9424,50 @@
     });
 
     Bridge.define("BNTest.Model", {
+        statics: {
+            doSmoothen: function (M, strength) {
+                var $step = 0,
+                    $task1, 
+                    $jumpFromFinally, 
+                    $tcs = new System.Threading.Tasks.TaskCompletionSource(), 
+                    $returnValue, 
+                    $async_e, 
+                    $asyncBody = Bridge.fn.bind(this, function () {
+                        try {
+                            for (;;) {
+                                $step = System.Array.min([0,1], $step);
+                                switch ($step) {
+                                    case 0: {
+                                        if (strength === void 0) { strength = 1.0; }
+                                        $task1 = System.Threading.Tasks.Task.delay(1);
+                                        $step = 1;
+                                        $task1.continueWith($asyncBody);
+                                        return;
+                                    }
+                                    case 1: {
+                                        $task1.getAwaitedResult();
+                                        M.smoothenB(0.5 * strength);
+                                        M.smoothen(0.21 * strength);
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                    default: {
+                                        $tcs.setResult(null);
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch($async_e1) {
+                            $async_e = System.Exception.create($async_e1);
+                            $tcs.setException($async_e);
+                        }
+                    }, arguments);
+
+                $asyncBody();
+                return $tcs.task;
+            }
+        },
+        entity: null,
         meshes: null,
         children: null,
         offset: null,
@@ -8835,7 +9492,9 @@
         bleedThrough: false,
         znearRate: -1,
         drawOrder: 0,
+        cachedTransform: false,
         drawn: false,
+        finalMat: null,
         config: {
             properties: {
                 gl: null,
@@ -8847,6 +9506,7 @@
                 this.rotation = new BNTest.GLVec3.ctor();
                 this.scale = new BNTest.GLVec3.ctor(1, 1, 1);
                 this.color = new BNTest.GLColor(1, 1, 1);
+                this.finalMat = new BNTest.WGMatrix();
             }
         },
         ctor: function (GD) {
@@ -8917,7 +9577,22 @@
             BNTest.HelperExtensions.forEach(BNTest.Mesh, this.meshes, $_.BNTest.Model.f1);
             BNTest.HelperExtensions.forEach(BNTest.Model, this.children, $_.BNTest.Model.f2);
         },
+        compare: function (M) {
+            var ret = Bridge.compare(this.drawOrder, M.drawOrder);
+            if (ret === 0 && this.entity != null && M.entity != null) {
+                ret = System.String.compare(Bridge.Reflection.getTypeName(Bridge.getType(this.entity)), Bridge.Reflection.getTypeName(Bridge.getType(M.entity)));
+            }
+            return ret;
+        },
+        cacheTransformation: function () {
+            this.cachedTransform = false;
+            this.updateTransform();
+            this.cachedTransform = true;
+        },
         updateTransform: function () {
+            if (this.cachedTransform) {
+                return;
+            }
             //Transformation = new WGMatrix();
             this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
 
@@ -8979,10 +9654,14 @@
             ret.copyFrom(this);
             return ret;
         },
-        getMeshes: function (OUT) {
+        getMeshes: function (OUT, visibleOnly) {
             if (OUT === void 0) { OUT = null; }
+            if (visibleOnly === void 0) { visibleOnly = false; }
             if (OUT == null) {
                 OUT = System.Array.init(0, null);
+            }
+            if (this.alpha <= 0 || (visibleOnly && (!this.getVisible() || (!this.inView && !this.forceRender)))) {
+                return OUT;
             }
             BNTest.HelperExtensions.pushRange(BNTest.Mesh, OUT, this.meshes.items);
             var i = 0;
@@ -9031,8 +9710,20 @@
             if (shallow === void 0) { shallow = false; }
             var M = source;
             if (!shallow) {
-                BNTest.HelperExtensions.forEach(BNTest.Mesh, M.meshes, Bridge.fn.bind(this, $_.BNTest.Model.f3));
-                BNTest.HelperExtensions.forEach(BNTest.Model, M.children, Bridge.fn.bind(this, $_.BNTest.Model.f4));
+                var i = 0;
+                var ln = M.meshes.getCount();
+                while (i < ln) {
+                    this.meshes.add(M.meshes.getItem(i).clone());
+                    i = (i + 1) | 0;
+                }
+                i = 0;
+                ln = M.children.getCount();
+                while (i < ln) {
+                    this.children.add(M.children.getItem(i).clone());
+                    i = (i + 1) | 0;
+                }
+                //M.meshes.ForEach(msh => meshes.Add(msh.Clone()));
+                //M.children.ForEach(mdl => children.Add(mdl.Clone()));
             } else {
                 this.meshes = M.meshes;
                 this.children = M.children;
@@ -9043,25 +9734,54 @@
             this.scale = M.scale;
         },
         smoothen: function (strength) {
-            if (strength === void 0) { strength = 1.0; }
-            if (!this.getGD().smooth) {
-                return;
-            }
-            var i = 0;
-            while (i < this.meshes.getCount()) {
-                //meshes[i].SmoothenB(0.3); meshes[i].Smoothen(0.125);
-                //meshes[i].SmoothenB(0.45); meshes[i].Smoothen(0.188);
-                this.meshes.getItem(i).smoothenB(0.5 * strength);
-                this.meshes.getItem(i).smoothen(0.21 * strength);
-                //meshes[i].SmoothenB(0.6); meshes[i].Smoothen(0.25);
-                //meshes[i].Smoothen();
-                i = (i + 1) | 0;
-            }
-            i = 0;
-            while (i < this.children.getCount()) {
-                this.children.getItem(i).smoothen();
-                i = (i + 1) | 0;
-            }
+            var $step = 0,
+                $jumpFromFinally, 
+                i, 
+                T, 
+                $asyncBody = Bridge.fn.bind(this, function () {
+                    for (;;) {
+                        $step = System.Array.min([0], $step);
+                        switch ($step) {
+                            case 0: {
+                                if (strength === void 0) { strength = 1.0; }
+                                if (!this.getGD().smooth) {
+                                    return;
+                                }
+                                i = 0;
+                                T = System.Array.init(0, null);
+                                while (i < this.meshes.getCount()) {
+                                    //meshes[i].SmoothenB(0.3); meshes[i].Smoothen(0.125);
+                                    //meshes[i].SmoothenB(0.45); meshes[i].Smoothen(0.188);
+
+                                    this.meshes.getItem(i).smoothenB(0.5 * strength);
+                                    this.meshes.getItem(i).smoothen(0.21 * strength);
+                                    //T.Push(DoSmoothen(meshes[i], strength));
+
+                                    //meshes[i].SmoothenB(0.6); meshes[i].Smoothen(0.25);
+                                    //meshes[i].Smoothen();
+                                    i = (i + 1) | 0;
+                                }
+                                i = 0;
+                                /* while (i < T.Length)
+                                            {
+                                                await T[i];
+                                                i++;
+                                            }*/
+                                i = 0;
+                                while (i < this.children.getCount()) {
+                                    this.children.getItem(i).smoothen();
+                                    i = (i + 1) | 0;
+                                }
+                                return;
+                            }
+                            default: {
+                                return;
+                            }
+                        }
+                    }
+                }, arguments);
+
+            $asyncBody();
         },
         update: function () {
             var i = 0;
@@ -9076,10 +9796,39 @@
                 i = (i + 1) | 0;
             }
         },
+        update2: function (matrix) {
+            this.updateTransform();
+            this.finalMat.copyFrom(matrix);
+            this.finalMat.multiplyMatrix(this.transformation);
+            //FinalMat.Mat4MultMatrix(Transformation);
+            var i = 0;
+            var ln = this.meshes.getCount();
+            while (i < ln) {
+                var msh = this.meshes.getItem(i);
+                //msh.Update();
+                msh.updateTranformation();
+                msh.finalMat.copyFrom(this.finalMat);
+                msh.finalMat.multiplyMatrix(msh.transformation);
+                //msh.FinalMat.Mat4MultMatrix(msh.Transformation);
+                msh.drawOrder = this.drawOrder;
+                i = (i + 1) | 0;
+            }
+            i = 0;
+            ln = this.children.getCount();
+            while (i < ln) {
+                var C = this.children.getItem(i);
+                if (this.drawOrder !== 0) {
+                    C.drawOrder = this.drawOrder;
+                }
+                C.update2(this.finalMat);
+
+                i = (i + 1) | 0;
+            }
+        },
         render: function () {
             this.drawn = false;
             this.updateTransform();
-            if (!this.getVisible() || (!this.inView && !this.forceRender)) {
+            if (this.alpha <= 0.0 || !this.getVisible() || (!this.inView && !this.forceRender)) {
                 return;
             }
             if (this.transformed) {
@@ -9153,12 +9902,6 @@
         },
         f2: function (C) {
             C.unloadBuffers();
-        },
-        f3: function (msh) {
-            this.meshes.add(msh.clone());
-        },
-        f4: function (mdl) {
-            this.children.add(mdl.clone());
         }
     });
 
@@ -9200,6 +9943,7 @@
             model.update();
             var NM = model.clone();
             this.data.set(modelName, NM);
+
             //swap the clone properties, so the main backup is the one to have buffer clearing permissions.
             BNTest.HelperExtensions.forEach(BNTest.Mesh, NM.getMeshes(), $_.BNTest.ModelCache.f1);
             BNTest.HelperExtensions.forEach(BNTest.Mesh, model.getMeshes(), $_.BNTest.ModelCache.f2);
@@ -9469,13 +10213,20 @@
             return ret;
         },
         getChild: function (Position) {
-            var B = new BNTest.BoundingBox.$ctor1(Position, BNTest.GLVec3.op_Addition(Position, BNTest.GLVec3.getOne()));
+            //var B = new BoundingBox(Position, Position+GLVec3.One);
+            var B = new BNTest.BoundingBox.$ctor1(Position, Position);
+            B.max.add$1(1, 1, 1);
 
-            var L = System.Linq.Enumerable.from(this.children).where(function (ON) {
+            //var L = Children.Where(ON => ON.Box.Intersection(B)).ToList();
+            var L = System.Linq.Enumerable.from(this.children).firstOrDefault(function (ON) {
                 return ON.box.intersection$2(B);
-            }).toList(BNTest.OctreeNode);
-            if (L.getCount() > 0) {
-                return L.getItem(0);
+            }, null);
+            /* if (L.Count > 0)
+                {
+                    return L[0];
+                }*/
+            if (L != null) {
+                return L;
             } else {
                 var P = BNTest.GLVec3.floor(BNTest.GLVec3.op_Division$1(Position, this.nodeSize));
 
@@ -9483,11 +10234,17 @@
             }
         },
         getNodes: function (collision) {
-            var ret = new (System.Collections.Generic.List$1(BNTest.OctreeNode))();
+            //List<OctreeNode> ret = new List<OctreeNode>();
+            var ret = System.Array.init(0, null);
             {
-                BNTest.HelperExtensions.forEach(BNTest.OctreeNode, this.children, function (ON) {
-                    ret.addRange(ON.getNodes(collision));
-                });
+                //Children.ForEach(ON => ret.AddRange(ON.GetNodes(collision)));
+                //Children.ForEach(ON => ret.PushRange(ON.GetNodes(collision)));
+                var i = 0;
+                var ln = this.children.getCount();
+                while (i < ln) {
+                    BNTest.HelperExtensions.pushRange(BNTest.OctreeNode, ret, this.children.getItem(i).getNodes(collision));
+                    i = (i + 1) | 0;
+                }
             }
             return ret;
 
@@ -9519,17 +10276,30 @@
             BNTest.HelperExtensions.forEach(BNTest.Entity, entitiesToPlace, Bridge.fn.bind(this, $_.BNTest.Octree.f2));
         },
         placeEntity: function (E) {
-            var L = this.getNodes(E.lastBB);
-            if (L.getCount() === 0) {
+            var EB = E.lastBB;
+            var L = this.getNodes(EB);
+            var i = 0;
+            var ln = 0;
+            //if (L.Count == 0)
+            if (L.length === 0) {
                 //Generates a child if one does not exist.
-                var N = this.getChild(E.lastBB.min);
-                BNTest.HelperExtensions.forEach(BNTest.OctreeNode, N.children, function (ON) {
-                    L.addRange(ON.getNodes(E.lastBB));
-                });
+                var N = this.getChild(EB.min);
+                //N.Children.ForEach(ON => L.AddRange(ON.GetNodes(E.LastBB)));
+                //N.Children.ForEach(ON => L.PushRange(ON.GetNodes(E.LastBB)));
+                ln = N.children.getCount();
+                i = 0;
+                while (i < ln) {
+                    BNTest.HelperExtensions.pushRange(BNTest.OctreeNode, L, N.children.getItem(i).getNodes(EB));
+                    i = (i + 1) | 0;
+                }
             }
-            BNTest.HelperExtensions.forEach(BNTest.OctreeNode, L, function (ON) {
-                BNTest.HelperExtensions.addIfNew(BNTest.Entity, ON.entities, E);
-            });
+            i = 0;
+            ln = L.length;
+            while (i < ln) {
+                BNTest.HelperExtensions.addIfNew(BNTest.Entity, L[i].entities, E);
+                i = (i + 1) | 0;
+            }
+            //L.ForEach(ON => ON.entities.AddIfNew(E));
         }
     });
 
@@ -9545,12 +10315,22 @@
     });
 
     Bridge.define("BNTest.OctreeNode", {
+        statics: {
+            empty: null,
+            config: {
+                init: function () {
+                    this.empty = System.Array.init(0, null);
+                }
+            }
+        },
         box: null,
         children: null,
         entities: null,
+        tmp: null,
         config: {
             init: function () {
                 this.entities = new (System.Collections.Generic.List$1(BNTest.Entity))();
+                this.tmp = System.Array.init(0, null);
             }
         },
         /**
@@ -9654,15 +10434,32 @@
             return ret;
         },
         getNodes: function (collision) {
-            var ret = new (System.Collections.Generic.List$1(BNTest.OctreeNode))();
+            //OctreeNode[] ret = new OctreeNode[0];
+            var ret = this.tmp;
+            BNTest.HelperExtensions.clear$1(BNTest.OctreeNode, ret);
             if (this.box == null || this.box.intersection$2(collision)) {
                 if (this.children == null) {
-                    ret.add(this);
+                    ret.push(this);
                 } else {
-                    BNTest.HelperExtensions.forEach(BNTest.OctreeNode, this.children, function (ON) {
-                        ret.addRange(ON.getNodes(collision));
-                    });
+                    var ln = this.children.getCount();
+                    var i = 0;
+                    while (i < ln) {
+                        var A = this.children.getItem(i).getNodes(collision);
+                        if (A.length > 0) {
+                            /* if (ret == null)
+                                {
+                                    ret = new OctreeNode[0];
+                                }*/
+                            BNTest.HelperExtensions.pushRange(BNTest.OctreeNode, ret, A);
+                        }
+                        //ret.PushRange(Children[i].GetNodes(collision));
+                        i = (i + 1) | 0;
+                    }
+                    //Children.ForEach(ON => ret.PushRange(ON.GetNodes(collision)));
                 }
+            }
+            if (ret == null) {
+                return BNTest.OctreeNode.empty;
             }
             return ret;
 
@@ -10426,6 +11223,20 @@
                 i = (i + 1) | 0;
             }
         },
+        setColor$1: function (ColorSetter, visibleOnly) {
+            if (visibleOnly === void 0) { visibleOnly = true; }
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            while (i < ln) {
+                if (this.valid(M[i]) || !visibleOnly) {
+                    var color = new BNTest.GLColor(1, 1, 1);
+                    ColorSetter(color);
+                    M[i] = color;
+                }
+                i = (i + 1) | 0;
+            }
+        },
         setColor: function (color, visibleOnly) {
             if (visibleOnly === void 0) { visibleOnly = true; }
             var i = 0;
@@ -10635,34 +11446,15 @@
             var NC = null;
             var trans = new BNTest.GLColor(0, 0, 0, 0);
             while (i < ln) {
-                /* if (Valid(M[i]))
-                    {
-                        M[i] = color;
-                        i++;
-                    }*/
                 var C = M[i];
                 //checks if the current voxel is on the outside.(inner holes exposes a bunch of faces, so we keep that from happening.)
                 if (X === 0 || Y === 0 || Z === 0 || X >= ((MX - 1) | 0) || Y >= ((MY - 1) | 0) || Z >= ((MZ - 1) | 0)) {
                     if (holes > 0 && Math.random() < holes) {
-                        /* if (C != null)
-                            {
-                                C.A = 0;
-                            }
-                            else
-                            {
-                                M[i] = new GLColor(0, 0, 0, 0);
-                            }*/
-                        //M[i] = null;
                         M[i] = trans;
                     } else if (this.valid(C)) {
                         NC = new BNTest.GLColor(C.r, C.g, C.b, C.a);
                         NC.add$1(-noise + (n2 * Math.random()), -noise + (n2 * Math.random()), -noise + (n2 * Math.random()));
                         M[i] = NC;
-                        /* C.R += -noise + (n2 * Math.Random());
-                            C.G += -noise + (n2 * Math.Random());
-                            C.B += -noise + (n2 * Math.Random());*/
-                        /* C = C + new GLColor(-noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()));
-                            M[i] = C;*/
                     }
                 }
                 i = (i + 1) | 0;
@@ -10676,35 +11468,39 @@
                     }
                 }
             }
+        },
+        addNooks: function () {
+            var X = 0;
+            var Y = 0;
+            var Z = 0;
+            var MX = System.Array.getLength(this.map, 0);
+            var MY = System.Array.getLength(this.map, 1);
+            var MZ = System.Array.getLength(this.map, 2);
 
-            /* int X = 0;
-                int Y = 0;
-                int Z = 0;
-                while (X < Map.GetLength(0))
-                {
-                    while (Y < Map.GetLength(1))
-                    {
-                        while (Z < Map.GetLength(2))
-                        {
-                            var C = Map[X, Y, Z];
-                            if (Math.Random() < holes)
-                            {
-                                Map[X, Y, Z] = null;
-                            }
-                            else if (Valid(C))
-                            {
-                                C = C + new GLColor(-noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()), -noise + (n2 * Math.Random()));
-                                Map[X, Y, Z] = C;
-                            }
-                            Z++;
-                        }
-                        Z = 0;
-                        Y++;
+            var i = 0;
+            var ln = this.map.length;
+            var M = this.map;
+            var NC = null;
+            var trans = new BNTest.GLColor(0, 0, 0, 0);
+            while (i < ln) {
+                var C = M[i];
+                //checks if the current voxel is on the outside.(inner holes exposes a bunch of faces, so we keep that from happening.)
+                if (X === 0 || Y === 0 || Z === 0 || X >= ((MX - 1) | 0) || Y >= ((MY - 1) | 0) || Z >= ((MZ - 1) | 0)) {
+                    if ((X & 1) > 0 || (Z & 1) > 0) {
+                        M[i] = trans;
                     }
-                    Y = 0;
-                    Z = 0;
-                    X++;
-                }*/
+                }
+                i = (i + 1) | 0;
+                Z = (Z + 1) | 0;
+                if (Z >= MZ) {
+                    Z = (Z - MZ) | 0;
+                    Y = (Y + 1) | 0;
+                    if (Y >= MY) {
+                        Y = (Y - MY) | 0;
+                        X = (X + 1) | 0;
+                    }
+                }
+            }
         },
         addHoles: function (chance) {
             var i = 0;
@@ -11096,10 +11892,21 @@
 
             return ret;
         },
+        combinePallette: function (A, B) {
+            var Keys = System.Linq.Enumerable.from(B.getKeys()).toList(BNTest.GLColor);
+            var Vals = System.Linq.Enumerable.from(B.getValues()).toList(BNTest.GLColor);
+
+            var i = 0;
+            var ln = Keys.getCount();
+            while (i < ln) {
+                A.set(Keys.getItem(i), Vals.getItem(i));
+                i = (i + 1) | 0;
+            }
+        },
         applyPalette: function (palette) {
-            var Keys = System.Linq.Enumerable.from(palette.getKeys()).toList(BNTest.GLColor);
-            var Vals = System.Linq.Enumerable.from(palette.getValues()).toList(BNTest.GLColor);
-            if (Keys.getCount() <= 0) {
+            var Keys = System.Linq.Enumerable.from(palette.getKeys()).toArray();
+            var Vals = System.Linq.Enumerable.from(palette.getValues()).toArray();
+            if (Keys.length <= 0) {
                 return;
             }
 
@@ -11115,7 +11922,7 @@
             //var ind = Script.Write<int>("System.Array.toIndex(M, [X,Y,Z])");
             var i = 0;
             var Xln = this.map.length;
-            var ln = Keys.getCount();
+            var ln = Keys.length;
             while (X < Xln) {
                 var C = M[X];
                 if (C != null && C.a > 0) {
@@ -11124,7 +11931,7 @@
                     key = null;
                     i = 0;
                     while (i < ln) {
-                        var t = Keys.getItem(i);
+                        var t = Keys[i];
                         if (t.similar(C)) {
                             key = t;
                             i = ln;
@@ -11136,7 +11943,7 @@
                     if (key != null) {
                         var ind = Keys.indexOf(key);
                         if (ind >= 0) {
-                            M[X] = Vals.getItem(ind);
+                            M[X] = Vals[ind];
                         }
                     }
                 }
@@ -11279,18 +12086,31 @@
             if (MX < NX || MY < NY || MZ < NZ) {
                 //TO DO:Resize logic.
                 var NM = System.Array.create(null, null, NX, NY, NZ);
+                var M = NM;
                 var XOffset = (((NX - MX) | 0)) >> 1;
                 var YOffset = (((NY - MY) | 0)) >> 1;
                 var ZOffset = (((NZ - MZ) | 0)) >> 1;
                 var X = 0;
                 var Y = 0;
                 var Z = 0;
+                var i = 0;
+
+                var VA = new BNTest.VoxelMapAccessor(this);
 
                 while (X < NX) {
                     while (Y < NY) {
                         while (Z < NZ) {
-                            var OV = this.getVoxel(((X - XOffset) | 0), ((Y - YOffset) | 0), ((Z - ZOffset) | 0));
-                            NM.set([X, Y, Z], OV);
+                            var OV = null;
+                            if (this.inBounds(((X - XOffset) | 0), ((Y - YOffset) | 0), ((Z - ZOffset) | 0))) {
+                                VA.setX((X - XOffset) | 0);
+                                VA.setY((Y - YOffset) | 0);
+                                VA.setZ((Z - ZOffset) | 0);
+
+                                OV = VA.getcurrentVoxel();
+                                //OV = GetVoxel(X - XOffset, Y - YOffset, Z - ZOffset);
+                            }
+                            //NM[X, Y, Z] = OV;
+                            M[Bridge.identity(i, (i = (i + 1) | 0))] = OV;
                             Z = (Z + 1) | 0;
                         }
                         Z = 0;
@@ -12289,11 +13109,16 @@
         },
         isIdentity: function () {
             var M = this.mvMatrix.elements;
+            if (M == null) {
+                //ERROR!
+                this.newIdentity();
+                return true;
+            }
             var A = M[0];
             var B = M[1];
             var C = M[2];
             var D = M[3];
-            return A[0] === 1 && B[1] === 1 && C[2] === 1 && A[1] === 0 && A[2] === 0 && A[3] === 0 && B[0] === 0 && B[2] === 0 && B[3] === 0 && C[0] === 0 && C[1] === 0 && C[3] === 0 && D[0] === 0 && D[1] === 0 && D[2] === 0;
+            return A[0] === 1 && B[1] === 1 && C[2] === 1 && D[3] === 1 && A[1] === 0 && A[2] === 0 && A[3] === 0 && B[0] === 0 && B[2] === 0 && B[3] === 0 && C[0] === 0 && C[1] === 0 && C[3] === 0 && D[0] === 0 && D[1] === 0 && D[2] === 0;
             /* return M[0][0] == 1 && M[1][1] == 1 && M[2][2] == 1 &&
                     M[0][1] == 0 && M[0][2] == 0 && M[0][3] == 0 &&
                     M[1][0] == 0 && M[1][2] == 0 && M[1][3] == 0 &&
@@ -12419,6 +13244,7 @@
                 mvMatrix = Script.Write<object>("this.mvMatrixStack.pop()");*/
             //mvMatrix = Script.Write<object>("mvMatrixStack.pop()");
             //mvMatrix["elements"]
+            //freeMatrix.Push(mvMatrix["elements"]);
             this.freeMatrix.push(this.mvMatrix.elements);
             var D = this.mvMatrixStack.pop();
             this.mvMatrix.elements = D;
@@ -12491,7 +13317,11 @@
             B[3] = Position.y;
             C[3] = Position.z;
 
-            this.identity = this.isIdentity();
+            if (!(Position.getEmpty() && Scale.x === 1 && Scale.y === 1 && Scale.z === 1)) {
+                this.identity = false;
+            } else {
+                this.identity = this.isIdentity();
+            }
         },
         setScale: function (S) {
             var D = this.mvMatrix.elements;
@@ -12653,7 +13483,8 @@
             this.entities = new (System.Collections.Generic.List$1(BNTest.Entity))();
             this.platforms = new (System.Collections.Generic.List$1(BNTest.Entity))();
 
-            this.octree = new BNTest.Octree(300, 4);
+            //octree = new Octree(300, 4);
+            this.octree = new BNTest.Octree(300, 2);
         },
         getOffset: function () {
             return this.model.offset;
@@ -12691,6 +13522,15 @@
             if (E.model != null) {
                 this.remove$1(E.model);
             }
+            if (E.models != null) {
+                var M = E.models;
+                var i = 0;
+                var ln = M.length;
+                while (i < ln) {
+                    this.remove$1(M[i]);
+                    i = (i + 1) | 0;
+                }
+            }
             E.world = null;
         },
         remove$1: function (M) {
@@ -12712,9 +13552,10 @@
                 if (!E.alive) {
                     //entities.RemoveAt(i);
                     this.remove(E);
-                    i = (i - 1) | 0;
+                    //i--;
+                } else {
+                    i = (i + 1) | 0;
                 }
-                i = (i + 1) | 0;
             }
             this.updateCollisions();
         },
@@ -12784,6 +13625,25 @@
                 var EB = E.lastBB;
                 if (E.solid && E != exclusion && E.lastBB != null && !EB.getEmpty() && EB.intersection$2(box)) {
                     ret.push(E);
+                }
+                i = (i + 1) | 0;
+            }
+            return ret;
+        },
+        findPlatformCollision$2: function (box, exclusion, func) {
+            var none = true;
+            //Entity[] ret = Script.Write<Entity[]>("[]");
+            var ret = new (System.Collections.Generic.List$1(BNTest.Entity))();
+            var Ent = this.platforms.items;
+            var i = 0;
+            var ln = Ent.length;
+            var E;
+            while (i < ln) {
+                E = Ent[i];
+                var EB = E.lastBB;
+                if (E.solid && E != exclusion && E.lastBB != null && !EB.getEmpty() && EB.intersection$2(box) && func(E)) {
+                    //ret.Push(E);
+                    ret.add(E);
                 }
                 i = (i + 1) | 0;
             }
@@ -12863,9 +13723,13 @@
             this.updateAttackCollisions();
         },
         prepareRender: function () {
-            BNTest.Mesh.lastDrawn = null;
-            if ((this.game.frame & 1) > 0) {
+            //Mesh.LastDrawn = null;
+            BNTest.Mesh.totalBindings = 0;
+            BNTest.Mesh.skippedBindings = 0;
+            //if ((Game.frame & 1) == 0)
+            if ((this.game.frame & 3) === 0) {
                 this.model.children.sort($_.BNTest.World.f1);
+                //Model.children.Sort((M1, M2) => M1.Compare(M2));
             }
             /* Model.children.Sort((M1, M2) => 
                     {
@@ -12878,6 +13742,29 @@
                         return i;
                     }
                 );*/
+        },
+        render: function (camera) {
+            this.prepareRender();
+            /* Model.UpdateTransform();
+                camera.UpdateTransform();
+                camera.FinalMat.CopyFrom(Game.mvMatrix);
+                camera.FinalMat.MultiplyMatrix(camera.Transformation);*/
+            //camera.FinalMat.MultiplyMatrix(Model.Transformation);
+            camera.update2(this.game.matrix);
+            var R = camera.getMeshes(null, true);
+            R.sort($_.BNTest.World.f2);
+            var i = 0;
+            var ln = R.length;
+            while (i < ln) {
+                var M = R[i];
+                var MF = M.finalMat;
+                if (MF != null && MF.mvMatrix.elements != null) {
+                    this.game.setMatrix(MF.mvMatrix);
+                    //Game.FlushMatrix();
+                    M.render(false);
+                }
+                i = (i + 1) | 0;
+            }
         },
         updateAttackCollisions: function () {
             //List<Entity> LC = entities.(E => E is IHarmfulEntity);
@@ -12893,7 +13780,7 @@
                 //var E = Entities[i];
                 var E = Ent[i];
                 //if (E.As<ICombatant>().TargetPriority.As<bool>())
-                if (E.getTargetPriority) {
+                if (E.getTargetPriority && E.BNTest$ICombatant$getHP() > 0) {
                     LC.push(E);
                 }
                 //if (E.As<IHarmfulEntity>().touchDamage.As<bool>())
@@ -12918,7 +13805,7 @@
                             var CE = C;
                             var CB = CE.lastBB;
                             //var CB = CE.GetHitbox();
-                            if (B.intersection$2(CB) && HE.BNTest$IHarmfulEntity$ontouchDamage(C)) {
+                            if (B.intersection$2(CB) && HE.BNTest$IHarmfulEntity$ontouchDamage(C) && C.BNTest$ICombatant$getHP() > 0) {
                                 this.game.attack(C, HE);
                             }
                         }
@@ -12951,6 +13838,9 @@
     Bridge.apply($_.BNTest.World, {
         f1: function (M1, M2) {
             return Bridge.compare(M1.drawOrder, M2.drawOrder);
+        },
+        f2: function (M1, M2) {
+            return M1.compare(M2);
         }
     });
 
@@ -13555,7 +14445,8 @@
             var smooth = this.game.smooth;
             this.customBoundingBox = new BNTest.BoundingBox.$ctor2(10);
             var mdl = "coin";
-            var tmdl = BNTest.ModelCache.get_this().get(mdl, false);
+            //var tmdl = ModelCache._this.Get(mdl, false);
+            var tmdl = BNTest.ModelCache.get_this().get(mdl, true);
             if (tmdl != null) {
                 console.log(System.String.concat(System.String.concat("loading \"", mdl), "\" model from cache."));
                 //model.CopyFrom(tmdl);
@@ -13575,6 +14466,8 @@
                     this.model.offset = off;
                     this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.5);
 
+                    var forceOptimize = true;
+
 
                     //world.Add(model);
 
@@ -13582,13 +14475,14 @@
                     //VoxelMap box = VoxelMap.FromImages("object/coin");
                     var box = BNTest.VoxelMap.fromImages$1(coin);
                     var M2 = new BNTest.Mesh(this.game);
-                    M2.addVoxelMap(box, smooth);
+                    M2.addVoxelMap(box, smooth, true, false, forceOptimize);
                     var md;
 
                     box.setColor(new BNTest.GLColor());
                     var M = new BNTest.Mesh(this.game);
 
-                    M.addVoxelMap(box, smooth);
+                    //M.AddVoxelMap(box, smooth);
+                    M.addVoxelMap(box, smooth, true, false, forceOptimize);
 
 
 
@@ -15572,7 +16466,8 @@
                 this.TB.max.copyFrom(this.v);
                 this.TB.max.add$1(0, 100, 0);
                 //BoundingBox TB = new BoundingBox(V, V + new GLVec3(0, 100, 0));
-                if ((this.frame & 3) === 0 && this.entity.world.findSolidCollision(this.TB).length < 1) {
+                //if ((frame & 3)==0 && entity.world.FindSolidCollision(TB).Length<1)
+                if ((this.frame & 7) === 0 && this.entity.world.findSolidCollision(this.TB).length < 1) {
                     //unsafe to proceed
                     if (this.entity.getHandledLocally()) {
                         var D = {  };
@@ -16029,6 +16924,7 @@
         clearTime: 0,
         maxClearTime: 15,
         ignoresTerrain: false,
+        frame: 0,
         currentAnchorRotation: 0,
         anchorDistance: 0,
         anchorRotationSpeed: 0,
@@ -16105,6 +17001,14 @@
                 BNTest.Entity.prototype.update.call(this);
                 return;
             }
+            this.frame = (this.frame + 1) | 0;
+            if ((this.frame & 7) === 0 && this._Attacker != null) {
+                if (this._Attacker.BNTest$ICombatant$getHP() <= 0) {
+                    this.alive = false;
+                    this.lastBB.max.copyFrom(this.lastBB.min);
+                    return;
+                }
+            }
             if (this.anchorRotationSpeed !== 0) {
                 this.currentAnchorRotation += this.anchorRotationSpeed;
                 var V = new BNTest.Vector2(this.anchorDistance).rotate(this.currentAnchorRotation);
@@ -16138,6 +17042,7 @@
                         var Solids = System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(BNTest.GLVec3.op_Addition(C, (BNTest.GLVec3.op_Addition(this.speed, HS))), this)).where($_.BNTest.Projectile.f1).toList(BNTest.Entity);
 
                         Solids.addRange(System.Linq.Enumerable.from(this.game.world.findObstructionCollision$1(C, this)).where($_.BNTest.Projectile.f1));
+                        Solids = System.Linq.Enumerable.from(Solids).where(Bridge.fn.bind(this, $_.BNTest.Projectile.f2)).toList(BNTest.Entity);
                         if (Solids.getCount() > 0) {
                             this.alive = false;
                         }
@@ -16207,6 +17112,9 @@
     Bridge.apply($_.BNTest.Projectile, {
         f1: function (E) {
             return (E.onKill == null);
+        },
+        f2: function (E) {
+            return !(Bridge.is(E, BNTest.Projectile)) || (!Bridge.referenceEquals(E.getAttacker(), this.getAttacker()));
         }
     });
 
@@ -16402,6 +17310,122 @@
             //P.touchDamage = 15f;
             //P.touchDamage = 35f;
             P.settouchDamage(50.0);
+
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+
+            var HSZ = new BNTest.GLVec3.ctor(7, 7, 7);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            this.entity.world.add(P);
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
+    Bridge.define("BNTest.RapidShortShot", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 9,
+        _shotDelay: 0,
+        _maxShotDelay: 3,
+        _angle: 0,
+        bulletSpeed: 8,
+        bulletLifeSpan: 35,
+        bulletGraphic: null,
+        minCoolDown: 30,
+        started: false,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 2.5;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 1;
+        },
+        update: function () {
+            if (!this.started && this.bulletGraphic != null) {
+                this.started = true;
+
+                var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+                //GLColor icecolor = new GLColor(0.7, 0.7, 1, 0.7);
+                var icecolor = new BNTest.GLColor(0.4, 0.4, 1, 0.5);
+                /* pal[new GLColor(1, 0, 0)] = icecolor;
+                    pal[new GLColor(1, 1, 1)] = icecolor;
+                    BulletGraphic.ApplyPalette(pal);*/
+                this.bulletGraphic.replaceAllColors(icecolor);
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        //float inaccuracy = 0.13f;
+                        var inaccuracy = 0.08;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            P.settouchDamage(40.0);
 
             P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
             //P.AddBehavior(new LifeSpan(P, 60));
@@ -16779,50 +17803,67 @@
             this.$initialize();
             BNTest.Entity.ctor.call(this, world);
             var scale = 5;
-            //int sz = (int)(size.Size.X / 2);
+
             this.model = new BNTest.Model(world.game);
             var sz = size.getSize();
             var V = new BNTest.VoxelMap.$ctor1(BNTest.GLVec3.op_Division$1(sz, scale));
-            //V.Fill(GLColor.CreateShade(0.7));
-            //V.SetColor(GLColor.CreateShade(0.7),false);
-            //V.SetColor(GLColor.CreateShade(0.7), false);
-            //var dirt = new GLColor(0.47, 0.29, 0.04);
+
             var dirt = new BNTest.GLColor(0.5, 0.35, 0.06);
-            V.setColor(dirt, false);
-            var BB = V.getSizeAsBoundingBox();
+            if (world.game.scene === 1) {
+                //dirt = new GLColor(0.7, 0.7, 0.7);
+                //dirt = new GLColor(0.8, 0.8, 0.8);
+                dirt = new BNTest.GLColor(0.8, 0.3, 0.3);
+            }
+            if (world.game.scene === 0) {
+                V.setColor(dirt, false);
+            }
+            var OB = V.getSizeAsBoundingBox();
+            var BB = OB.clone();
+            ;
             BB.max.y = 3;
-            var grass = $_.BNTest.RisingPlatform.f1;
-            //V.Fill(BB, new GLColor(0.15, 0.75, 0.25));
-            V.fill$1(BB, grass);
-            /* V.AddNoise(0.04);
-                V.AddHoles(0.15);*/
-            //V.Entropy(0.04, 0.15);
-            V.entropy(0.04, 0.1);
-            //maxY = -sz.Y / scale;
+            if (world.game.scene === 0) {
+                var grass = $_.BNTest.RisingPlatform.f1;
+
+                V.fill$1(BB, grass);
+
+                V.entropy(0.04, 0.1);
+            }
+            if (world.game.scene === 1) {
+                BB.max.y = 2;
+
+                /* V.Resize(new int[] {V.Map.GetLength(0)-4, V.Map.GetLength(1), V.Map.GetLength(2)-4 });
+                    V.AddNooks();
+                    V.Resize(new int[] { V.Map.GetLength(0) + 4, V.Map.GetLength(1), V.Map.GetLength(2) + 4 });*/
+                V.fill(BB, dirt);
+
+                var B2 = OB.clone();
+                //B2 *= 0.5;
+                B2 = BNTest.BoundingBox.op_Multiply$1(B2, 0.75);
+                B2.min.y = OB.min.y;
+                B2.max.y = OB.max.y;
+                V.fill(B2, dirt);
+
+                V.entropy(0.04, 0.025);
+            }
+
             this.maxY = -sz.y / 2;
             this.solid = true;
 
             var M = new BNTest.Mesh(world.game);
             M.addVoxelMap(V, true);
-            //M.AddVoxelMap(V, false);
-            //M.RandomShift(0.15);
+
             this.model.meshes.add(M);
             this.model.scale = BNTest.GLVec3.createUniform(scale);
             this.customBoundingBox = size.clone();
             this.getPosition().y = -this.maxY;
 
             this.minY = size.min.y + 12;
-            /* if (Math.Random()<0.2)
-                {
-                    minY -= 50;
-                }*/
         },
         onNextWave: function () {
             this.active = false;
         },
         update: function () {
             var spd = 0.5;
-            //if (active && Position.Y>maxY)
             if (this.active && this.getPosition().y > this.minY) {
                 this.getPosition().y -= spd;
             } else if (!this.active) {
@@ -17024,6 +18065,143 @@
         }
     });
 
+    Bridge.define("BNTest.SawBladeShield", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 7,
+        bulletLifeSpan: 720,
+        bulletGraphic: null,
+        minCoolDown: 45,
+        blades: 0,
+        maxblades: 2,
+        rest: 0,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 5.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return this.blades < this.maxblades ? 2 : 0;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this.rest = 0;
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.13;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            } else {
+                this.rest = (this.rest + 1) | 0;
+                if (this.rest > this.bulletLifeSpan) {
+                    this.blades = 0;
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("woosh2");
+            this.blades = (this.blades + 1) | 0;
+            this.rest = 0;
+
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            P.obstruction = true;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+            P.ignoresTerrain = true;
+            P.multiHit = true;
+            //P.Scale = GLVec3.CreateUniform(1.5);
+            //P.Scale = GLVec3.CreateUniform(2.0);
+            P.setScale(BNTest.GLVec3.createUniform(2.5));
+            //P.AnchorRotationSpeed = 0.25;
+            //P.AnchorRotationSpeed = 0.05;
+            //P.AnchorRotationSpeed = 0.08;
+            //P.AnchorRotationSpeed = 0.10;
+            P.anchorRotationSpeed = 0.07;
+            P.currentAnchorRotation = BNTest.MathHelper.degreesToRadians(this.entity.model.rotation.y);
+            P.rotationSpeed = new BNTest.GLVec3.ctor(0, 12, 0);
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), new BNTest.Vector2(evt.SX, evt.SY));
+            //P.knockbackPower = 5;
+
+            //P.touchDamage = 40f;
+            //P.touchDamage = 25f;
+            P.settouchDamage(35.0);
+
+
+            M.rotation.y = evt.A;
+
+            //GLVec3 HSZ = GLVec3.CreateUniform(10*P.model.Scale.X);
+            var HSZ = BNTest.GLVec3.createUniform(10 * P.model.scale.x);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+            var T = new BNTest.LifeSpan(P, this.bulletLifeSpan);
+            T.fadeTime = 5;
+            P.addBehavior(T);
+            var repeat = 1;
+            while (repeat > 0) {
+                //P.AnchorDistance += 17;
+                //P.AnchorDistance += 15;
+                //P.AnchorDistance += 45;
+                P.anchorDistance += 60;
+                this.entity.world.add(P);
+                P = P.clone();
+                repeat = (repeat - 1) | 0;
+            }
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.SecondaryResponder", {
         inherits: [BNTest.EntityBehavior],
         attemptTime: 0,
@@ -17100,17 +18278,18 @@
 
                     //var alpha = 0.36;
 
-                    var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 1, 1, 0.36));
+                    /* Dictionary<GLColor, GLColor> pal = new Dictionary<GLColor, GLColor>();
+                        pal[new GLColor(1, 1, 1)] = new GLColor(1, 1, 1, 0.36);*/
 
-                    var box = this.game.getVoxelCombo(["object/softshadow"]);
+                    //VoxelMap box = Game.GetVoxelCombo(new string[] { "object/softshadow" });
+                    var box = this.game.getVoxelCombo(["object/softshadowS"]);
                     box.swapYZ();
 
                     var md = new BNTest.Model(this.game);
                     var M = new BNTest.Mesh(this.game);
                     md.scale.y = 0.01;
 
-                    M.addVoxelMap(box, smooth, true, true);
+                    M.addVoxelMap(box, smooth, true, true, true);
                     md.meshes.add(M);
 
                     this.model.children.add(md);
@@ -17125,7 +18304,7 @@
             }
         },
         update: function () {
-            var $t;
+            var $t, $t1;
             if (this.lastBB == null) {
                 this.lastBB = new BNTest.BoundingBox.ctor();
             }
@@ -17136,7 +18315,15 @@
             }
             this.model.drawOrder = 2;
             this.frame = (this.frame + 1) | 0;
-            if ((this.frame & 3) > 0) {
+            //if ((frame & 63) > 0 && entity != null)
+            if ((this.frame & 127) === 0 && this.entity != null) {
+                if (!BNTest.HelperExtensions.containsB$1(BNTest.Entity, this.world.entities, this.entity)) {
+                    this.alive = false;
+                    return;
+                }
+            }
+            //if ((frame & 3)>0)
+            if ((this.frame & 7) > 0) {
                 this.model.offset.x = this.entity.model.offset.x;
                 this.model.offset.z = this.entity.model.offset.z;
                 return;
@@ -17144,12 +18331,6 @@
             this.lastBB.copyFrom(this.customBoundingBox);
             //LastBB.Add(Position);
             //LastBB = CustomBoundingBox + Position;
-            if ((this.frame & 7) === 0) {
-                //world.BringToFront(model);
-
-                //Make sure ALL shadows have a draworder unique to shadows that no other model uses, this way we can draw all shadows as a batch(skips a bunch of webgl databindings).
-
-            }
             //base.Update();
             this.model.setVisible(false);
             //Visible = true;
@@ -17167,9 +18348,10 @@
                     {
                         O.Y = entity.LastBB.Max.Y;
                     }*/
-                var LE = System.Linq.Enumerable.from(this.world.findPlatformCollision(this.lastBB)).where(function (E) {
+                //var LE = world.FindPlatformCollision(LastBB).Where(E => E.LastBB != null && E.LastBB.Min.Y > O.Y).ToList();
+                var LE = this.world.findPlatformCollision$2(this.lastBB, null, function (E) {
                     return E.lastBB != null && E.lastBB.min.y > O.y;
-                }).toList(BNTest.Entity);
+                });
                 LE.sort($_.BNTest.Shadow.f1);
                 if (LE.getCount() > 0) {
                     var dist = Math.abs(this.entity.gety() - LE.getItem(0).lastBB.min.y);
@@ -17180,6 +18362,7 @@
                     //model.alpha = 1 - ((model.Scale.X-(minscale+0.05)) * 0.75f).As<float>();
                     this.model.alpha = 1 - ((this.model.scale.x - (minscale + 0.05)) * 2.5);
                     this.model.alpha *= this.entity.model.alpha;
+                    this.model.scale.x = ($t1 = this.model.scale.z * 2, this.model.scale.z = $t1, $t1);
                     if (this.model.alpha > 0) {
                         this.model.setVisible(true);
                     }
@@ -17968,6 +19151,139 @@
         }
     });
 
+    Bridge.define("BNTest.TimeStretcher", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 1,
+        _angle: 0,
+        bulletSpeed: 12,
+        bulletLifeSpan: 35,
+        bulletGraphic: null,
+        minCoolDown: 45,
+        activeTime: 0,
+        maxActiveTime: 420,
+        pcooldown: 0,
+        pmaxCooldown: 540,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 5.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return this.activeTime < 1 && this.pcooldown < 1 ? 2 : 0;
+        },
+        doAction: function () {
+            if (this.activeTime > 30) {
+                var G = this.entity.world.game;
+                G.overlayAlpha = 0.4;
+                G.overlayColor = "#777777";
+            }
+            var range = 300;
+            var LE = this.entity.world.entities;
+            var i = 0;
+            var ln = LE.getCount();
+            var S = new BNTest.GLVec3.ctor();
+            var ok = false;
+            while (i < ln) {
+                var E = LE.getItem(i);
+                ok = false;
+                if (Bridge.is(E, BNTest.PlayerCharacter)) {
+                    if (!Bridge.referenceEquals(E, this.entity) && !this.entity.sameTeam(E)) {
+                        ok = true;
+                        var PC = E;
+                        if (PC.shootTime < 3) {
+                            PC.shootTime = 3;
+                        }
+                    }
+                }
+                if (Bridge.is(E, BNTest.Projectile)) {
+                    var P = E;
+                    var A = P.getAttacker();
+                    if (!Bridge.referenceEquals(A, this.entity) && !A.sameTeam(E)) {
+                        ok = true;
+                    }
+                }
+
+                if (ok) {
+                    S.copyFrom(E.speed);
+                    //S.Scale(-0.90);
+                    S.scale(-0.85);
+                    E.model.offset.add(S);
+                }
+                i = (i + 1) | 0;
+            }
+        },
+        update: function () {
+            if (this.pcooldown > 0) {
+                this.pcooldown = (this.pcooldown - 1) | 0;
+                return;
+            }
+            if (this.activeTime > 0) {
+                this.activeTime = (this.activeTime - 1) | 0;
+                this.doAction();
+                if (this.activeTime <= 0) {
+                    this.pcooldown = this.pmaxCooldown;
+                }
+                return;
+            }
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.13;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        D.SY = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("ohh");
+            this.activeTime = this.maxActiveTime;
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
+        }
+    });
+
     Bridge.define("BNTest.Tree", {
         inherits: [BNTest.Entity],
         size: 110,
@@ -18087,6 +19403,83 @@
                 N.requestMoveTo(V, 0.4);
             }
             BNTest.EntityBehavior.prototype.update.call(this);
+        }
+    });
+
+    Bridge.define("BNTest.WaveSelector", {
+        inherits: [BNTest.Sprite],
+        statics: {
+            choiceAvailable: function () {
+                var max = System.Int32.parse(BNTest.App.storage.MaxLevel);
+                return max > 8;
+            }
+        },
+        wave: 1,
+        next: null,
+        prev: null,
+        display: null,
+        ctor: function () {
+            this.$initialize();
+            BNTest.Sprite.ctor.call(this);
+            this.spriteBuffer.width = 1024;
+            this.spriteBuffer.height = Bridge.Int.clip32(1024 * BNTest.App.targetAspect);
+            this.next = new BNTest.ButtonSprite.$ctor1("▶", 60);
+            this.prev = new BNTest.ButtonSprite.$ctor1("◀", 60);
+            this.display = new BNTest.TextSprite();
+
+            this.next.position = new BNTest.Vector2(500, 380);
+            this.prev.position = new BNTest.Vector2(300, 380);
+            this.display.position = new BNTest.Vector2(260, 270);
+
+            this.display.setText("Wave:1-1");
+            this.display.setFontSize(80);
+            this.display.setTextColor("#FFFFFF");
+            this.display.setShadowBlur(5);
+            this.display.setShadowOffset(new BNTest.Vector2(3, 3));
+            this.display.setShadowColor("#000000");
+
+            /* Next.OnClick = () => AdjustWave(4);
+                Prev.OnClick = () => AdjustWave(-4);*/
+
+            var step = 8;
+            this.next.onClick = Bridge.fn.bind(this, function () {
+                this.adjustWave(step);
+            });
+            this.prev.onClick = Bridge.fn.bind(this, function () {
+                this.adjustWave(((-step) | 0));
+            });
+        },
+        adjustWave: function (amount) {
+            var wv = (this.wave + amount) | 0;
+            var max = System.Int32.parse(BNTest.App.storage.MaxLevel);
+            if (wv >= 1 && wv <= max) {
+                this.wave = wv;
+                this.updateDisplay();
+            }
+        },
+        updateDisplay: function (reset) {
+            if (reset === void 0) { reset = false; }
+            if (reset) {
+                this.wave = 1;
+            }
+            this.display.setText(System.String.concat("Wave:", BNTest.GLDemo.getWaveText(this.wave)));
+        },
+        update: function () {
+            //Menu.Update();
+            this.next.checkClick();
+            this.prev.checkClick();
+        },
+        render: function () {
+            //spriteGraphics.ClearRect(0, 0, spriteBuffer.Width, spriteBuffer.Height);
+            BNTest.HelperExtensions.clear(this.spriteGraphics);
+            //Menu.Draw(spriteGraphics);
+            this.next.draw(this.spriteGraphics);
+            this.prev.draw(this.spriteGraphics);
+            this.display.draw(this.spriteGraphics);
+        },
+        draw: function (g) {
+            this.render();
+            BNTest.Sprite.prototype.draw.call(this, g);
         }
     });
 
@@ -18394,6 +19787,18 @@
 
     Bridge.define("BNTest.PlatformerEntity", {
         inherits: [BNTest.ControllableEntity],
+        statics: {
+            tmp: null,
+            tmp2: null,
+            tmp3: null,
+            config: {
+                init: function () {
+                    this.tmp = new BNTest.BoundingBox.ctor();
+                    this.tmp2 = new BNTest.GLVec3.ctor();
+                    this.tmp3 = new BNTest.BoundingBox.ctor();
+                }
+            }
+        },
         onGround: false,
         friction: 0.05,
         floor: null,
@@ -18402,6 +19807,7 @@
         cantstep: false,
         frictionActive: true,
         stepheight: 10,
+        fscframe: 0,
         FSC: null,
         config: {
             init: function () {
@@ -18435,7 +19841,8 @@
             }
         },
         updateCollisions: function () {
-            var clear = this.FSC.length > 0;
+            this.fscframe = (this.fscframe + 1) | 0;
+            var clear = this.FSC.length > 0 && (this.fscframe & 7) === 0;
             var spd = 0.8;
 
             var Y = this.lastBB.min.y;
@@ -18446,9 +19853,11 @@
             //var EB = new BoundingBox(300)+Position;
             //var EB = new BoundingBox(200) + Position;
             var sz = ((this.lastBB.getRoughLength() * 0.75) + this.speed.getRoughLength()) + 10;
-            sz *= 2;
-            var TB;
-            TB = new BNTest.BoundingBox.$ctor2(sz);
+            //sz *= 2;
+            sz *= 8;
+            var TB = BNTest.PlatformerEntity.tmp;
+            TB.set(sz);
+            //TB = new BoundingBox(sz);
             TB.add(this.getPosition());
             //var sz = LastBB.Size;
             //var EB = new BoundingBox((LastBB.Size.X + LastBB.Size.Y) + Speed.RoughLength + 10) + Position;
@@ -18483,7 +19892,10 @@
                     var TY = (TB.Min.Y - STY);
                     return (TY-Y) <= stepheight && E.LastBB.Intersection(DB);
                 }).ToList();*/
-            ground.sort($_.BNTest.PlatformerEntity.f1);
+
+            if (ground.length > 1) {
+                ground.sort($_.BNTest.PlatformerEntity.f1);
+            }
 
             //BoundingBox MB = LastBB + new GLVec3(0, 5.0, 0);
 
@@ -18507,7 +19919,10 @@
                 Y = (B.min.y - STY);
                 if (Math.abs(this.gety() - Y) <= this.stepheight) {
                     this.speed.y = Math.min(this.speed.y, 0);
-                    var P = BNTest.GLVec3.op_Multiply$1(ground[0].speed, ground[0].groundFriction);
+                    var P = BNTest.PlatformerEntity.tmp2;
+                    P.copyFrom(ground[0].speed);
+                    P.scale(ground[0].groundFriction);
+                    //var P = ground[0].Speed * ground[0].groundFriction;
                     this.model.offset.x += P.x;
                     this.model.offset.y += P.y;
                     this.model.offset.z += P.z;
@@ -18584,24 +19999,40 @@
                 TB.add$1(0, ((-spacing1) | 0), 0);
                 //TB = LastBB + new GLVec3(0, -spacing, 0);
 
-                var up1 = (TB).intersection(L);
+                //var up = (TB).Intersection(L);
+                var up1 = TB.intersects(L);
                 TB.copyFrom(this.lastBB);
                 TB.add$1(0, spacing1, 0);
-                var down1 = (TB).intersection(L);
+                var down1 = TB.intersects(L);
+                //var down = (TB).Intersection(L);
                 //if (LastBB.Intersection(L).Length > 0 && (LastBB + new GLVec3(0,5,0)).Intersection(L).Length>0)
-                if (up1.length <= 0 && down1.length > 0) {
+                if (!up1 && down1) {
                     this.speed.y = Math.min(0, this.speed.y - speed1);
                     this.onGround = false;
-                } else if (up1.length > 0 && down1.length <= 0) {
+                } else if (up1 && !down1) {
                     this.speed.y = Math.max(0, this.speed.y + speed1);
                     this.onGround = false;
                 }
+                /* if (up.Length <= 0 && down.Length > 0)
+                    {
+                        Speed.Y = Math.Min(0, Speed.Y - speed);
+                        onGround = false;
+                    }
+                    else if (up.Length > 0 && down.Length <= 0)
+                    {
+                        Speed.Y = Math.Max(0, Speed.Y + speed);
+                        onGround = false;
+                    }*/
             }
             TB.copyFrom(this.lastBB);
             //TB = LastBB.Clone();
-            var PB = BNTest.BoundingBox.op_Addition(TB, this.speed);
-            var CL = PB.intersection(L);
-            if (L.length > 0 && CL.length > 0) {
+            var PB = BNTest.PlatformerEntity.tmp3;
+            PB.copyFrom(TB);
+            PB.add(this.speed);
+            //var PB = TB + Speed;
+
+            if (L.length > 0 && PB.intersects(L)) {
+                var CL = PB.intersection(L);
                 //if (!B.Intersection(LastBB + (new GLVec3(Speed.X, 0, 0))))
                 var stuck = 0;
 
@@ -18609,7 +20040,8 @@
                 //PB = TB + S;
                 PB.copyFrom(TB);
                 PB.add$1(this.speed.x, 0, 0);
-                if (PB.intersection(L).length <= 0) {
+                //if (PB.Intersection(L).Length <= 0)
+                if (!PB.intersects(L)) {
                     this.model.offset.x += this.speed.x;
                     TB.add$1(this.speed.x, 0, 0);
 
@@ -18622,7 +20054,7 @@
                 //PB = TB + S;
                 PB.copyFrom(TB);
                 PB.add$1(0, 0, this.speed.z);
-                if (PB.intersection(L).length <= 0) {
+                if (!PB.intersects(L)) {
                     this.model.offset.z += this.speed.z;
                     TB.add$1(0, 0, this.speed.z);
 
@@ -18633,7 +20065,8 @@
                 //PB = TB + S;
                 PB.copyFrom(TB);
                 PB.add$1(0, this.speed.y, 0);
-                if (PB.intersection(L).length <= 0) {
+                //if (PB.Intersection(L).Length <= 0)
+                if (!PB.intersects(L)) {
                     //model.Offset.Y += Speed.Y;
                     //TB += S;
 
@@ -18705,6 +20138,15 @@
 
     Bridge.define("BNTest.PlayerCharacter", {
         inherits: [BNTest.PlatformerEntity,BNTest.ICombatant],
+        statics: {
+            assets: null,
+            ready: false,
+            config: {
+                init: function () {
+                    this.assets = ["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches", "head/mouseEars", "body/Lsidependant", "body/mouseTail", "foot/shortsocks", "body/capelet", "arm/capelet", "head/sideponytail", "head/smallRim", "body/flandrewings", "body/patchouli", "body/overcoat", "head/crescent", "head/hatribbons", "head/patchouliHairRibbons", "object/book"];
+                }
+            }
+        },
         animation: "idle",
         me: null,
         char: "reimu",
@@ -18724,6 +20166,7 @@
         combo: 0,
         lastKill: 0,
         maxComboTime: 120,
+        allowCache: true,
         _HP: 100,
         _PointsForKilling: 10,
         pmesh: null,
@@ -18761,12 +20204,14 @@
                 this.defaultColor = new BNTest.GLColor(1, 1, 1);
             }
         },
-        ctor: function (world, me, character, team) {
+        ctor: function (world, me, character, team, modelcache) {
             if (team === void 0) { team = -1000; }
+            if (modelcache === void 0) { modelcache = true; }
 
             this.$initialize();
             BNTest.PlatformerEntity.ctor.call(this, world);
             var $t;
+            this.allowCache = modelcache;
             //Team = 0;
             this.game = world.game;
             this.controller = System.Array.init(6, false);
@@ -18834,7 +20279,7 @@
             weapons.set("cirno", "object/ice");
             weapons.set("marisa", "object/star");
             weapons.set("reisen", "object/bullet");
-            weapons.set("flandre", "object/yinyangorb");
+            weapons.set("patchouli", (weapons.set("flandre", "object/yinyangorb"), "object/yinyangorb"));
             weapons.set("koishi", (weapons.set("satori", "object/heart"), "object/heart"));
             weapons.set("aya", ($t = (weapons.set("tenshi", "object/wind"), "object/wind"), weapons.set("youmu", $t), $t));
             if (weapons.containsKey(this.char)) {
@@ -18873,6 +20318,9 @@
                     weaponGraphic = "object/wind";
                 }*/
             var tmdl = BNTest.ModelCache.get_this().get(this.char, false);
+            if (!this.allowCache) {
+                tmdl = null;
+            }
             var Ppal = true;
             if (tmdl != null) {
                 console.log(System.String.concat(System.String.concat("loading \"", this.char), "\" model from cache."));
@@ -18882,356 +20330,7 @@
                 }
                 this.initModel();
             } else {
-                BNTest.AnimationLoader.get_this().asyncGet$1(["head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow", "head/hairclip", "head/suikahorns", "head/suikabow", "head/ponytailbow", "body/rahmoo", "body/top", "arm/base", "arm/dSleeve", "arm/bracelet", "foot/base", "foot/shoe", "head/maidheadband", "head/medium", "body/apron", "body/icewings", "head/witchhat", "arm/shortsleeve", "head/hatbow", "head/wideRim", "head/mediumRim", "head/cap", "body/thirdeye", "foot/anklet", "foot/lanklet", "foot/socks", "head/tokin", "body/shortskirt", "body/tie", "head/headband", "head/sideribbon", "object/katana", "arm/sleeve", "body/shortskirtfrill", "body/sidependant", "head/reisenears", "body/bunnytail", "body/rainbowmidfrill", "head/peaches", "head/mouseEars", "body/Lsidependant", "body/mouseTail", "foot/shortsocks", "body/capelet", "arm/capelet", "head/sideponytail", "head/smallRim", "body/flandrewings"], Bridge.fn.bind(this, function () {
-                    var $t1, $t2, $t3, $t4;
-                    tmdl = BNTest.ModelCache.get_this().get(this.char, false);
-
-                    if (tmdl != null) {
-                        console.log(System.String.concat(System.String.concat("loading \"", this.char), "\" model from cache."));
-                        this.model.copyFrom(tmdl);
-                        if (me.CPU) {
-                            this.initCPU();
-                        }
-                        this.initModel();
-                        return;
-                    }
-                    if (this.model != null) {
-                        this.model.unloadBuffers();
-                        world.remove$1(this.model);
-                    }
-                    //var hd = new string[] { "head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow" };
-                    var hd = ["head/base", "head/rahmoo", "head/rahmooacc"];
-                    var ht = ["head/rahmoobow"];
-                    var ar = ["arm/base", "arm/dSleeve"];
-                    var ft = ["foot/base", "foot/socks", "foot/shoe"];
-                    var mult = 3;
-                    var bdy = ["body/rahmoo"];
-                    var item = [];
-                    var hatflip = false;
-
-                    var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Headpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Hatpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Bodypal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Footpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Armpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    var Itempal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
-                    //if (Team == 1)
-                    {
-
-                        if (Bridge.referenceEquals(this.char, "sanae")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 1));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0, 1, 0.3));
-                            //acc = "head/hairclip";
-                            hd = ["head/base", "head/rahmoo", "head/rahmooacc"];
-                            ht = ["head/hairclip"];
-                            bdy.push("body/top");
-                        }
-                        if (Bridge.referenceEquals(this.char, "suika")) {
-                            //model.Scale *= 0.8;
-                            //model.Scale *= 0.7;
-                            this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.65);
-                            csz *= this.model.scale.x;
-                            hsz = csz / 2;
-                            this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
-                            //CustomBoundingBox *= model.Scale.X;
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.6, 0, 0.8));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
-
-                            ar = ["arm/base", "arm/bracelet"];
-                            hd = ["head/base", "head/rahmoo", "head/ponytailbow"];
-                            ht = ["head/suikabow", "head/suikahorns"];
-                            bdy.push("body/top");
-                        }
-                        if (Bridge.referenceEquals(this.char, "sakuya")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.5, 0, 0.9));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.8, 0.8, 0.8));
-                            //acc = "head/hairclip";
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/maidheadband"];
-                            bdy.push("body/apron");
-                            ar = ["arm/base", "arm/shortsleeve"];
-                        }
-                        if (Bridge.referenceEquals(this.char, "cirno")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), ($t1 = new BNTest.GLColor(0.3, 0.6, 1.0), Hatpal.set(new BNTest.GLColor(1, 1, 1), $t1), $t1));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.1, 0.75, 1.0));
-
-                            //acc = "head/hairclip";
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/rahmoobow"];
-                            bdy.push("body/icewings");
-                            ar = ["arm/base", "arm/shortsleeve"];
-                        }
-                        if (Bridge.referenceEquals(this.char, "marisa")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.1, 0.1, 0.1));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
-                            //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
-                            hd = ["head/base", "head/rahmoo"];
-                            ht = ["head/witchhat", "head/hatbow", "head/mediumRim"];
-                            bdy.push("body/apron");
-                            ar = ["arm/base", "arm/shortsleeve"];
-                        }
-                        if (Bridge.referenceEquals(this.char, "koishi")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0.7, 0.2));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(0, 0.7, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.35, 1.0, 0.45));
-                            //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
-                            hd = ["head/base", "head/rahmoo"];
-                            ht = ["head/cap", "head/hatbow", "head/mediumRim"];
-                            //Hatpal[new GLColor()] = new GLColor(0.698,0,1);
-                            Hatpal.set(new BNTest.GLColor(0.698, 0, 1), ($t2 = new BNTest.GLColor(1.0, 0.85, 0.35), Hatpal.set(new BNTest.GLColor(1, 1, 1), $t2), $t2));
-                            bdy.push("body/top", "body/thirdeye");
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(1.0, 0.90, 0.40);
-                            pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1.0, 0.9, 0.4));
-                            pal.set(new BNTest.GLColor(1, 0.5, 0.5), ($t3 = new BNTest.GLColor(0.8, 0, 0.9), Footpal.set(new BNTest.GLColor(0.5, 0.5, 0.5), $t3), $t3));
-                            ar = ["arm/base", "arm/shortsleeve"];
-                            ft.push("foot/lanklet");
-                            //model.alpha = 0.1f;
-
-                        }
-                        if (Bridge.referenceEquals(this.char, "aya")) {
-                            pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 0));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(0, 0, 0));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), BNTest.GLColor.createShade(0.15));
-
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/tokin"];
-                            bdy = ["body/shortskirt", "body/shortskirtfrill", "body/top", "body/tie"];
-                            ar = ["arm/base", "arm/shortsleeve"];
-                            //bdy.Push("body/top");
-                            Hatpal.set(new BNTest.GLColor(0, 0, 0), new BNTest.GLColor(0.85, 0, 0));
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
-                        }
-                        if (Bridge.referenceEquals(this.char, "youmu")) {
-                            Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0.7, 0.2));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1, 1, 1));
-
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/headband", "head/sideribbon"];
-                            bdy = ["body/shortskirt", "body/shortskirtfrill", "body/top", "body/tie"];
-                            ar = ["arm/base", "arm/shortsleeve"];
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0.05, 0.80, 0.25);
-                            //bdy.Push("body/top");
-                            Hatpal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 0));
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
-
-                            item = ["object/katana"];
-                        }
-                        if (Bridge.referenceEquals(this.char, "reisen")) {
-                            Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(1, 0.45, 0.45));
-                            Bodypal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1, 0.55, 0.85);
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.9, 0.55, 0.85));
-
-                            hd = ["head/base", "head/rahmoo"];
-                            ht = ["head/reisenears"];
-                            bdy = ["body/shortskirt", "body/top", "body/sidependant", "body/tie", "body/bunnytail"];
-                            ar = ["arm/base", "arm/sleeve"];
-                            Bodypal.set(new BNTest.GLColor(1, 1, 1), ($t4 = BNTest.GLColor.createShade(0.15), Armpal.set(new BNTest.GLColor(1, 1, 1), $t4), $t4));
-                            //Hatpal[new GLColor(0, 0, 0)] = new GLColor(0.85, 0, 0);
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
-                        }
-                        if (Bridge.referenceEquals(this.char, "tenshi")) {
-                            Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.3, 0.3, 0.85));
-                            Bodypal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 0, 0));
-
-                            //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1, 0.55, 0.85);
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.3, 0.3, 0.85));
-                            Hatpal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor());
-
-                            hd = ["head/base", "head/rahmoo"];
-                            ht = ["head/cap", "head/mediumRim", "head/peaches"];
-                            bdy = ["body/rahmoo", "body/top", "body/tie", "body/rainbowmidfrill"];
-                            ar = ["arm/base", "arm/shortsleeve"];
-
-                            item = ["object/katana"];
-                            Itempal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0.4, 0.4));
-                            //Bodypal[new GLColor(1, 1, 1)] = Armpal[new GLColor(1, 1, 1)] = GLColor.CreateShade(0.15);
-                            //Hatpal[new GLColor(0, 0, 0)] = new GLColor(0.85, 0, 0);
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
-                        }
-                        if (Bridge.referenceEquals(this.char, "nazrin")) {
-                            Bodypal.set(new BNTest.GLColor(1, 0, 0), BNTest.GLColor.createShade(0.4));
-                            //pal[new GLColor(1, 1, 0)] = GLColor.CreateShade(1);
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), BNTest.GLColor.createShade(0.8));
-
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/mouseEars"];
-                            bdy = ["body/shortskirt", "body/mouseTail", "body/Lsidependant", "body/capelet", "body/tie"];
-                            ar = ["arm/base", "arm/sleeve", "arm/capelet"];
-                            ft = ["foot/base", "foot/shortsocks", "foot/shoe"];
-                            Armpal.set(BNTest.GLColor.createShade(0.5), BNTest.GLColor.createShade(0.75));
-
-                            this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.85);
-                            //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0.05, 0.80, 0.25);
-                            //bdy.Push("body/top");
-
-                            //item = new string[] { "object/katana" };
-                        }
-                        if (Bridge.referenceEquals(this.char, "rumia")) {
-                            Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.1, 0.1, 0.1));
-                            pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
-
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
-                            //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
-                            hd = ["head/base", "head/medium"];
-                            ht = ["head/sideribbon"];
-                            ar = ["arm/base", "arm/sleeve"];
-                        }
-                        if (Bridge.referenceEquals(this.char, "flandre")) {
-                            //Bodypal[new GLColor(1, 0, 0)] = new GLColor(0, 0.7, 0.2);
-                            //pal[new GLColor(1, 1, 0)] = new GLColor(1, 1, 1);
-
-                            //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1.0, 0.85, 0.35);
-                            pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.95, 0.95, 0.3));
-
-                            hd = ["head/base", "head/medium", "head/sideponytail"];
-                            ht = ["head/cap", "head/smallRim", "head/sideribbon"];
-                            bdy = ["body/shortskirt", "body/shortskirtfrill", "body/flandrewings"];
-                            ar = ["arm/base", "arm/shortsleeve"];
-
-                            Hatpal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0, 0));
-                            Hatpal.set(new BNTest.GLColor(0, 0, 0), new BNTest.GLColor(1, 1, 1));
-                            //Hatpal[new GLColor(1, 0, 0)] = new GLColor();
-                            hatflip = true;
-
-                        }
-
-                        //bdy = new string[] { "body/rahmoo", "body/top" };
-                        if (this.team === 1) {
-                            this.initCPU();
-                        }
-                    }
-
-                    var armrotation = 45;
-                    if (Bridge.referenceEquals(this.char, "rumia")) {
-                        armrotation = 67;
-                    }
-                    //model = new Model(game);
-                    var off = this.model.offset;
-                    this.model.offset = off;
-
-                    world.add$1(this.model);
-                    this.model.Dir = 1;
-                    this.model.Max = 2.25;
-                    this.model.Spd = 0.075 * mult;
-
-                    var body = BNTest.VoxelMap.fromAnimationCombo(bdy);
-                    body.applyPalette(pal);
-                    body.applyPalette(Bodypal);
-                    var M = new BNTest.Mesh(this.game);
-                    M.Dir = 1;
-                    M.Max = 2.25;
-                    M.Spd = 0.075 * mult;
-
-                    M.addVoxelMap(body, smooth);
-                    //M.ReverseVerticeOrder();
-                    this.model.meshes.add(M);
-
-                    var arm = BNTest.VoxelMap.fromAnimationCombo(ar);
-                    arm.applyPalette(pal);
-                    arm.applyPalette(Armpal);
-                    M = new BNTest.Mesh(this.game);
-                    M.Dir = 1;
-                    M.Spd = 1.5 * mult;
-                    M.addVoxelMap(arm, smooth);
-                    //M.Offset.X = 1.5;
-                    M.offset.x = 1.25;
-                    M.offset.y = 2.5;
-                    M.rotation.z = armrotation;
-                    M.scale.z = 0.75;
-                    if (item.length > 0) {
-                        var itm = BNTest.VoxelMap.fromAnimationCombo(item);
-                        itm.applyPalette(Itempal);
-                        var mitem = new BNTest.Mesh(this.game);
-                        mitem.addVoxelMap(itm, smooth);
-                        /* mitem.Rotation.X = -120;
-                            mitem.Rotation.Y = -45;
-                            mitem.Offset.X = -1;
-                            mitem.Offset.Y = -1;
-                            mitem.Offset.Z = 8;*/
-                        mitem.rotation.x = -90;
-                        mitem.offset.x = -1;
-                        mitem.offset.y = 3;
-                        mitem.offset.z = 9;
-                        mitem.updateTranformation();
-                        mitem.morphGeometry(mitem.transformation);
-                        M.combine(mitem);
-                    }
-                    this.model.meshes.add(M);
-                    M = new BNTest.Mesh(this.game);
-                    M.Dir = -1;
-                    M.Spd = 1.5 * mult;
-                    M.addVoxelMap(arm, smooth);
-                    //M.Offset.X = -1.5;
-                    M.offset.x = -1.25;
-                    M.offset.y = 2.5;
-                    M.rotation.z = (-armrotation) | 0;
-                    M.scale.z = 0.75;
-                    this.model.meshes.add(M);
-
-                    var foot = BNTest.VoxelMap.fromAnimationCombo(ft);
-                    foot.applyPalette(pal);
-                    foot.applyPalette(Footpal);
-                    M = new BNTest.Mesh(this.game);
-                    M.Dir = -1;
-                    M.Spd = 1.5 * mult;
-                    //M["Max"] = 35;
-                    M.addVoxelMap(foot, smooth);
-                    M.offset.x = 1.5;
-                    M.offset.y = 7;
-                    this.model.meshes.add(M);
-                    M = new BNTest.Mesh(this.game);
-                    M.Dir = 1;
-                    M.Spd = 1.5 * mult;
-                    //M["Max"] = 35;
-                    M.addVoxelMap(foot, smooth);
-                    M.offset.x = -1.5;
-                    M.offset.y = 7;
-                    this.model.meshes.add(M);
-
-                    var head = BNTest.VoxelMap.fromAnimationCombo(hd);
-                    head.applyPalette(pal);
-                    head.applyPalette(Headpal);
-                    var hat = BNTest.VoxelMap.fromAnimationCombo(ht);
-                    if (hatflip) {
-                        hat.flipX();
-                    }
-                    hat.applyPalette(pal);
-                    hat.applyPalette(Hatpal);
-                    head.combine(hat);
-                    M = new BNTest.Mesh(this.game);
-                    M.Dir = 1;
-                    M.Max = 4.5;
-                    M.Spd = 0.15 * mult;
-                    M.addVoxelMap(head, smooth);
-                    this.model.meshes.add(M);
-
-
-                    //model.Smoothen();
-                    if (smooth) {
-                        this.model.smoothen(0.7);
-                    }
-                    if (tmdl == null) {
-                        BNTest.ModelCache.get_this().set$1(this.char, this.model);
-                    }
-                }));
+                this.createModel();
             }
 
             this.addBehavior(new BNTest.PlatformerControls(this));
@@ -19263,7 +20362,8 @@
                 this.addBehavior(new BNTest.SpreadShot(this));
             } else if (Bridge.referenceEquals(this.char, "flandre")) {
                 this.addBehavior(new BNTest.HeavyShot(this));
-
+            } else if (Bridge.referenceEquals(this.char, "patchouli")) {
+                this.addBehavior(new BNTest.RapidShortShot(this));
             } else {
                 this.addBehavior(new BNTest.RapidFireGun(this));
             }
@@ -19300,6 +20400,15 @@
                 this.addBehavior(new BNTest.RockDrop(this));
                 secondaryWeaponGraphic = "object/keystone";
                 scsmooth = true;
+                scsnoise = true;
+            }
+            if (Bridge.referenceEquals(this.char, "sakuya")) {
+                this.addBehavior(new BNTest.TimeStretcher(this));
+            }
+            if (Bridge.referenceEquals(this.char, "patchouli")) {
+                this.addBehavior(new BNTest.SawBladeShield(this));
+                secondaryWeaponGraphic = "object/sawblade";
+                //scsmooth = true;
                 scsnoise = true;
             }
             var speedrate = this.game.bulletSpeedRate;
@@ -19381,7 +20490,7 @@
 
                 }
 
-                if (Bridge.referenceEquals(this.char, "sanae") || Bridge.referenceEquals(this.char, "sakuya") || Bridge.referenceEquals(this.char, "cirno") || Bridge.referenceEquals(this.char, "marisa")) {
+                if (Bridge.referenceEquals(this.char, "sanae") || Bridge.referenceEquals(this.char, "sakuya") || Bridge.referenceEquals(this.char, "cirno") || Bridge.referenceEquals(this.char, "marisa") || Bridge.referenceEquals(this.char, "patchouli")) {
                     this.canShoot = true;
 
                     var T5 = new BNTest.EnemyEngager(this);
@@ -19390,11 +20499,13 @@
                     this.addBehavior(T5);
                     //default stuff is sanae
                     //RapidFireGun T2 = GetBehavior<IWeaponBehavior>().As<RapidFireGun>();
-                    T2._maxAmmo = 1;
-                    T2.bulletSpeed = 3.0;
-                    T2.bulletLifeSpan = 450;
-                    //T2._maxShotDelay = 20;
-                    T2._maxShotDelay = 30;
+                    if (!Bridge.referenceEquals(this.char, "patchouli")) {
+                        T2._maxAmmo = 1;
+                        T2.bulletSpeed = 3.0;
+                        T2.bulletLifeSpan = 450;
+                        //T2._maxShotDelay = 20;
+                        T2._maxShotDelay = 30;
+                    }
                     if (Bridge.referenceEquals(this.char, "sanae")) {
                         //T2.MinCoolDown *= 1.5f;
                     }
@@ -19422,6 +20533,16 @@
                         T5.passive = true;
 
                         TimeToRespawn3 = 3;
+                    }
+                    if (Bridge.referenceEquals(this.char, "patchouli")) {
+                        var TB = new BNTest.SecondaryResponder(this);
+                        //TB.weapon = 5;
+                        this.defense = 1.4;
+                        TB.attemptTime = 180;
+                        this.addBehavior(TB);
+                        //T2._maxAmmo -= 2;
+                        T2._maxAmmo = (T2._maxAmmo - 3) | 0;
+                        T2.minCoolDown += 150;
                     }
                     this.maxRespawnTime = (60 * TimeToRespawn3) | 0;
 
@@ -19457,9 +20578,9 @@
                     T6.framesPerTick = 20;
                     T6.weapon = 6;
                     this.addBehavior(T6);
-                    var TB = new BNTest.SecondaryResponder(this);
-                    TB.weapon = 5;
-                    this.addBehavior(TB);
+                    var TB1 = new BNTest.SecondaryResponder(this);
+                    TB1.weapon = 5;
+                    this.addBehavior(TB1);
 
                 } else if (!Bridge.referenceEquals(this.char, "tenshi")) {
 
@@ -19590,6 +20711,401 @@
         this.HB.setPosition(this.model.offset);
         return this.HB;
         //return Hitbox + Position;
+    },
+    createModel: function () {
+        if (BNTest.PlayerCharacter.ready) {
+            this._CreateModel();
+            return;
+        }
+        BNTest.AnimationLoader.get_this().asyncGet$1(BNTest.PlayerCharacter.assets, Bridge.fn.bind(this, $_.BNTest.PlayerCharacter.f4));
+    },
+    _CreateModel: function () {
+        var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
+        var tmdl = BNTest.ModelCache.get_this().get(this.char, false);
+        if (!this.allowCache) {
+            tmdl = null;
+        }
+        var smooth = this.game.smooth;
+        var csz = 8.0;
+        var hsz = csz / 2;
+
+        if (tmdl != null) {
+            console.log(System.String.concat(System.String.concat("loading \"", this.char), "\" model from cache."));
+            this.model.copyFrom(tmdl);
+            if (this.me.CPU) {
+                this.initCPU();
+            }
+            this.initModel();
+            return;
+        }
+        if (this.model != null) {
+            this.model.unloadBuffers();
+            this.world.remove$1(this.model);
+        }
+        //var hd = new string[] { "head/base", "head/rahmoo", "head/rahmooacc", "head/rahmoobow" };
+        var hd = ["head/base", "head/rahmoo", "head/rahmooacc"];
+        var ht = ["head/rahmoobow"];
+        var ar = ["arm/base", "arm/dSleeve"];
+        var ft = ["foot/base", "foot/socks", "foot/shoe"];
+        var mult = 3;
+        var bdy = ["body/rahmoo"];
+        var item = [];
+        var hatflip = false;
+
+        var itemScale = BNTest.GLVec3.getOne();
+
+        var pal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Headpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Hatpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Bodypal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Footpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Armpal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        var Itempal = new (System.Collections.Generic.Dictionary$2(BNTest.GLColor,BNTest.GLColor))();
+        //if (Team == 1)
+        {
+
+            if (Bridge.referenceEquals(this.char, "sanae")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 1));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0, 1, 0.3));
+                //acc = "head/hairclip";
+                hd = ["head/base", "head/rahmoo", "head/rahmooacc"];
+                ht = ["head/hairclip"];
+                bdy.push("body/top");
+            }
+            if (Bridge.referenceEquals(this.char, "suika")) {
+                //model.Scale *= 0.8;
+                //model.Scale *= 0.7;
+                this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.65);
+                csz *= this.model.scale.x;
+                hsz = csz / 2;
+                this.customBoundingBox = new BNTest.BoundingBox.$ctor1(new BNTest.GLVec3.ctor(-hsz, -csz, -hsz), new BNTest.GLVec3.ctor(hsz, csz, hsz));
+                //CustomBoundingBox *= model.Scale.X;
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.6, 0, 0.8));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
+
+                ar = ["arm/base", "arm/bracelet"];
+                hd = ["head/base", "head/rahmoo", "head/ponytailbow"];
+                ht = ["head/suikabow", "head/suikahorns"];
+                bdy.push("body/top");
+            }
+            if (Bridge.referenceEquals(this.char, "sakuya")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.5, 0, 0.9));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.8, 0.8, 0.8));
+                //acc = "head/hairclip";
+                hd = ["head/base", "head/medium"];
+                ht = ["head/maidheadband"];
+                bdy.push("body/apron");
+                ar = ["arm/base", "arm/shortsleeve"];
+            }
+            if (Bridge.referenceEquals(this.char, "cirno")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), ($t = new BNTest.GLColor(0.3, 0.6, 1.0), Hatpal.set(new BNTest.GLColor(1, 1, 1), $t), $t));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.1, 0.75, 1.0));
+
+                //acc = "head/hairclip";
+                hd = ["head/base", "head/medium"];
+                ht = ["head/rahmoobow"];
+                bdy.push("body/icewings");
+                ar = ["arm/base", "arm/shortsleeve"];
+            }
+            if (Bridge.referenceEquals(this.char, "marisa")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.1, 0.1, 0.1));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
+                //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
+                hd = ["head/base", "head/rahmoo"];
+                ht = ["head/witchhat", "head/hatbow", "head/mediumRim"];
+                bdy.push("body/apron");
+                ar = ["arm/base", "arm/shortsleeve"];
+            }
+            if (Bridge.referenceEquals(this.char, "koishi")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0.7, 0.2));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(0, 0.7, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.35, 1.0, 0.45));
+                //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
+                hd = ["head/base", "head/rahmoo"];
+                ht = ["head/cap", "head/hatbow", "head/mediumRim"];
+                //Hatpal[new GLColor()] = new GLColor(0.698,0,1);
+                Hatpal.set(new BNTest.GLColor(0.698, 0, 1), ($t1 = new BNTest.GLColor(1.0, 0.85, 0.35), Hatpal.set(new BNTest.GLColor(1, 1, 1), $t1), $t1));
+                bdy.push("body/top", "body/thirdeye");
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(1.0, 0.90, 0.40);
+                pal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1.0, 0.9, 0.4));
+                pal.set(new BNTest.GLColor(1, 0.5, 0.5), ($t2 = new BNTest.GLColor(0.8, 0, 0.9), Footpal.set(new BNTest.GLColor(0.5, 0.5, 0.5), $t2), $t2));
+                ar = ["arm/base", "arm/shortsleeve"];
+                ft.push("foot/lanklet");
+                //model.alpha = 0.1f;
+
+            }
+            if (Bridge.referenceEquals(this.char, "aya")) {
+                pal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 0));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(0, 0, 0));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), BNTest.GLColor.createShade(0.15));
+
+                hd = ["head/base", "head/medium"];
+                ht = ["head/tokin"];
+                bdy = ["body/shortskirt", "body/shortskirtfrill", "body/top", "body/tie"];
+                ar = ["arm/base", "arm/shortsleeve"];
+                //bdy.Push("body/top");
+                Hatpal.set(new BNTest.GLColor(0, 0, 0), new BNTest.GLColor(0.85, 0, 0));
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
+            }
+            if (Bridge.referenceEquals(this.char, "youmu")) {
+                Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0.7, 0.2));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1, 1, 1));
+
+                hd = ["head/base", "head/medium"];
+                ht = ["head/headband", "head/sideribbon"];
+                bdy = ["body/shortskirt", "body/shortskirtfrill", "body/top", "body/tie"];
+                ar = ["arm/base", "arm/shortsleeve"];
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0.05, 0.80, 0.25);
+                //bdy.Push("body/top");
+                Hatpal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0, 0, 0));
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
+
+                item = ["object/katana"];
+            }
+            if (Bridge.referenceEquals(this.char, "reisen")) {
+                Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(1, 0.45, 0.45));
+                Bodypal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1, 0.55, 0.85);
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.9, 0.55, 0.85));
+
+                hd = ["head/base", "head/rahmoo"];
+                ht = ["head/reisenears"];
+                bdy = ["body/shortskirt", "body/top", "body/sidependant", "body/tie", "body/bunnytail"];
+                ar = ["arm/base", "arm/sleeve"];
+                Bodypal.set(new BNTest.GLColor(1, 1, 1), ($t3 = BNTest.GLColor.createShade(0.15), Armpal.set(new BNTest.GLColor(1, 1, 1), $t3), $t3));
+                //Hatpal[new GLColor(0, 0, 0)] = new GLColor(0.85, 0, 0);
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0, 0, 0);
+            }
+            if (Bridge.referenceEquals(this.char, "tenshi")) {
+                Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.3, 0.3, 0.85));
+                Bodypal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 0, 0));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.3, 0.3, 0.85));
+                Hatpal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor());
+
+                hd = ["head/base", "head/rahmoo"];
+                ht = ["head/cap", "head/mediumRim", "head/peaches"];
+                bdy = ["body/rahmoo", "body/top", "body/tie", "body/rainbowmidfrill"];
+                ar = ["arm/base", "arm/shortsleeve"];
+
+                item = ["object/katana"];
+                Itempal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0.4, 0.4));
+            }
+            if (Bridge.referenceEquals(this.char, "nazrin")) {
+                Bodypal.set(new BNTest.GLColor(1, 0, 0), BNTest.GLColor.createShade(0.4));
+                //pal[new GLColor(1, 1, 0)] = GLColor.CreateShade(1);
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), BNTest.GLColor.createShade(0.8));
+
+                hd = ["head/base", "head/medium"];
+                ht = ["head/mouseEars"];
+                bdy = ["body/shortskirt", "body/mouseTail", "body/Lsidependant", "body/capelet", "body/tie"];
+                ar = ["arm/base", "arm/sleeve", "arm/capelet"];
+                ft = ["foot/base", "foot/shortsocks", "foot/shoe"];
+                Armpal.set(BNTest.GLColor.createShade(0.5), BNTest.GLColor.createShade(0.75));
+
+                this.model.scale = BNTest.GLVec3.op_Multiply$1(this.model.scale, 0.85);
+                //Bodypal[new GLColor(1, 1, 1)] = new GLColor(0.05, 0.80, 0.25);
+                //bdy.Push("body/top");
+
+                //item = new string[] { "object/katana" };
+            }
+            if (Bridge.referenceEquals(this.char, "rumia")) {
+                Bodypal.set(new BNTest.GLColor(1, 0, 0), new BNTest.GLColor(0.1, 0.1, 0.1));
+                pal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 1, 1));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(1.0, 0.85, 0.35));
+                //hd = new string[] { "head/base", "head/rahmoo", "head/witchhat", "head/hatbow", "head/wideRim" };
+                hd = ["head/base", "head/medium"];
+                ht = ["head/sideribbon"];
+                ar = ["arm/base", "arm/sleeve"];
+            }
+            if (Bridge.referenceEquals(this.char, "flandre")) {
+                //Bodypal[new GLColor(1, 0, 0)] = new GLColor(0, 0.7, 0.2);
+                //pal[new GLColor(1, 1, 0)] = new GLColor(1, 1, 1);
+
+                //pal[new GLColor(0.5, 0.25, 0)] = new GLColor(1.0, 0.85, 0.35);
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.95, 0.95, 0.3));
+
+                hd = ["head/base", "head/medium", "head/sideponytail"];
+                ht = ["head/cap", "head/smallRim", "head/sideribbon"];
+                bdy = ["body/shortskirt", "body/shortskirtfrill", "body/flandrewings"];
+                ar = ["arm/base", "arm/shortsleeve"];
+
+                Hatpal.set(new BNTest.GLColor(1, 1, 1), new BNTest.GLColor(1, 0, 0));
+                Hatpal.set(new BNTest.GLColor(0, 0, 0), new BNTest.GLColor(1, 1, 1));
+                //Hatpal[new GLColor(1, 0, 0)] = new GLColor();
+                hatflip = true;
+
+            }
+            if (Bridge.referenceEquals(this.char, "patchouli")) {
+                /* Bodypal[new GLColor(1, 1, 0)] =*/
+                Armpal.set(new BNTest.GLColor(1, 1, 1), ($t4 = ($t5 = new BNTest.GLColor(1, 0.8, 0.9), Bodypal.set(new BNTest.GLColor(1, 0, 0), $t5), $t5), Bodypal.set(new BNTest.GLColor(1, 1, 1), $t4), $t4));
+                Bodypal.set(new BNTest.GLColor(1, 1, 0), new BNTest.GLColor(1, 0, 0));
+
+                pal.set(new BNTest.GLColor(0.5, 0.25, 0), new BNTest.GLColor(0.6, 0.4, 0.6));
+                Hatpal.set(new BNTest.GLColor(1, 1, 1), ($t6 = ($t7 = new BNTest.GLColor(1, 0.85, 0.95), Hatpal.set(new BNTest.GLColor(0.95, 0.95, 0.95), $t7), $t7), Hatpal.set(new BNTest.GLColor(0, 0, 0), $t6), $t6));
+
+                hd = ["head/base", "head/rahmoo", "head/patchouliHairRibbons"];
+                ht = ["head/cap", "head/crescent", "head/hatribbons"];
+                bdy = ["body/overcoat", "body/patchouli"];
+                ar = ["arm/base", "arm/sleeve"];
+
+                //item = new string[] { "object/book" };
+                //itemScale *= 0.5;
+                //itemScale *= 0.4;
+                itemScale = BNTest.GLVec3.op_Multiply$1(itemScale, 0.334);
+            }
+
+            //bdy = new string[] { "body/rahmoo", "body/top" };
+            if (this.team === 1) {
+                this.initCPU();
+            }
+        }
+
+        var armrotation = 45;
+        if (Bridge.referenceEquals(this.char, "rumia")) {
+            armrotation = 67;
+        }
+        //model = new Model(game);
+        var off = this.model.offset;
+        this.model.offset = off;
+
+        this.world.add$1(this.model);
+        this.model.Dir = 1;
+        this.model.Max = 2.25;
+        this.model.Spd = 0.075 * mult;
+
+        var body = BNTest.VoxelMap.fromAnimationCombo(bdy);
+        body.applyPalette(pal);
+        body.applyPalette(Bodypal);
+        var M = new BNTest.Mesh(this.game);
+        M.Dir = 1;
+        M.Max = 2.25;
+        M.Spd = 0.075 * mult;
+
+        M.addVoxelMap(body, smooth);
+        //M.ReverseVerticeOrder();
+        this.model.meshes.add(M);
+
+        var arm = BNTest.VoxelMap.fromAnimationCombo(ar);
+        arm.applyPalette(pal);
+        arm.applyPalette(Armpal);
+        M = new BNTest.Mesh(this.game);
+        M.Dir = 1;
+        M.Spd = 1.5 * mult;
+        M.addVoxelMap(arm, smooth);
+        //M.Offset.X = 1.5;
+        M.offset.x = 1.25;
+        M.offset.y = 2.5;
+        M.rotation.z = armrotation;
+        M.scale.z = 0.75;
+        if (item.length > 0) {
+            var itm = BNTest.VoxelMap.fromAnimationCombo(item);
+            itm.applyPalette(Itempal);
+            var mitem = new BNTest.Mesh(this.game);
+            mitem.addVoxelMap(itm, smooth);
+            /* mitem.Rotation.X = -120;
+                    mitem.Rotation.Y = -45;
+                    mitem.Offset.X = -1;
+                    mitem.Offset.Y = -1;
+                    mitem.Offset.Z = 8;*/
+            mitem.rotation.x = -90;
+            mitem.offset.x = -1;
+            mitem.offset.y = 3;
+            mitem.offset.z = 9;
+            mitem.offset.z *= itemScale.x;
+            mitem.scale = itemScale;
+            mitem.updateTranformation();
+            mitem.morphGeometry(mitem.transformation);
+            M.combine(mitem);
+        }
+        this.model.meshes.add(M);
+        if (item.length <= 0) {
+            M = M.clone();
+        } else {
+            M = new BNTest.Mesh(this.game);
+            M.addVoxelMap(arm, smooth);
+        }
+        //M = new Mesh(Game);
+        M.Dir = -1;
+        M.Spd = 1.5 * mult;
+        //M.AddVoxelMap(arm, smooth);
+        //M.Offset.X = -1.5;
+        M.offset.x = -1.25;
+        M.offset.y = 2.5;
+        M.rotation.z = (-armrotation) | 0;
+        M.scale.z = 0.75;
+        this.model.meshes.add(M);
+
+        var foot = BNTest.VoxelMap.fromAnimationCombo(ft);
+        foot.applyPalette(pal);
+        foot.applyPalette(Footpal);
+        M = new BNTest.Mesh(this.game);
+        M.Dir = -1;
+        M.Spd = 1.5 * mult;
+        //M["Max"] = 35;
+        M.addVoxelMap(foot, smooth);
+        M.offset.x = 1.5;
+        M.offset.y = 7;
+        this.model.meshes.add(M);
+        //M = new Mesh(Game);
+        M = M.clone();
+        M.Dir = 1;
+        M.Spd = 1.5 * mult;
+        //M["Max"] = 35;
+        //M.AddVoxelMap(foot, smooth);
+        M.offset.x = -1.5;
+        M.offset.y = 7;
+        this.model.meshes.add(M);
+
+        var head = BNTest.VoxelMap.fromAnimationCombo(hd);
+        head.applyPalette(pal);
+        head.applyPalette(Headpal);
+        var hat = BNTest.VoxelMap.fromAnimationCombo(ht);
+        if (hatflip) {
+            hat.flipX();
+        }
+        hat.applyPalette(pal);
+        hat.applyPalette(Hatpal);
+        head.combine(hat);
+        M = new BNTest.Mesh(this.game);
+        M.Dir = 1;
+        M.Max = 4.5;
+        M.Spd = 0.15 * mult;
+        M.addVoxelMap(head, smooth);
+        this.model.meshes.add(M);
+
+
+        //model.Smoothen();
+        if (smooth) {
+            this.model.smoothen(0.7);
+
+
+            //fix instancing.
+            if (item.length <= 0) {
+                this.model.meshes.getItem(1).forceBuffer(this.model.meshes.getItem(2));
+            }
+            this.model.meshes.getItem(3).forceBuffer(this.model.meshes.getItem(4));
+        }
+        if (tmdl == null && this.allowCache) {
+            BNTest.ModelCache.get_this().set$1(this.char, this.model);
+        }
     },
     initModel: function () {
         var armrotation = 45;
@@ -19789,6 +21305,9 @@
                     //D2.Release();
                 }
                 //Dist.Release();
+            }
+            if (this.respawnTime <= 0) {
+                this.setHP(100);
             }
             return;
         }
@@ -20084,6 +21603,7 @@
         N.set("youmu", 50);
         N.set("reisen", 60);
         N.set("nazrin", 20);
+        N.set("patchouli", 50);
         var c = new BNTest.Coin(this.world);
         var cval = 10;
         if (!this.me.minion) {
@@ -20129,7 +21649,7 @@
         c.getPosition().add$1(0, -2, 0);
         //c.Position = Position.Clone();
         c.speed.copyFrom(this.speed);
-        c.speed.multiply$1(0.35);
+        c.speed.scale(0.35);
         c.speed.add$1(0, -1, 0);
         /* c.Position = LastGround.Clone() + new GLVec3(0,-1,0);
                 c.Position.Y += (CustomBoundingBox.Size.Y / 3);*/
@@ -20141,6 +21661,7 @@
             this.respawnTime = this.maxRespawnTime;
             this.alive = true;
             this.game.setNPC(this);
+            this.setHP(0);
             this.controller[4] = false;
             this.controller[5] = false;
             if (Bridge.referenceEquals(this.char, "suika")) {
@@ -20199,6 +21720,10 @@
         },
         f3: function (WB) {
             return WB.BNTest$IWeaponBehavior$getWeaponType() === 2;
+        },
+        f4: function () {
+            this._CreateModel();
+            BNTest.PlayerCharacter.ready = true;
         }
     });
 });
