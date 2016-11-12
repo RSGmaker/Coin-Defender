@@ -8185,33 +8185,22 @@
             }
         },
         updateTranformation: function () {
-            //Transformed = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1) || (Rotation.RoughLength != 0 || Offset.RoughLength != 0);
-            this.transformed = !(this.scale.getIsOne()) || (!this.rotation.getEmpty() || !this.offset.getEmpty());
+            this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
 
             if (this.transformed) {
                 this.transformation.clear();
                 var M = this.transformation;
-                //var scaled = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1);
-                var scaled = !(this.scale.getIsOne());
-                //var offseted = Offset.RoughLength != 0;
-                var offseted = !this.offset.getEmpty();
-                var InstanceRendering = BNTest.GLDemo.instanceRendering;
-                if (scaled && !InstanceRendering) {
-                    /* if (offseted)
-                        {
-                            M.SetPositionThenScale(Offset, Scale);
-                        }
-                        else
-                        {
-                            M.mvScale(Scale);
-                        }*/
-                    M.setPositionThenScale(this.offset, this.scale);
+                var scaled = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1);
+                var offseted = this.offset.getRoughLength() !== 0;
+                if (scaled) {
+                    if (offseted) {
+                        M.setPositionThenScale(this.offset, this.scale);
+                    } else {
+                        M.mvScale(this.scale);
+                    }
                 }
-                if (InstanceRendering) {
-                    M.setPositionThenScale(this.offset, this.scale);
-                }
-                //if (Rotation.RoughLength != 0)
-                if (this.rotation.getEmpty()) {
+
+                if (this.rotation.getRoughLength() !== 0) {
                     if (this.rotation.y !== 0) {
                         M.rotateY(this.rotation.y * 0.01745329251);
                     }
@@ -8222,7 +8211,7 @@
                         M.rotateZ(this.rotation.z * 0.01745329251);
                     }
                 }
-                if (!scaled && offseted && !InstanceRendering) {
+                if (!scaled && offseted) {
                     M.setTranslation(this.offset);
                 }
 
@@ -8236,8 +8225,7 @@
         },
         draw: function (transform) {
             if (transform === void 0) { transform = true; }
-            //Transformed = !(Scale.X == 1 && Scale.Y == 1 && Scale.Z == 1) || (Rotation.RoughLength!=0 || Offset.RoughLength!=0);
-            this.transformed = !(this.scale.getIsOne()) || (!this.rotation.getEmpty() || !this.offset.getEmpty());
+            this.transformed = !(this.scale.x === 1 && this.scale.y === 1 && this.scale.z === 1) || (this.rotation.getRoughLength() !== 0 || this.offset.getRoughLength() !== 0);
 
             if (this.transformed && transform) {
                 this.updateTranformation();
@@ -21299,14 +21287,22 @@
         }
         if (this.respawnTime > 0) {
             this.model.setVisible(false);
-            if (!this.lastBB.getEmpty()) {
-                if (this.lastBB == null) {
-                    this.lastBB = new BNTest.BoundingBox.ctor();
-                } else {
-                    this.lastBB.max.copyFrom(this.lastBB.min);
-                }
-            }
+            this.lastBB.setPosition(new BNTest.GLVec3.ctor(this.lastBB.min.x, -1000000, this.lastBB.min.z));
+            /* if (!LastBB.Empty)
+                    {
+                        if (LastBB == null)
+                        {
+                            LastBB = new BoundingBox();
+                        }
+                        else
+                        {
+                            LastBB.Max.CopyFrom(LastBB.Min);
+                        }
+                    }*/
             this.respawnTime = (this.respawnTime - 1) | 0;
+            if (this.respawnTime <= 0) {
+                this.setHP(100);
+            }
             if (!this.me.CPU) {
                 //Position = ((Position + RespawnPosition) * 0.5);
                 this.setPosition(BNTest.GLVec3.lerp(this.getPosition(), this.respawnPosition, 0.015));
@@ -21320,10 +21316,11 @@
                 }
                 //Dist.Release();
             }
-            if (this.respawnTime <= 0) {
-                this.setHP(100);
-            }
+
             return;
+        }
+        if (this.respawnTime <= 0 && this.getHP() <= 0) {
+            this.setHP(100);
         }
         BNTest.PlatformerEntity.prototype.update.call(this);
         if (this.canShoot && this.pmesh != null) {
