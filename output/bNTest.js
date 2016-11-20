@@ -4144,11 +4144,20 @@
             FI.add(F);
 
             F = new BNTest.FeatureItem();
-            F.name = "Patchouli";
+            F.name = "Aya";
             F.category = FC;
             F.cost = cost;
             F.requirements = $_.BNTest.GLDemo.f16;
             FI.add(F);
+
+            F = new BNTest.FeatureItem();
+            F.name = "Patchouli";
+            F.category = FC;
+            F.cost = cost;
+            F.requirements = $_.BNTest.GLDemo.f17;
+            FI.add(F);
+
+
 
             this.CS = new BNTest.CharacterSelect(FC);
 
@@ -4169,7 +4178,7 @@
             this.shopButton.position = new BNTest.Vector2(680, 550);
             var A = System.Int32.parse(BNTest.App.storage.MaxLevel);
             //ShopButton.Visible = A > 0;
-            this.shopButton.onClick = Bridge.fn.bind(this, $_.BNTest.GLDemo.f17);
+            this.shopButton.onClick = Bridge.fn.bind(this, $_.BNTest.GLDemo.f18);
 
             this.shop = new BNTest.ShopScreen(FC);
             this.shop.visible = false;
@@ -4224,6 +4233,18 @@
                     i++;
                 }*/
         },
+        clearPlatforms: function () {
+            var i = 0;
+            var LE = this.world.entities;
+            var ln = LE.getCount();
+            while (i < ln) {
+                var E = LE.getItem(i);
+                if (E.active) {
+                    E.active = false;
+                }
+                i = (i + 1) | 0;
+            }
+        },
         nextWave: function (skip) {
             if (skip === void 0) { skip = 10; }
 
@@ -4237,20 +4258,19 @@
             if (this.wave % 4 === 1) {
                 this.playNextSong();
                 //PlayNextSong(wave>1);
-                var i = 0;
-                var LE = this.world.entities;
-                var ln = LE.getCount();
-                while (i < ln) {
-                    var E = LE.getItem(i);
-                    /* if (E.onNextWave)
+                this.clearPlatforms();
+                /* var i = 0;
+                    var LE = world.Entities;
+                    var ln = LE.Count;
+                    while (i < ln)
+                    {
+                        dynamic E = LE[i];
+                        if (E.active)
                         {
-                            E.onNextWave();
-                        }*/
-                    if (E.active) {
-                        E.active = false;
-                    }
-                    i = (i + 1) | 0;
-                }
+                            E.active = false;
+                        }
+                        i++;
+                    }*/
                 //AddRisingPlatforms(14);
                 //AddRisingPlatforms(20);
                 this.addRisingPlatforms(24);
@@ -4389,11 +4409,11 @@
                     {
                         Char = "marisa";
                     }*/
-                var i1 = (Bridge.Int.div((((this.wave - 8) | 0)), 8)) | 0;
-                while (i1 >= bosses.length) {
-                    i1 = (i1 - bosses.length) | 0;
+                var i = (Bridge.Int.div((((this.wave - 8) | 0)), 8)) | 0;
+                while (i >= bosses.length) {
+                    i = (i - bosses.length) | 0;
                 }
-                Char = bosses[i1];
+                Char = bosses[i];
                 var NPC = new BNTest.PlayerCharacter(this.world, new BNTest.Player(true, true), Char);
                 NPC.defense = (12 + (((Bridge.Int.div(this.wave, 3)) | 0))) | 0;
                 this.setNPC(NPC);
@@ -4575,7 +4595,7 @@
                 this.radar.visible = !this.radar.visible;
             }
             if (BNTest.HelperExtensions.containsB$1(System.Int32, BNTest.KeyboardManager.get_this().tappedButtons, 79) && !this.ended && !this.online) {
-                Bridge.global.setTimeout(Bridge.fn.bind(this, $_.BNTest.GLDemo.f18), 40);
+                Bridge.global.setTimeout(Bridge.fn.bind(this, $_.BNTest.GLDemo.f19), 40);
             }
             if (BNTest.HelperExtensions.containsB$1(System.Int32, BNTest.KeyboardManager.get_this().pressedButtons, 219) && (this.frame & 3) === 0) {
                 this.radar.spriteBuffer.height = ($t = Math.min(((this.radar.spriteBuffer.width + 3) | 0), 500), this.radar.spriteBuffer.width = $t, $t);
@@ -4629,6 +4649,7 @@
             if (!this.online) {
                 this.gameDisabled = true;
                 this.clearEntities();
+                this.clearPlatforms();
                 this.waveDelay = 0;
 
                 //PlayMusic("battle");
@@ -4661,7 +4682,7 @@
                         }
                     };*/
                 NP.ondata = Bridge.fn.bind(this, this.onData);
-                NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f19);
+                NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f20);
                 NP.onsuccess = Bridge.fn.bind(this, function () {
                     this.online = true;
                     console.log(System.String.concat("Hosting room:", this.room));
@@ -4689,7 +4710,7 @@
 
                             //self.NP.ActivateDiagnostic();
                         });
-                        NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f20);
+                        NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f21);
                         i = 10;
                     }
                 }), 3000);
@@ -5423,7 +5444,14 @@
         clearEntities: function (coins) {
             if (coins === void 0) { coins = false; }
             BNTest.HelperExtensions.forEach(BNTest.Entity, this.world.entities, function (E) {
-                if ((Bridge.is(E, BNTest.PlayerCharacter) && Bridge.cast(E, BNTest.PlayerCharacter).me.CPU) || (coins && Bridge.is(E, BNTest.Coin)) || Bridge.is(E, BNTest.Projectile)) {
+                var ok = false;
+                if (Bridge.is(E, BNTest.PlayerCharacter)) {
+                    ok = Bridge.cast(E, BNTest.PlayerCharacter).me.CPU || !Bridge.cast(E, BNTest.PlayerCharacter).me.local;
+                } else {
+                    ok = (coins && Bridge.is(E, BNTest.Coin)) || Bridge.is(E, BNTest.Projectile);
+                }
+                //if ((E is PlayerCharacter && ((PlayerCharacter)E).me.CPU || !((PlayerCharacter)E).me.local) || (coins && E is Coin) || E is Projectile)
+                if (ok) {
                     E.alive = false;
                 }
             });
@@ -5729,7 +5757,7 @@
                     this.CTS.visible = true;
                     if (false) {
                         var TMat = new BNTest.WGMatrix();
-                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f21);
+                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f22);
 
                         var Mat = new BNTest.WGMatrix();
                         /* Mat.Mat4MultMatrix(DB.model.Transformation);
@@ -5801,11 +5829,16 @@
                 {
                     T = "".PadRight(pad, ' ') + time;
                 }*/
+            wv = System.String.concat("Wave:", wv);
+            if (this.online) {
+                wv = "Multiplayer";
+            }
             var T = System.String.concat(System.String.alignString((""), -pad, 32), time);
             if (this.started && this.guiVisible) {
 
                 //T = T + "\n" + "Coins:" + localplayer.Character.Coins + "\nLives:" + Math.Max(localplayer.lives, 0) + " Wave:" + wave;
-                T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), "Coins:"), this.localplayer.character.getCoins()), "\nLives:"), Math.max(this.localplayer.lives, 0)), " Wave:"), wv);
+
+                T = System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(System.String.concat(T, "\n"), "Coins:"), this.localplayer.character.getCoins()), "\nLives:"), Math.max(this.localplayer.lives, 0)), " "), wv);
                 if (BNTest.App.DEBUG && this.showVertCounter) {
                     var R = this.world.model.countElements();
                     //T = T + "\n" + R[1] + " Verticies in " + R[0] + " Meshes.";
@@ -5880,7 +5913,8 @@
                 SB = 8;
             } else if (this.waveDelay > 0) {
                 //T = "Wave " + wave;
-                T = System.String.concat("Wave ", wv);
+                //T = "Wave " + wv;
+                T = wv;
                 fs = (120 - Bridge.Int.clip32(this.waveDelay * 0.35)) | 0;
                 //LTS.Alpha = (WaveDelay * 0.004f);
                 this.LTS.alpha = (this.waveDelay * 0.005);
@@ -6111,7 +6145,8 @@
                 while (i < ln) {
                     var peer = peers[i];
                     if (!Bridge.referenceEquals(peer, this.NP.id) && !BNTest.HelperExtensions.containsB(String, PL, peer)) {
-                        this.NP.ping(peer);
+                        //NP.Ping(peer);
+                        this.NP.send("", peer);
                     }
                     i = (i + 1) | 0;
                 }
@@ -6750,14 +6785,17 @@
             return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 6;
         },
         f16: function () {
-            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 25;
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 12;
         },
         f17: function () {
+            return System.Int32.parse(BNTest.App.storage.MaxLevel) >= 25;
+        },
+        f18: function () {
             this.CS.initMenu();
             this.shop.initMenu();
             this.shop.visible = true;
         },
-        f18: function () {
+        f19: function () {
             //if (Global.Confirm("Press OK to start multiplayer battle.\n\nThis feature is unstable, and very basic.\n(If you have issues with this, you may need to restart your browser, close every tab and window of the browser and wait a couple minutes to allow it to fully shut down.)"))
             if (this.wave < 2 && Bridge.global.confirm("Press OK to start multiplayer battle.\n\nThis feature is unstable, and very basic.\n")) {
                 //Online = true;
@@ -6766,13 +6804,13 @@
                 Bridge.global.alert("You can only start a multiplayer battle during wave 1-1");
             }
         },
-        f19: function () {
+        f20: function () {
             console.log(System.String.concat("Host error room:", this.room));
         },
-        f20: function () {
+        f21: function () {
             this.online = false;
         },
-        f21: function (D) {
+        f22: function (D) {
             return Bridge.is(D, BNTest.DonationBox);
         }
     });
@@ -17658,6 +17696,7 @@
         gravity: null,
         bounces: false,
         ifriction: 1,
+        gIfriction: 1,
         rotationSpeed: null,
         multiHit: false,
         bounceForce: 0.9,
@@ -17713,6 +17752,7 @@
             P.anchorDistance = this.anchorDistance;
             P.ignoresTerrain = this.ignoresTerrain;
             P.customBoundingBox = this.customBoundingBox;
+            P.gIfriction = this.gIfriction;
             var T = this.getBehavior(BNTest.LifeSpan);
             if (T != null) {
                 P.addBehavior(new BNTest.LifeSpan(P, T.HP, T.flickerTime));
@@ -17728,6 +17768,9 @@
                 return;
             }
             this.frame = (this.frame + 1) | 0;
+            if (this.gIfriction < 1) {
+                this.speed.scale(this.gIfriction);
+            }
             if ((this.frame & 7) === 0 && this._Attacker != null) {
                 if (this._Attacker.BNTest$ICombatant$getHP() <= 0) {
                     this.alive = false;
@@ -19306,6 +19349,156 @@
         },
         f3: function (J) {
             return J.getBuyable();
+        }
+    });
+
+    Bridge.define("BNTest.ShortShot", {
+        inherits: [BNTest.EntityBehavior,BNTest.IWeaponBehavior],
+        _ammo: 0,
+        _maxAmmo: 1,
+        _shotDelay: 0,
+        _maxShotDelay: 4,
+        _angle: 0,
+        bulletSpeed: 7.0,
+        bulletLifeSpan: 60,
+        bulletGraphic: null,
+        minCoolDown: 60,
+        config: {
+            alias: [
+            "getEnergyCost", "BNTest$IWeaponBehavior$getEnergyCost",
+            "getMaxCooldown", "BNTest$IWeaponBehavior$getMaxCooldown",
+            "setFiringAngle", "BNTest$IWeaponBehavior$setFiringAngle",
+            "getWeaponType", "BNTest$IWeaponBehavior$getWeaponType",
+            "fire", "BNTest$IWeaponBehavior$fire"
+            ]
+        },
+        ctor: function (entity) {
+            this.$initialize();
+            BNTest.EntityBehavior.ctor.call(this, entity);
+        },
+        getEnergyCost: function () {
+            return 5.0;
+        },
+        getMaxCooldown: function () {
+            return (((this._maxAmmo * this._maxShotDelay) | 0)) + this.minCoolDown;
+        },
+        setFiringAngle: function (value) {
+            this._angle = value;
+        },
+        getWeaponType: function () {
+            return 2;
+        },
+        update: function () {
+            if (this._ammo > 0) {
+                this._shotDelay = (this._shotDelay - 1) | 0;
+                if (this._shotDelay <= 0) {
+                    this._shotDelay = this._maxShotDelay;
+                    this._ammo = (this._ammo - 1) | 0;
+                    if (this.entity.getHandledLocally()) {
+                        var ang = BNTest.MathHelper.degreesToRadians(this._angle + 90);
+                        var D = {  };
+                        D.A = this._angle;
+
+                        //float inaccuracy = 0.10f;
+                        var inaccuracy = 0.13;
+                        var V = BNTest.Vector2.fromRadian(-inaccuracy + (Math.random() * (inaccuracy + inaccuracy)) + ang);
+
+                        var V1 = BNTest.Vector2.op_Multiply(V, this.bulletSpeed);
+                        D.SX = V1.x;
+                        //D.SY = -1.5;
+                        D.SY = -0.7;
+                        D.SZ = V1.y;
+                        var P = BNTest.GLVec3.op_Addition$1(this.entity.getCenter(), (V));
+                        D.X = P.x;
+                        //D.Y = P.Y - 15;
+                        //D.Y = P.Y - 5;
+                        D.Y = P.y;
+                        D.Z = P.z;
+
+                        this.customEvent(D);
+                    }
+
+                }
+            }
+            BNTest.EntityBehavior.prototype.update.call(this);
+        },
+        customEvent: function (evt) {
+            this.entity.playSound("pew");
+            var spd = new BNTest.Vector2(evt.SX, evt.SZ);
+            var P = new BNTest.Projectile(this.entity.world, this.entity);
+            P.solid = false;
+            var M = new BNTest.Model(this.entity.game);
+            M.meshes.add(this.bulletGraphic);
+            P.model = M;
+
+            //P.touchDamage = 7.5f;
+            //P.touchDamage = 15f;
+            //P.touchDamage = 35f;
+            //P.touchDamage = 130f;
+            //P.touchDamage = 140f;
+            P.settouchDamage(80.0);
+            //P.Scale = GLVec3.CreateUniform(2);
+            //P.Scale = GLVec3.CreateUniform(2.2);
+            //P.Scale = GLVec3.CreateUniform(2.5);
+            //P.Scale = GLVec3.CreateUniform(1.5);
+            P.setScale(BNTest.GLVec3.createUniform(3.5));
+
+            //P.Speed = new GLVec3() + new Vector2(evt.SX, evt.SY);
+            P.speed = new BNTest.GLVec3.ctor(evt.SX, evt.SY, evt.SZ);
+            //P.Obstruction = true;
+            //P.gravity = new GLVec3(0, 0.05, 0);
+            P.gravity = new BNTest.GLVec3.ctor(0, 0, 0);
+            //P.rotationSpeed = new GLVec3(0, 2, 0);
+            //P.rotationSpeed = new GLVec3(0, 3, 0);
+            //P.rotationSpeed = new GLVec3(0, 3.5, 0);
+            P.rotationSpeed = new BNTest.GLVec3.ctor(0, 25.0, 0);
+            //P.Ifriction = 0.98;
+            P.gIfriction = 0.96;
+            P.bounces = true;
+            P.multiHit = true;
+            P.knockbackPower = 6;
+            //P.AddBehavior(new LifeSpan(P, 60));
+
+            M.rotation.y = evt.A;
+            //M.Rotation.X = 45;
+            var sz = 11 * P.getScale().x;
+            var HSZ = BNTest.GLVec3.createUniform(sz);
+            M.customBoundingBox = new BNTest.BoundingBox.$ctor1(BNTest.GLVec3.op_Multiply$1(HSZ, -1), HSZ);
+            P.customBoundingBox = M.customBoundingBox;
+
+            P.setx(evt.X);
+            P.sety(evt.Y + 2);
+            P.setz(evt.Z);
+
+
+            P.addBehavior(new BNTest.LifeSpan(P, this.bulletLifeSpan));
+            //Vector2 sep = spd.Normalize(40);
+            var sep = spd.normalize(22);
+            //Vector2 up = sep.Rotate(-2.35619f);
+            var up = sep.rotate(-1.57);
+
+            //Vector2 down = sep.Rotate(2.35619f);
+            P.setPosition(BNTest.GLVec3.op_Addition$1(P.getPosition(), up));
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), P.speed.toVector2().rotate(-0.5));
+            this.entity.world.add(P);
+
+            P = P.clone();
+            P.speed = new BNTest.GLVec3.ctor(evt.SX, evt.SY, evt.SZ);
+            P.speed = BNTest.GLVec3.op_Addition$1(new BNTest.GLVec3.ctor(), P.speed.toVector2().rotate(0.5));
+            P.setPosition(BNTest.GLVec3.op_Addition$1(P.getPosition(), BNTest.Vector2.op_Multiply(up, -2)));
+            this.entity.world.add(P);
+            /* P = P.Clone();
+                P.Position += up * -1;
+                entity.world.Add(P);
+
+                P = P.Clone();
+                P.Position += up * -1;
+                entity.world.Add(P);*/
+
+        },
+        fire: function (angle) {
+            this._angle = angle;
+            this._ammo = this._maxAmmo;
         }
     });
 
@@ -21090,7 +21283,7 @@
                 this.addBehavior(new BNTest.BasicSword(this));
             } else if (Bridge.referenceEquals(this.char, "cirno")) {
                 this.addBehavior(new BNTest.RapidWideGun(this));
-            } else if (Bridge.referenceEquals(this.char, "sanae")) {
+            } else if (Bridge.referenceEquals(this.char, "sanae") || Bridge.referenceEquals(this.char, "aya")) {
                 this.addBehavior(new BNTest.RapidSniper(this));
             } else if (Bridge.referenceEquals(this.char, "marisa")) {
                 this.addBehavior(new BNTest.SpreadShot(this));
@@ -21144,6 +21337,9 @@
                 secondaryWeaponGraphic = "object/sawblade";
                 //scsmooth = true;
                 scsnoise = true;
+            }
+            if (Bridge.referenceEquals(this.char, "aya")) {
+                this.addBehavior(new BNTest.ShortShot(this));
             }
             var speedrate = this.game.bulletSpeedRate;
             var minion = me.minion;
