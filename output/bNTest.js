@@ -633,7 +633,7 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Coin Defender",
-            gameVersion: "0.8",
+            gameVersion: "0.8b",
             storage: null,
             IC: null,
             DEBUG: false,
@@ -649,6 +649,7 @@
                     $task2, 
                     $jumpFromFinally, 
                     LT, 
+                    isFirefox, 
                     $asyncBody = Bridge.fn.bind(this, function () {
                         for (;;) {
                             $step = System.Array.min([0,1,2], $step);
@@ -674,10 +675,21 @@
                                 }
                                 case 2: {
                                     $task2.getAwaitedResult();
-                                    window.setTimeout(function () {
-                                        GD.start(BNTest.App.canvas);
-                                        BNTest.App.finish();
-                                    }, 1);
+                                    isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+                                    if (!isFirefox) {
+                                        window.setTimeout(function () {
+                                            GD.start(BNTest.App.canvas);
+                                            BNTest.App.finish();
+                                        }, 1);
+                                    } else {
+                                        window.setTimeout(function () {
+                                            BNTest.AnimationLoader.get_this().setZip("Assets/Images.zip");
+                                            window.setTimeout(function () {
+                                                GD.start(BNTest.App.canvas);
+                                                BNTest.App.finish();
+                                            }, 1);
+                                        }, 100);
+                                    }
                                     //GD.Start(Canvas);
                                     //Finish();
                                     //});
@@ -925,6 +937,8 @@
             var path = "Assets/Images.zip";
             var useJzip = false;
             var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            isFirefox = true;
+            //isFirefox = false;
             /* if (isFirefox)
                 {
                     useJzip = true;
@@ -1435,16 +1449,32 @@
             var TT = T;
 
             var i = 0;
-            var ln = this._behaviors.getCount();
+            var LB = this._behaviors;
+            var ln = LB.getCount();
+
+            var A = TT.$$inheritors; //list of all types that inherit from this type
+            /* var L = new object[0];
+                L[0] = TT;
+                if (A != null)
+                {
+                    while (i < A.Length)
+                    {
+                        L.Push(A[i]);
+                        i++;
+                    }
+                }*/
+
             while (i < ln) {
-                var B = this._behaviors.getItem(i);
+                var B = LB.getItem(i);
                 //if (B is T)
-                if (Bridge.Reflection.isInstanceOfType(B, TT)) {
+                //if (TT.IsInstanceOfType(B))
+                var C = B.ctor;
+                if (Bridge.referenceEquals(TT, C) || (A != null && A.indexOf(C) >= 0)) {
                     return B;
                 }
                 i = (i + 1) | 0;
             }
-            var ret = null;
+            //object ret = null;
             return Bridge.getDefaultValue(T);
             /* return _behaviors.OfType<T>().First();
                 //return _behaviors.First(behavior => behavior is T).Cast<T>();
@@ -1455,11 +1485,15 @@
             var TT = T;
 
             var i = 0;
-            var ln = this._behaviors.getCount();
+            var A = TT.$$inheritors; //list of all types that inherit from this type
+            var LB = this._behaviors;
+            var ln = LB.getCount();
             while (i < ln) {
-                var B = this._behaviors.getItem(i);
+                var B = LB.getItem(i);
                 //if (B is T && func(B.As<T>()))
-                if (Bridge.Reflection.isInstanceOfType(B, TT) && func(B)) {
+                //if (TT.IsInstanceOfType(B) && func(B.As<T>()))
+                var C = B.ctor;
+                if ((Bridge.referenceEquals(TT, C) || (A != null && A.indexOf(C) >= 0)) && func(B)) {
                     return B;
                 }
                 i = (i + 1) | 0;
@@ -1472,7 +1506,7 @@
             //return L.First(func).Cast<T>();
         },
         getTeamColor: function () {
-            if (Bridge.is(this, BNTest.ICombatant)) {
+            if (Bridge.referenceEquals(this.constructor, BNTest.ICombatant)) {
                 if (this.game.gamePlaySettings.gameMode.getTeams()) {
                     return this.game.getTeamColor(this.team);
                 } else {
@@ -1558,17 +1592,18 @@
             if (val === void 0) { val = "x"; }
             if (speed === void 0) { speed = 1.0; }
             if (maxmod === void 0) { maxmod = 1.0; }
-            if (M.Dir == null) {
-                M.Dir = 1;
+            var MD = M;
+            if (MD.Dir == null) {
+                MD.Dir = 1;
             }
-            if (M.Max == null) {
-                M.Max = 45;
+            if (MD.Max == null) {
+                MD.Max = 45;
             }
-            if (M.Spd == null) {
-                M.Spd = 1.5;
+            if (MD.Spd == null) {
+                MD.Spd = 1.5;
             }
-            var max = M.Max;
-            var spd = M.Spd;
+            var max = MD.Max;
+            var spd = MD.Spd;
             if (speed !== 1) {
                 spd *= speed;
             }
@@ -1576,9 +1611,10 @@
                 max *= maxmod;
             }
             //M.Rotation[val] = (double)M.Rotation[val] + (spd * (double)M["Dir"]);
-            M.rotation[val] = M.rotation[val] + (spd * M.Dir);
-            if (Math.abs(M.rotation[val]) >= max) {
-                M.Dir = -M.Dir;
+            var R = M.rotation;
+            R[val] += (spd * MD.Dir);
+            if (Math.abs(R[val]) >= max) {
+                MD.Dir = -MD.Dir;
             }
         },
         cacheBoundingBox: function () {
@@ -1588,9 +1624,10 @@
         updateBehaviors: function () {
             var $t;
             if (this._behaviors != null && !this.behaviorsUpdated) {
+                var LB = this._behaviors;
                 var i = 0;
-                while (i < this._behaviors.getCount()) {
-                    var behavior = this._behaviors.getItem(i);
+                while (i < LB.getCount()) {
+                    var behavior = LB.getItem(i);
                     if (behavior.enabled && Bridge.identity(this._behaviorTicks.getItem(i), ($t = (this._behaviorTicks.getItem(i) + 1) | 0, this._behaviorTicks.setItem(i, $t), $t)) >= behavior.framesPerTick) {
                         this._behaviorTicks.setItem(i, 0);
                         behavior.update();
@@ -1614,9 +1651,11 @@
          */
         update: function () {
             this.model.entity = this;
-            this.model.offset.x += this.speed.x;
-            this.model.offset.y += this.speed.y;
-            this.model.offset.z += this.speed.z;
+            this.model.offset.add(this.speed);
+            /* var O = model.Offset;
+                /*O.X += Speed.X;
+                O.Y += Speed.Y;
+                O.Z += Speed.Z;*/
 
             this.updateBehaviors();
             this.lastBB = this.getBoundingBox();
@@ -1646,18 +1685,21 @@
             }
         },
         draw: function (gl) {
-            var $t;
             /* Ani.Draw(g);
                 if (!HideHitbox && Game.ShowHitbox)
                 {
                     DrawHitbox(g);
                 }*/
             if (this._behaviors != null) {
-                $t = Bridge.getEnumerator(this._behaviors);
-                while ($t.moveNext()) {
-                    var behavior = $t.getCurrent();
-                    behavior.draw(gl);
+                var LB = this._behaviors;
+                var i = 0;
+                while (i < LB.getCount()) {
+                    LB.getItem(Bridge.identity(i, (i = (i + 1) | 0))).draw(gl);
                 }
+                /* foreach (EntityBehavior behavior in _behaviors)
+                    {
+                        behavior.Draw(gl);
+                    }*/
             }
         },
         onRemove: function () {
@@ -3572,6 +3614,7 @@
 
             //executes on google chrome.
             var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            //isFirefox = false;
             //if (!Script.Write<bool>("typeof InstallTrigger !== 'undefined'"))
 
             if (!isFirefox) {
@@ -4189,7 +4232,7 @@
         endWave: function () {
             this.boss = null;
             if (this.wave >= this.waveSelect.wave && !this.skippedWave) {
-                var P = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f3).getPosition();
+                var P = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f19).getPosition();
                 var i = 4;
                 while (i > 0) {
                     var hp = new BNTest.HPOrb(this.world);
@@ -4595,7 +4638,7 @@
                 this.radar.visible = !this.radar.visible;
             }
             if (BNTest.HelperExtensions.containsB$1(System.Int32, BNTest.KeyboardManager.get_this().tappedButtons, 79) && !this.ended && !this.online) {
-                Bridge.global.setTimeout(Bridge.fn.bind(this, $_.BNTest.GLDemo.f19), 40);
+                Bridge.global.setTimeout(Bridge.fn.bind(this, $_.BNTest.GLDemo.f20), 40);
             }
             if (BNTest.HelperExtensions.containsB$1(System.Int32, BNTest.KeyboardManager.get_this().pressedButtons, 219) && (this.frame & 3) === 0) {
                 this.radar.spriteBuffer.height = ($t = Math.min(((this.radar.spriteBuffer.width + 3) | 0), 500), this.radar.spriteBuffer.width = $t, $t);
@@ -4682,7 +4725,7 @@
                         }
                     };*/
                 NP.ondata = Bridge.fn.bind(this, this.onData);
-                NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f20);
+                NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f21);
                 NP.onsuccess = Bridge.fn.bind(this, function () {
                     this.online = true;
                     console.log(System.String.concat("Hosting room:", this.room));
@@ -4710,7 +4753,7 @@
 
                             //self.NP.ActivateDiagnostic();
                         });
-                        NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f21);
+                        NP.onfailure = Bridge.fn.bind(this, $_.BNTest.GLDemo.f22);
                         i = 10;
                     }
                 }), 3000);
@@ -5445,10 +5488,11 @@
             if (coins === void 0) { coins = false; }
             BNTest.HelperExtensions.forEach(BNTest.Entity, this.world.entities, function (E) {
                 var ok = false;
-                if (Bridge.is(E, BNTest.PlayerCharacter)) {
+                var EC = E.constructor;
+                if (Bridge.referenceEquals(EC, BNTest.PlayerCharacter)) {
                     ok = Bridge.cast(E, BNTest.PlayerCharacter).me.CPU || !Bridge.cast(E, BNTest.PlayerCharacter).me.local;
                 } else {
-                    ok = (coins && Bridge.is(E, BNTest.Coin)) || Bridge.is(E, BNTest.Projectile);
+                    ok = (coins && Bridge.referenceEquals(EC, BNTest.Coin)) || Bridge.referenceEquals(EC, BNTest.Projectile);
                 }
                 //if ((E is PlayerCharacter && ((PlayerCharacter)E).me.CPU || !((PlayerCharacter)E).me.local) || (coins && E is Coin) || E is Projectile)
                 if (ok) {
@@ -5507,6 +5551,7 @@
             var scale = 0.1;
             var Y = this.localplayer.character.gety();
             var team = this.localplayer.character.team;
+            var V2 = new BNTest.Vector2();
 
             while (i < ln) {
                 var E = LE.getItem(i);
@@ -5547,11 +5592,12 @@
                 }
 
                 if (ok) {
+                    var EP = E.getPosition();
                     if (E.model != null && (E.model.alpha < 0.15 || !E.model.getVisible())) {
                         //don't show invisible units.
                         ok = false;
                     }
-                    if (Math.abs(E.getPosition().y - Y) > MY) {
+                    if (Math.abs(EP.y - Y) > MY) {
                         ok = false;
                     }
                     if (Bridge.referenceEquals(E, this.localplayer.character)) {
@@ -5560,18 +5606,20 @@
                         sz = (sz + 2) | 0;
                     }
                     if (ok) {
-                        var V = BNTest.Vector2.op_Subtraction(E.getPosition().toVector2(), P);
-                        V.x *= scale;
-                        V.y *= scale;
+                        //var V = E.Position.ToVector2() - P;
+                        V2.x = EP.x - P.x;
+                        V2.y = EP.z - P.y;
+                        V2.x *= scale;
+                        V2.y *= scale;
                         rg.fillStyle = color;
-                        var L = V.getLength();
+                        var L = V2.getLength();
                         if (L > hrsz) {
-                            V = V.normalize(hrsz);
+                            V2 = V2.normalize(hrsz);
                             L = hrsz;
                         }
                         if (L <= hrsz) {
                             var hsz = (sz >> 1);
-                            rg.fillRect((V.x + hrsz - hsz), (V.y + hrsz - hsz), sz, sz);
+                            rg.fillRect((V2.x + hrsz - hsz), (V2.y + hrsz - hsz), sz, sz);
                         }
                     }
                 }
@@ -5757,7 +5805,7 @@
                     this.CTS.visible = true;
                     if (false) {
                         var TMat = new BNTest.WGMatrix();
-                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f22);
+                        var DB = System.Linq.Enumerable.from(this.world.entities).first($_.BNTest.GLDemo.f23);
 
                         var Mat = new BNTest.WGMatrix();
                         /* Mat.Mat4MultMatrix(DB.model.Transformation);
@@ -6121,7 +6169,7 @@
                 if (entity != null && entity.getHP() <= 0) {
                     var attacker = this.entityFromID(D.A);
                     entity.BNTest$ICombatant$onDeath(this.entityFromID(D.S));
-                    if (attacker != null && Bridge.is(attacker, BNTest.PlayerCharacter)) {
+                    if (attacker != null && Bridge.referenceEquals(attacker.constructor, BNTest.PlayerCharacter)) {
                         var PC = attacker;
                         PC.me.score = (PC.me.score + entity.BNTest$ICombatant$getPointsForKilling()) | 0;
                         PC.onKill(entity);
@@ -6447,18 +6495,21 @@
         },
         flushMatrix: function () {
             if (this.matrixNeedsFlush) {
+
+
                 var premult = false;
                 this.matrixNeedsFlush = false;
                 if (premult) {
+                    var W = BNTest.WGMatrix;
 
                     this.temp.copyFrom$1(this.perspectiveMatrix);
                     //matrix.CleanW();
                     //WGMatrix.MultMatrix(temp.mvMatrix, mvMatrix, 4);
                     /* object mo = Script.Write<object>("this.perspectiveMatrix.x(this.mvMatrix);");
                         temp.mvMatrix = mo;*/
-                    BNTest.WGMatrix.mat4MultMatrix(this.temp.mvMatrix, this.mvMatrix);
+                    W.Mat4MultMatrix(this.temp.mvMatrix, this.mvMatrix);
                     //WGMatrix.oldMultMatrix(temp.mvMatrix, mvMatrix);
-                    this.copyToFA(BNTest.WGMatrix.T4, this.FA);
+                    this.copyToFA(W.T4.As(), this.FA);
                 } else {
                     this.flatten$1(this.mvMatrix, this.FA);
                 }
@@ -6746,7 +6797,7 @@
 
         },
         f3: function (E) {
-            return Bridge.is(E, BNTest.DonationBox);
+            return Bridge.referenceEquals(E.constructor, BNTest.DonationBox);
         },
         f4: function (E) {
             return !(Bridge.is(E, BNTest.RisingPlatform));
@@ -6795,7 +6846,10 @@
             this.shop.initMenu();
             this.shop.visible = true;
         },
-        f19: function () {
+        f19: function (E) {
+            return Bridge.is(E, BNTest.DonationBox);
+        },
+        f20: function () {
             //if (Global.Confirm("Press OK to start multiplayer battle.\n\nThis feature is unstable, and very basic.\n(If you have issues with this, you may need to restart your browser, close every tab and window of the browser and wait a couple minutes to allow it to fully shut down.)"))
             if (this.wave < 2 && Bridge.global.confirm("Press OK to start multiplayer battle.\n\nThis feature is unstable, and very basic.\n")) {
                 //Online = true;
@@ -6804,13 +6858,13 @@
                 Bridge.global.alert("You can only start a multiplayer battle during wave 1-1");
             }
         },
-        f20: function () {
+        f21: function () {
             console.log(System.String.concat("Host error room:", this.room));
         },
-        f21: function () {
+        f22: function () {
             this.online = false;
         },
-        f22: function (D) {
+        f23: function (D) {
             return Bridge.is(D, BNTest.DonationBox);
         }
     });
@@ -7677,6 +7731,22 @@
                     }
                     i = (i + size) | 0;
                 }
+            },
+            /**
+             * not yet tested with deep inheritence...
+             *
+             * @static
+             * @public
+             * @this BNTest.HelperExtensions
+             * @memberof BNTest.HelperExtensions
+             * @param   {Function}    T           
+             * @param   {Object}      instance
+             * @return  {boolean}
+             */
+            isInstanceOfTypeFast: function (T, instance) {
+                var C = instance.ctor;
+                var A = T.$$inheritors; //list of all types that inherit from this type
+                return (Bridge.referenceEquals(C, T) || (A != null && A.indexOf(C) >= 0));
             }
         }
     });
@@ -8562,6 +8632,24 @@
                 return list;
                 //SetVerticies(list);
             },
+            fromData: function (OBJ, G) {
+                var M = new BNTest.Mesh(G);
+
+                M.verticies = OBJ.Verticies;
+                M.colors = OBJ.Colors;
+                M.indices = OBJ.Indices;
+
+                M.textureCoords = OBJ.TextureCoords;
+
+                M.offset = OBJ.Offset;
+                M.rotation = OBJ.Rotation;
+                M.scale = OBJ.Scale;
+
+                M.updateMinMax$4(M.verticies);
+                M.needsUpdate = true;
+
+                return M;
+            },
             pushColor: function (array, C) {
                 BNTest.Mesh.pushValue(array, [C.r, C.g, C.b, C.a]);
             },
@@ -8683,7 +8771,8 @@
                 this.needsUpdate = true;
                 //List<GLVec3> L = new List<GLVec3>();
                 var i = 0;
-                while (i < V.length) {
+                var ln = V.length;
+                while (i < ln) {
                     //L.Add(GLVec3.Transform(new GLVec3(V[i++], V[i++], V[i++]), M));
                     this.transformVert(i, M);
                     i = (i + 3) | 0;
@@ -8718,25 +8807,28 @@
                 this.update();
             }
             if (this.cubeVerticesBuffer != null) {
-                var G = this.gl;
+
                 //if (LastDrawn != this)
                 if (BNTest.Mesh.lastDrawn !== this.ID) {
+                    var G = this.gl;
+
                     // Draw the cube by binding the array buffer to the cube's vertices
                     // array, setting attributes, and pushing it to GL.
                     var GL_Float = G.FLOAT;
+                    var ARRAY_BUFFER = G.ARRAY_BUFFER;
 
                     //Script.Write("G.bindBuffer(G.ARRAY_BUFFER,this.cubeVerticesBuffer,G.COPY_READ_BUFFER)");
-                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesBuffer);
+                    G.bindBuffer(ARRAY_BUFFER, this.cubeVerticesBuffer);
                     G.vertexAttribPointer(BNTest.Mesh.getvertexPositionAttribute(), 3, GL_Float, false, 0, 0);
 
                     // Set the colors attribute for the vertices.
 
                     //Script.Write("G.bindBuffer(G.ARRAY_BUFFER,this.cubeVerticesColorBuffer,G.COPY_READ_BUFFER)");
-                    G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
+                    G.bindBuffer(ARRAY_BUFFER, this.cubeVerticesColorBuffer);
                     G.vertexAttribPointer(BNTest.Mesh.getvertexColorAttribute(), 4, GL_Float, false, 0, 0);
 
                     if (BNTest.Mesh.texture && this.textureActive) {
-                        G.bindBuffer(G.ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
+                        G.bindBuffer(ARRAY_BUFFER, this.cubeVerticesTextureCoordBuffer);
                         G.vertexAttribPointer(BNTest.Mesh.getvertexTextureCoord(), 2, GL_Float, false, 0, 0);
                     }
 
@@ -8758,7 +8850,8 @@
             if (keepAlpha === void 0) { keepAlpha = false; }
             var N = System.Array.init(0, 0);
             var i = 0;
-            while (i < this.colors.length) {
+            var ln = this.colors.length;
+            while (i < ln) {
                 N.push(NewColor.r);
                 N.push(NewColor.g);
                 N.push(NewColor.b);
@@ -8812,14 +8905,20 @@
 
                 var offset = (Bridge.Int.div(this.verticies.length, 3)) | 0;
                 var i = 0;
+                var ln;
                 if (!respectOffsets) {
                     this.updateMinMax$4(M.verticies);
                     BNTest.HelperExtensions.pushRange(System.Double, this.verticies, M.verticies);
                 } else {
                     var P = BNTest.GLVec3.op_Subtraction(M.offset, this.offset);
                     i = 0;
-                    while (i < M.verticies.length) {
-                        var N = BNTest.GLVec3.op_Addition(new BNTest.GLVec3.ctor(M.verticies[Bridge.identity(i, (i = (i + 1) | 0))], M.verticies[Bridge.identity(i, (i = (i + 1) | 0))], M.verticies[Bridge.identity(i, (i = (i + 1) | 0))]), P);
+                    var MV = M.verticies;
+                    ln = MV.length;
+                    var N = new BNTest.GLVec3.ctor();
+                    while (i < ln) {
+                        //var N = new GLVec3(MV[i++], MV[i++], MV[i++]) + P;
+                        N.set(MV[Bridge.identity(i, (i = (i + 1) | 0))], MV[Bridge.identity(i, (i = (i + 1) | 0))], MV[Bridge.identity(i, (i = (i + 1) | 0))]);
+                        N.add(P);
                         this.updateMinMax$1(N);
                         this.verticies.push(N.x);
                         this.verticies.push(N.y);
@@ -8837,8 +8936,10 @@
                 BNTest.HelperExtensions.pushRange(System.Double, this.textureCoords, M.textureCoords);
 
                 i = 0;
-                while (i < M.indices.length) {
-                    this.indices.push((((M.indices[i] + offset) | 0)));
+                ln = M.indices.length;
+                var ind = M.indices;
+                while (i < ln) {
+                    this.indices.push((((ind[i] + offset) | 0)));
                     i = (i + 1) | 0;
                 }
                 this.needsUpdate = true;
@@ -8861,17 +8962,16 @@
                     }
                 }
 
-                if (this.rotation.getRoughLength() !== 0) {
-                    if (this.rotation.y !== 0) {
-                        M.rotateY(this.rotation.y * 0.01745329251);
-                    }
-                    if (this.rotation.x !== 0) {
-                        M.rotateX(this.rotation.x * 0.01745329251);
-                    }
-                    if (this.rotation.z !== 0) {
-                        M.rotateZ(this.rotation.z * 0.01745329251);
-                    }
+                if (this.rotation.y !== 0) {
+                    M.rotateY(this.rotation.y * 0.01745329251);
                 }
+                if (this.rotation.x !== 0) {
+                    M.rotateX(this.rotation.x * 0.01745329251);
+                }
+                if (this.rotation.z !== 0) {
+                    M.rotateZ(this.rotation.z * 0.01745329251);
+                }
+
                 if (!scaled && offseted) {
                     M.setTranslation(this.offset);
                 }
@@ -8899,7 +8999,7 @@
             if (BNTest.Mesh.enabled) {
                 this.drawElements();
             }
-            if (this.transformed) {
+            if (this.transformed && transform) {
                 this.getGD().mvPopMatrix();
             }
         },
@@ -8944,7 +9044,8 @@
         getVerticies: function () {
             var ret = System.Array.init(0, null);
             var i = 0;
-            while (i < this.verticies.length) {
+            var ln = this.verticies.length;
+            while (i < ln) {
                 var X = this.verticies[i];
                 i = (i + 1) | 0;
                 var Y = this.verticies[i];
@@ -8958,7 +9059,8 @@
         setVerticies: function (V) {
             this.verticies = System.Array.init(0, 0);
             var i = 0;
-            while (i < V.length) {
+            var ln = V.length;
+            while (i < ln) {
                 this.verticies.push(V[i].x);
                 this.verticies.push(V[i].y);
                 this.verticies.push(V[i].z);
@@ -8969,7 +9071,8 @@
         getIndicies: function () {
             var ret = System.Array.init(0, null);
             var k = 0;
-            while (k < this.indices.length) {
+            var ln = this.indices.length;
+            while (k < ln) {
                 var i = (this.indices[k] * 3) | 0;
                 var X = this.verticies[i];
                 i = (i + 1) | 0;
@@ -9008,10 +9111,15 @@
             var key;
             var i = 0;
             var ln = this.colors.length;
-            var LC = null;
+            var LC = new BNTest.GLColor(-1, -1, -1, -1);
             var VC = null;
+            var C = new BNTest.GLColor();
             while (i < ln) {
-                var C = new BNTest.GLColor(this.colors[i], this.colors[((i + 1) | 0)], this.colors[((i + 2) | 0)], this.colors[((i + 3) | 0)]);
+                //var C = new GLColor(Colors[i], Colors[i+1], Colors[i+2], Colors[i+3]);
+                C.r = this.colors[i];
+                C.g = this.colors[((i + 1) | 0)];
+                C.b = this.colors[((i + 2) | 0)];
+                C.a = this.colors[((i + 3) | 0)];
                 key = null;
                 if (LC != null && C.equals(LC)) {
                     if (VC != null) {
@@ -9050,7 +9158,8 @@
                     }
                 }
                 i = (i + 4) | 0;
-                LC = C;
+                //LC = C;
+                LC.copy(C);
             }
             this.needsUpdate = true;
 
@@ -9146,6 +9255,19 @@
 
 
             return M;
+        },
+        getData: function () {
+            var ret = {  };
+            ret.Verticies = this.verticies;
+            ret.Colors = this.colors;
+            ret.Indices = this.indices;
+            ret.TextureCoords = this.textureCoords;
+
+            ret.Offset = this.offset;
+            ret.Rotation = this.rotation;
+            ret.Scale = this.scale;
+
+            return ret;
         },
         unloadBuffers: function () {
             if (!this.hasBuffer || this.clonedBuffer || this.doNotUnload) {
@@ -9385,6 +9507,7 @@
             this.needsUpdate = true;
         },
         addCube2: function (Min, Max, C, invisible, interpolation) {
+            var $t;
             if (interpolation === void 0) { interpolation = null; }
             if (invisible == null) {
                 invisible = System.Array.init(6, false);
@@ -9412,7 +9535,8 @@
             GV[5].set(Max.x, Min.y, Max.z);
             GV[6].set(Min.x, Max.y, Max.z);
             GV[7].set(Max.x, Max.y, Max.z);
-            var temp = new BNTest.GLVec3.ctor();
+            //GLVec3 temp = new GLVec3();
+
             var swap;
             var i = 0;
             var total = 0;
@@ -9424,12 +9548,17 @@
                 i = (i + 1) | 0;
             }
             if (interpolation != null) {
+                BNTest.Mesh.temp.x = ($t = (BNTest.Mesh.temp.z = 0, 0), BNTest.Mesh.temp.y = $t, $t);
                 //if true, ends are round shaped, if false tips are pointy.
                 var quarter = true;
+
                 /* bool eighth = false;
                     bool half = true;*/
                 //GLVec3 center = Min + ((Max - Min) * 0.5);
-                var center = BNTest.GLVec3.getCenter(Min, Max);
+                var center = BNTest.Mesh.temp2;
+                BNTest.GLVec3.getCenter$1(Min, Max, BNTest.Mesh.temp2);
+
+                //GLVec3 center = GLVec3.GetCenter(Min, Max);
                 i = 0;
                 var GVL = GV.length;
 
@@ -9438,7 +9567,7 @@
                         if (quarter) {
                             //GV[i] = new GLVec3Center(GV[i],center);
                             swap = GV[i];
-                            BNTest.GLVec3.getCenter$1(swap, center, temp);
+                            BNTest.GLVec3.getCenter$1(swap, center, BNTest.Mesh.temp);
                             //if (eighth)
                             //{
                             //GLVec3.GetCenter(temp, center, temp);
@@ -9447,8 +9576,8 @@
                             //{
                             //GLVec3.GetCenter(temp, swap, temp);
                             //}
-                            GV[i] = temp;
-                            temp = swap;
+                            GV[i] = BNTest.Mesh.temp;
+                            BNTest.Mesh.temp = swap;
                         } else if (total < 4) {
                             GV[i] = center;
                         }
@@ -10088,6 +10217,31 @@
 
     Bridge.define("BNTest.Model", {
         statics: {
+            fromData: function (OBJ, G) {
+                var ret = new BNTest.Model(G);
+                ret.color = OBJ.color;
+                ret.alpha = OBJ.alpha;
+                ret.scale = OBJ.Scale;
+
+                var L = OBJ.meshes;
+                var R = System.Array.init(L.length, null);
+                var i = 0;
+                while (i < L.length) {
+                    R[i] = BNTest.Mesh.fromData(L[i], G);
+                    i = (i + 1) | 0;
+                }
+                ret.meshes = System.Linq.Enumerable.from(R).toList(BNTest.Mesh);
+                L = OBJ.children;
+                var R2 = System.Array.init(L.length, null);
+                i = 0;
+                while (i < L.length) {
+                    R2[i] = BNTest.Model.fromData(L[i], G);
+                    i = (i + 1) | 0;
+                }
+                ret.children = System.Linq.Enumerable.from(R2).toList(BNTest.Model);
+
+                return ret;
+            },
             doSmoothen: function (M, strength) {
                 var $step = 0,
                     $task1, 
@@ -10396,6 +10550,28 @@
             this.alpha = M.alpha;
             this.scale = M.scale;
         },
+        getData: function () {
+            var ret = {  };
+            ret.color = this.color;
+            ret.alpha = this.alpha;
+            ret.Scale = this.scale;
+
+            var L = new (System.Collections.Generic.List$1(Object))();
+            var i = 0;
+            while (i < this.meshes.getCount()) {
+                L.add(this.meshes.getItem(i).getData());
+                i = (i + 1) | 0;
+            }
+            ret.meshes = L.toArray();
+            L = new (System.Collections.Generic.List$1(Object))();
+            i = 0;
+            while (i < this.children.getCount()) {
+                L.add(this.children.getItem(i).getData());
+                i = (i + 1) | 0;
+            }
+            ret.children = L.toArray();
+            return ret;
+        },
         smoothen: function (strength) {
             var $step = 0,
                 $jumpFromFinally, 
@@ -10475,13 +10651,14 @@
                 var msh = this.meshes.getItem(i);
                 //msh.Update();
                 msh.updateTranformation();
-                msh.finalMat.copyFrom(this.finalMat);
-                //msh.FinalMat.MultiplyMatrix(msh.Transformation);
+                var MF = msh.finalMat;
+                MF.copyFrom(this.finalMat);
+                //MF.MultiplyMatrix(msh.Transformation);
 
-                msh.finalMat.mat4MultMatrix(msh.transformation);
+                MF.mat4MultMatrix(msh.transformation);
 
-                //msh.FinalMat.CopyFrom(msh.Transformation);
-                //msh.FinalMat.MultiplyMatrix(msh.FinalMat);
+                //MF.CopyFrom(msh.Transformation);
+                //MF.MultiplyMatrix(msh.FinalMat);
 
                 msh.drawOrder = this.drawOrder;
                 i = (i + 1) | 0;
@@ -10620,6 +10797,35 @@
             //swap the clone properties, so the main backup is the one to have buffer clearing permissions.
             BNTest.HelperExtensions.forEach(BNTest.Mesh, NM.getMeshes(), $_.BNTest.ModelCache.f1);
             BNTest.HelperExtensions.forEach(BNTest.Mesh, model.getMeshes(), $_.BNTest.ModelCache.f2);
+        },
+        getDataString: function () {
+            return JSON.stringify(this.getData());
+        },
+        fromDataString: function (OBJ, G) {
+            this.fromData(JSON.parse(OBJ), G);
+        },
+        getData: function () {
+            var ret = {  };
+            ret.keys = System.Linq.Enumerable.from(this.data.getKeys()).toArray();
+            var val = System.Linq.Enumerable.from(this.data.getValues()).toArray();
+            var values = System.Array.init(val.length, null);
+            var i = 0;
+            while (i < val.length) {
+                values[i] = val[i].getData();
+                i = (i + 1) | 0;
+            }
+            ret.values = values;
+            return ret;
+        },
+        fromData: function (OBJ, G) {
+            //data.Clear();
+            var keys = OBJ.keys;
+            var values = OBJ.values;
+            var i = 0;
+            while (i < keys.length) {
+                this.data.set(keys[i], BNTest.Model.fromData(values[i], G));
+                i = (i + 1) | 0;
+            }
         }
     });
 
@@ -13628,16 +13834,17 @@
                 t[3] = D[3];
             },
             mat4MultMatrix: function (matrix1, matrix2) {
+                var W = BNTest.WGMatrix;
                 //prepare for mat4 usage
-                BNTest.WGMatrix.flatten$1(matrix1, BNTest.WGMatrix.T1);
-                BNTest.WGMatrix.flatten$1(matrix2, BNTest.WGMatrix.T2);
+                W.flatten(matrix1, BNTest.WGMatrix.T1);
+                W.flatten(matrix2, BNTest.WGMatrix.T2);
                 var a = BNTest.WGMatrix.T1;
                 var b = BNTest.WGMatrix.T2;
                 var c = BNTest.WGMatrix.T4;
                 mat4mult(c,a,b);
                 //Mat4.Multiply(T3, T1, T2);
                 //migrate the new data into the matrix.
-                BNTest.WGMatrix.deflat(BNTest.WGMatrix.T4, matrix1.elements);
+                W.deflat(BNTest.WGMatrix.T4, matrix1.elements.As());
             },
             deflat: function (M, destination) {
                 /* var D = destination[0];
@@ -13694,10 +13901,12 @@
             },
             multMatrix: function (matrix1, matrix2, l) {
                 if (l === void 0) { l = 3; }
+                var W = BNTest.WGMatrix;
                 var a = matrix1.elements;
-                BNTest.WGMatrix.copyFromInverted(matrix2.elements, BNTest.WGMatrix.tbmatrix);
-                var b = BNTest.WGMatrix.tbmatrix;
-                var c = BNTest.WGMatrix.tmatrix;
+                //CopyFromInverted(matrix2.As<dynamic>().elements, W.tbmatrix);
+                var b = W.tbmatrix;
+                W.copyFromInverted(matrix2.elements, b);
+                var c = W.tmatrix;
                 //var l = 3;
                 /* var l = 3;
                 if (mat4)
@@ -13710,22 +13919,39 @@
                 var ci;
                 var ai;
                 var bj;
-                for (var i = 0; i < l; i = (i + 1) | 0) {
+
+                var ai0;
+                var ai1;
+                var ai2;
+                var ai3;
+                /* int j;*/
+                var i;
+                for (i = 0; i < l; i++) {
                     ci = c[i];
                     ai = a[i];
                     //bi = b[i];
-                    var ai0 = ai[0];
-                    var ai1 = ai[1];
-                    var ai2 = ai[2];
-                    var ai3 = ai[3];
-                    for (var j = 0; j < 4; j = (j + 1) | 0) {
+                    ai0 = ai[0];
+                    ai1 = ai[1];
+                    ai2 = ai[2];
+                    ai3 = ai[3];
+                    /* for (j = 0; j < 4; Script.Write("j++"))
+                    {
                         bj = b[j];
                         //ci[j] = ai0 * b[0][j] + ai1 * b[1][j] + ai2 * b[2][j] + ai3 * b[3][j];
                         ci[j] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
-                    }
+                    }*/
+
+                    bj = b[0];
+                    ci[0] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
+                    bj = b[1];
+                    ci[1] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
+                    bj = b[2];
+                    ci[2] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
+                    bj = b[3];
+                    ci[3] = ai0 * bj[0] + ai1 * bj[1] + ai2 * bj[2] + ai3 * bj[3];
                 }
                 matrix1.elements = c;
-                BNTest.WGMatrix.tmatrix = a;
+                W.tmatrix = a;
             },
             oldMultMatrix: function (matrix1, matrix2) {
                 var a = matrix1.elements;
@@ -13997,7 +14223,7 @@
             return this.mvMatrix;
         },
         equals: function (o) {
-            if (Bridge.is(o, BNTest.WGMatrix)) {
+            if (Bridge.referenceEquals(o.constructor, BNTest.WGMatrix)) {
                 var D = this.mvMatrix;
                 var D2 = o.mvMatrix;
                 var i = 0;
@@ -14291,15 +14517,17 @@
             //Cam = Offset * -1;
             this.cam = BNTest.GLVec3.op_UnaryNegation(this.getOffset());
             var i = 0;
-            while (i < this.entities.getCount()) {
-                var E = this.entities.getItem(i);
+            var LE = this.entities;
+            while (i < LE.getCount()) {
+                var E = LE.getItem(i);
                 E.update();
                 if (!E.alive) {
                     //entities.RemoveAt(i);
                     this.remove(E);
                     //i--;
                 } else {
-                    i = (i + 1) | 0;
+                    //i++;
+                    i++;
                 }
             }
             this.updateCollisions();
@@ -14353,7 +14581,8 @@
                 if ((E.solid || E.obstruction) && E != exclusion && EB != null && !EB.getEmpty() && EB.contains(Position)) {
                     ret.push(E);
                 }
-                i = (i + 1) | 0;
+                //i++;
+                i++;
             }
             return ret;
         },
@@ -14371,7 +14600,8 @@
                 if (E.solid && E != exclusion && E.lastBB != null && !EB.getEmpty() && EB.intersection$2(box)) {
                     ret.push(E);
                 }
-                i = (i + 1) | 0;
+                //i++;
+                i++;
             }
             return ret;
         },
@@ -14508,7 +14738,8 @@
                     //Game.FlushMatrix();
                     M.render(false);
                 }
-                i = (i + 1) | 0;
+                //i++;
+                i++;
             }
         },
         updateAttackCollisions: function () {
@@ -14532,7 +14763,7 @@
                 if (E.gettouchDamage) {
                     LHE.push(E);
                 }
-                i = (i + 1) | 0;
+                i++;
             }
 
             i = 0;
@@ -14555,9 +14786,10 @@
                             }
                         }
                     }
-                    ji = (ji + 1) | 0;
+                    //ji++;
+                    ji++;
                 }
-                i = (i + 1) | 0;
+                i++;
             }
             /* LHE.ForEach(HE => LC.ForEach(C =>
                 {
@@ -17807,11 +18039,17 @@
                 var HS = BNTest.GLVec3.op_Multiply$1(this.speed, 0.5);
                 var C = this.lastBB.getCenter();
                 if (!this.ignoresTerrain) {
+                    var W = this.game.world;
                     if (!this.bounces) {
-                        var Solids = BNTest.HelperExtensions.whereB(BNTest.Entity, this.game.world.findObstructionCollision$1(BNTest.GLVec3.op_Addition(C, (BNTest.GLVec3.op_Addition(this.speed, HS))), this), $_.BNTest.Projectile.f1);
+                        //Entity[] Solids = Game.world.FindObstructionCollision(C + (Speed + HS), this).WhereB(E => (E.As<dynamic>().onKill == null));
 
-                        BNTest.HelperExtensions.pushRange(BNTest.Entity, Solids, BNTest.HelperExtensions.whereB(BNTest.Entity, this.game.world.findObstructionCollision$1(C, this), $_.BNTest.Projectile.f1));
-                        Solids = BNTest.HelperExtensions.whereB(BNTest.Entity, Solids, Bridge.fn.bind(this, $_.BNTest.Projectile.f2));
+                        //Solids.PushRange(Game.world.FindObstructionCollision(C, this).WhereB(E => (E.As<dynamic>().onKill == null)));
+                        //Solids = Solids.WhereB(E => !(E is Projectile) || (E.As<Projectile>().Attacker != Attacker));
+
+                        var Solids = W.findObstructionCollision$1(BNTest.GLVec3.op_Addition(C, (BNTest.GLVec3.op_Addition(this.speed, HS))), this);
+                        BNTest.HelperExtensions.pushRange(BNTest.Entity, Solids, W.findObstructionCollision$1(C, this));
+
+                        Solids = BNTest.HelperExtensions.whereB(BNTest.Entity, Solids, Bridge.fn.bind(this, $_.BNTest.Projectile.f1));
                         if (Solids.length > 0) {
                             this.alive = false;
                         }
@@ -17820,7 +18058,7 @@
                         var SY = LBS.y;
                         //List<Entity> Solids;
                         //Solids = Game.world.FindSolidCollision(LastBB + (new GLVec3(Speed.X, 0, Speed.Z)), this).Where(E => (E.As<dynamic>().onKill == null) && E.LastBB.Size.Y > SY).ToList();
-                        var Solids1 = BNTest.HelperExtensions.whereB(BNTest.Entity, this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(this.speed.x, 0, this.speed.z))), this), function (E) {
+                        var Solids1 = BNTest.HelperExtensions.whereB(BNTest.Entity, W.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(this.speed.x, 0, this.speed.z))), this), function (E) {
                             return (E.onKill == null) && E.lastBB.getSize().y > SY;
                         });
                         if (Solids1.length > 0) {
@@ -17830,7 +18068,7 @@
 
                         var Y = this.gety();
                         var D = Bridge.compare((0.0), this.speed.y);
-                        Solids1 = BNTest.HelperExtensions.whereB(BNTest.Entity, this.game.world.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(0, this.speed.y, 0))), this), Bridge.fn.bind(this, function (E) {
+                        Solids1 = BNTest.HelperExtensions.whereB(BNTest.Entity, W.findSolidCollision(BNTest.BoundingBox.op_Addition(this.lastBB, (new BNTest.GLVec3.ctor(0, this.speed.y, 0))), this), Bridge.fn.bind(this, function (E) {
                             return (E.onKill == null) && Bridge.compare(this.gety(), E.gety()) === D;
                         }));
                         if (Solids1.length > 0) {
@@ -17881,10 +18119,7 @@
 
     Bridge.apply($_.BNTest.Projectile, {
         f1: function (E) {
-            return (E.onKill == null);
-        },
-        f2: function (E) {
-            return !(Bridge.is(E, BNTest.Projectile)) || (!Bridge.referenceEquals(E.getAttacker(), this.getAttacker()));
+            return E.onKill == null && (!(Bridge.referenceEquals(E.constructor, BNTest.Projectile)) || (!Bridge.referenceEquals(E.getAttacker(), this.getAttacker())));
         }
     });
 
@@ -20333,7 +20568,7 @@
         inherits: [BNTest.Sprite],
         statics: {
             choiceAvailable: function () {
-                var max = System.Int32.parse(BNTest.App.storage.MaxLevel);
+                var max = System.Int32.parse(BNTest.App.storage.MaxLevel) + 1;
                 return max > 8;
             }
         },
@@ -20374,7 +20609,7 @@
         },
         adjustWave: function (amount) {
             var wv = (this.wave + amount) | 0;
-            var max = System.Int32.parse(BNTest.App.storage.MaxLevel);
+            var max = System.Int32.parse(BNTest.App.storage.MaxLevel) + 1;
             if (wv >= 1 && wv <= max) {
                 this.wave = wv;
                 this.updateDisplay();
@@ -20732,9 +20967,11 @@
         stepheight: 10,
         fscframe: 0,
         FSC: null,
+        tSpeed: null,
         config: {
             init: function () {
                 this.FSC = System.Array.init(0, null);
+                this.tSpeed = new BNTest.GLVec3.ctor();
             }
         },
         ctor: function (world) {
@@ -21042,7 +21279,7 @@
                 this.applyFriction();
             }
             var ospd = this.speed;
-            this.speed = new BNTest.GLVec3.ctor();
+            this.speed = this.tSpeed;
             BNTest.ControllableEntity.prototype.update.call(this);
             this.speed = ospd;
 
@@ -22591,7 +22828,7 @@
         } else {
             cval = 10;
         }
-        if (source != null && source.BNTest$IHarmfulEntity$getAttacker() != null && Bridge.is(source.BNTest$IHarmfulEntity$getAttacker(), BNTest.PlayerCharacter)) {
+        if (source != null && source.BNTest$IHarmfulEntity$getAttacker() != null && Bridge.referenceEquals(source.BNTest$IHarmfulEntity$getAttacker().constructor, BNTest.PlayerCharacter)) {
             var PC = source.BNTest$IHarmfulEntity$getAttacker();
             //The combo hasn't counted up yet, so we add one, to account for that.
             var combo = (PC.combo + 1) | 0;
