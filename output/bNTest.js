@@ -150,6 +150,10 @@
                     BNTest.AnimationLoader.__this = new BNTest.AnimationLoader();
                 }
             },
+            init$1: function (Archive) {
+                BNTest.AnimationLoader.__this = new BNTest.AnimationLoader();
+                BNTest.AnimationLoader.__this.archive = Archive;
+            },
             getPixels: function (image) {
                 //HTMLCanvasElement tmp = new HTMLCanvasElement();
                 var tmp = BNTest.AnimationLoader.GP;
@@ -195,6 +199,7 @@
         spritesheetimage: null,
         queued: null,
         ready: false,
+        archive: null,
         ctor: function () {
             this.$initialize();
             this._data = new (System.Collections.Generic.Dictionary$2(String,System.Collections.Generic.List$1(HTMLImageElement)))();
@@ -253,7 +258,40 @@
                 }
             }
             //var callback = Script.Write<object>("this._LoadAnimation");
-            var I = new Image();
+            var I;
+            if (this.archive != null) {
+                var P = path;
+                if (System.String.indexOf(P, BNTest.AnimationLoader.directory) === 0) {
+                    P = P.substr(BNTest.AnimationLoader.directory.length);
+                }
+                I = this.archive.getImage(System.String.concat(P, ".png"));
+                if (I != null) {
+                    list.add(I);
+                } else {
+                    var j = 0;
+                    var Sani = System.String.concat(P, "_");
+                    while (true) {
+                        I = this.archive.getImage(System.String.concat(System.String.concat(Sani, (Bridge.identity(j, (j = (j + 1) | 0)))), ".png"));
+                        if (I == null) {
+                            break;
+                        } else {
+                            list.add(I);
+                        }
+                    }
+                    /* do
+                        {
+                            I = Archive.GetImage(ani + "_" + j + ".png");
+                            if (I != null)
+                            {
+                                A.Add(I);
+                            }
+                        } while (I != null);*/
+                }
+                this._Finish(path);
+                return;
+            } else {
+                I = new Image();
+            }
 
             var self = BNTest.AnimationLoader.get_this();
             //Script.Write("I.onload = function() {self._LoadAnimation(list,path,index+1,_recursion,_error,I);}");
@@ -633,7 +671,8 @@
             _lSize: -1,
             _lHeight: -1,
             gameName: "Coin Defender",
-            gameVersion: "0.8b",
+            gameVersion: "0.8c",
+            JSON: null,
             storage: null,
             IC: null,
             DEBUG: false,
@@ -897,7 +936,7 @@
                     Width = 1280,
                     Height = 960
                 };*/
-            BNTest.AnimationLoader.init();
+
             //Document.Title = GameName + " "+GameVersion+" by:RSGmaker";
 
             BNTest.WGMatrix.init();
@@ -945,6 +984,18 @@
                 }*/
             var LT = document.getElementById("loadtext");
 
+            BNTest.JSONArchive.open("Assets/Images.JSON", function (json) {
+                BNTest.App.JSON = json;
+                LT.textContent = "Downloading 3d content, Please Wait...";
+
+                BNTest.App.JSON.preloadImages(function () {
+                    BNTest.AnimationLoader.init$1(json);
+                    GD.start(CV);
+                    BNTest.App.finish();
+                });
+            });
+
+            return;
             if (useJzip) {
                 LT.textContent = "Downloading 3d content, Please Wait...";
                 //LoadZip(GD,CV);
@@ -8084,6 +8135,76 @@
             this.map = map;
             this.antimap = antimap;
             this.axis = axis;
+        }
+    });
+
+    Bridge.define("BNTest.JSONArchive", {
+        statics: {
+            open: function (ArchiveFile, action) {
+                var XHR = new XMLHttpRequest();
+                //XHR.ResponseType = XMLHttpRequestResponseType.Blob;
+                XHR.onload = function (Evt) {
+                    action(new BNTest.JSONArchive(XHR.responseText));
+                };
+                XHR.open("GET", ArchiveFile, false);
+                XHR.send();
+                //if (XHR.Status)
+
+            }
+        },
+        data: null,
+        images: null,
+        config: {
+            init: function () {
+                this.data = new (System.Collections.Generic.Dictionary$2(String,String))();
+                this.images = new (System.Collections.Generic.Dictionary$2(String,HTMLImageElement))();
+            }
+        },
+        ctor: function (Archive) {
+            this.$initialize();
+            //this.Archive = Archive;
+            var D = JSON.parse(Archive);
+            var i = 0;
+            var ln = D.length;
+            while (i < ln) {
+                var A = D[Bridge.identity(i, (i = (i + 1) | 0))];
+                this.data.set(A[0].toLowerCase(), A[1]);
+            }
+        },
+        preloadImages: function (action, delay) {
+            if (delay === void 0) { delay = 100; }
+            var K = System.Linq.Enumerable.from(this.data.getKeys()).toArray();
+            var i = 0;
+            while (i < this.data.getCount()) {
+                var A = K[i];
+                this.getImage(A);
+                i = (i + 1) | 0;
+            }
+            Bridge.global.setTimeout(action, delay);
+        },
+        getData: function (file) {
+            var f = file.toLowerCase();
+            if (this.data.containsKey(f)) {
+                return this.data.get(f);
+            }
+            return null;
+        },
+        getImage: function (file) {
+            var f = file.toLowerCase();
+            if (this.images.containsKey(f)) {
+                return this.images.get(f);
+            }
+            var D = this.getData(f);
+            if (D == null) {
+                return null;
+            }
+            var ret = new Image();
+            ret.onload = function (E) {
+                console.log(System.String.concat(System.String.concat("loaded ", f), " from JSON!"));
+            };
+            ret.src = System.String.concat("data:image/png;base64,", D);
+            this.images.set(f, ret);
+            return ret;
         }
     });
 
